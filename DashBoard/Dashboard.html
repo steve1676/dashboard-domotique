@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Domotique</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- ── Page Accueil ── -->
+<div id="home" class="page container">
+
+    <div class="clock">
+        <h1 id="time">00:00</h1>
+        <p id="date">Chargement...</p>
+    </div>
+
+    <div class="weather-card">
+
+        <!-- Loader cube -->
+        <div id="weather-loader" class="weather-loader-wrap">
+            <span class="loader"></span>
+        </div>
+
+        <div id="weather-content" class="weather-content loading">
+
+            <div id="city" class="city">
+                Localisation...
+            </div>
+
+            <div class="main-weather">
+                <div id="weatherIcon" class="weather-icon">☀️</div>
+                <div id="temp" class="temperature">--</div>
+            </div>
+
+            <div class="details">
+                <div>🌡️ Ressenti : <span id="feels">--</span>°C</div>
+                <div>💧 Humidité : <span id="humidity">--</span>%</div>
+            </div>
+
+            <div id="forecast" class="forecast"></div>
+
+        </div>
+
+    </div>
+
+    <div class="indoor">
+        🏠 Intérieur : 21.5°C
+    </div>
+
+    <!-- Section Transports -->
+    <div class="transport-card">
+        <div class="transport-title">🚌 Prochains passages — Mangin</div>
+        <div id="transport-list">
+            <div class="transport-loading">Chargement des horaires...</div>
+        </div>
+    </div>
+
+</div>
+
+
+<!-- ── Page Appareils ── -->
+<div id="allDevice" class="page container" style="display:none;">
+    <h1>Tous les Appareils</h1>
+    <p>Gestion des lumières.</p>
+
+    <div class="weather-card">
+
+        <h2 style="margin-bottom:20px;">
+            💡 Éclairage
+        </h2>
+
+        <div class="device">
+            <span>Led Placard</span>
+            <button class="toggle" onclick="toggle(this)">OFF</button>
+        </div>
+
+        <div class="device">
+            <span>Chambre</span>
+            <button class="toggle" onclick="toggle(this)">OFF</button>
+        </div>
+
+        <div class="device">
+            <span>Salle de bain</span>
+            <button class="toggle" onclick="toggle(this)">OFF</button>
+        </div>
+
+        <button class="all-off" onclick="allOff()">
+            Éteindre toutes les lumières
+        </button>
+
+    </div>
+</div>
+
+
+<!-- ── Page Température ── -->
+<div id="temperature" class="page container" style="display:none;">
+    <h1>🌡️ Température</h1>
+    <p>Thermostats et capteurs.</p>
+</div>
+
+
+<!-- ── Page Caméras ── -->
+<div id="camera" class="page container" style="display:none;">
+    <h1>📷 Caméras</h1>
+    <p>Flux vidéo à venir.</p>
+</div>
+
+
+<!-- ── Page Paramètres ── -->
+<div id="settings" class="page container" style="display:none;">
+    <h1>⚙️ Paramètres</h1>
+    <p>Configuration du dashboard.</p>
+    <div class="weather-card">
+
+        <h2 style="margin-bottom:20px;">
+            🖥️ Affichage
+        </h2>
+
+        <button class="toggle" onclick="fullscreen()">
+            ⛶ Plein écran
+        </button>
+
+    </div>
+</div>
+
+
+<!-- ── NavBar ── -->
+<div class="navbar">
+    <button class="nav-btn active-nav" onclick="showPage('home', this)">🏠</button>
+    <button class="nav-btn" onclick="showPage('allDevice', this)">📟</button>
+    <button class="nav-btn" onclick="showPage('temperature', this)">🌡️</button>
+    <button class="nav-btn" onclick="showPage('camera', this)">📷</button>
+    <button class="nav-btn" onclick="showPage('settings', this)">⚙️</button>
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
