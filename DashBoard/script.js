@@ -189,7 +189,7 @@ async function updateTransports() {
         next2.forEach(h => {
             const rt = h.is_rt ? "🟢" : "⚪";
             html += `<div class="transport-row">
-                <span class="line-badge" style="background:#e2001a;color:white">2</span>
+                <span class="line-badge" style="background:#E30613;color:white">2</span>
                 <span class="transport-dest">Orvault Grand Val</span>
                 <span class="transport-time">${waitLabel(h.time)} ${rt}</span>
             </div>`;
@@ -198,7 +198,7 @@ async function updateTransports() {
         next3.forEach(h => {
             const rt = h.is_rt ? "🟢" : "⚪";
             html += `<div class="transport-row">
-                <span class="line-badge" style="background:#0069e2;color:white">3</span>
+                <span class="line-badge" style="background:#2581C4;color:white">3</span>
                 <span class="transport-dest">Marcel Paul</span>
                 <span class="transport-time">${waitLabel(h.time)} ${rt}</span>
             </div>`;
