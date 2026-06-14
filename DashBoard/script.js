@@ -188,25 +188,22 @@ async function updateTransports() {
         const next2 = t2.filter(h => toMin(h.time) > nowMin).slice(0, 3);
         const next3 = t3.filter(h => toMin(h.time) > nowMin).slice(0, 3);
 
+        // Fusion et tri des deux lignes par heure croissante
+        const merged = [
+            ...next2.map(h => ({ ...h, line: "2", dest: "Orvault Grand Val", color: "#e2001a" })),
+            ...next3.map(h => ({ ...h, line: "3", dest: "Marcel Paul",       color: "#0069e2" }))
+        ].sort((a, b) => toMin(a.time) - toMin(b.time));
+
         let html = "";
 
-        next2.forEach(h => {
-            const rt = h.is_rt ? "🟢" : "⚪";
+            merged.forEach(h => {
+        const rt = h.is_rt ? "🟢" : "⚪";
             html += `<div class="transport-row">
-                <span class="line-badge" style="background:#E30613;color:white">2</span>
-                <span class="transport-dest">Orvault Grand Val</span>
-                <span class="transport-time">${waitLabel(h.time)} ${rt}</span>
-            </div>`;
-        });
-
-        next3.forEach(h => {
-            const rt = h.is_rt ? "🟢" : "⚪";
-            html += `<div class="transport-row">
-                <span class="line-badge" style="background:#2581C4;color:white">3</span>
-                <span class="transport-dest">Marcel Paul</span>
-                <span class="transport-time">${waitLabel(h.time)} ${rt}</span>
-            </div>`;
-        });
+        <span class="line-badge" style="background:${h.color};color:white">${h.line}</span>
+        <span class="transport-dest">${h.dest}</span>
+        <span class="transport-time">${waitLabel(h.time)} ${rt}</span>
+    </div>`;
+});
 
         if (!html) {
             html = `<div class="transport-loading">🕐 Aucun passage immédiat.</div>`;
