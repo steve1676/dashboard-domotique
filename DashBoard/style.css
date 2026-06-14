@@ -296,6 +296,19 @@ body {
     pointer-events: none;
 }
 
+.weather-details {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.4s ease, opacity 0.3s ease;
+}
+
+/* Quand la carte est ouverte */
+.weather-card.expanded .weather-details {
+    max-height: 500px;
+    opacity: 1;
+}
+
 /* Mobile */
 @media (max-width: 768px) {
 

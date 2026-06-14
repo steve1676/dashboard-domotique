@@ -23,6 +23,10 @@ updateClock();
 
 // ─── Météo ───────────────────────────────────────────────────────────────────
 
+function toggleMeteo(card) {
+    card.classList.toggle('expanded');
+}
+
 function getWeatherIcon(code) {
     if ([0].includes(code)) return "☀️";
     if ([1, 2, 3].includes(code)) return "⛅";

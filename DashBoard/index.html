@@ -18,22 +18,26 @@
         <p id="date">Chargement...</p>
     </div>
 
-    <div class="weather-card">
+    <div class="weather-card" onclick="toggleMeteo(this)">
 
-        <!-- Loader cube -->
-        <div id="weather-loader" class="weather-loader-wrap">
-            <span class="loader"></span>
+    <!-- Loader cube -->
+    <div id="weather-loader" class="weather-loader-wrap">
+        <span class="loader"></span>
+    </div>
+
+    <div id="weather-content" class="weather-content loading">
+
+        <!-- Toujours visible -->
+        <div class="main-weather">
+            <div id="weatherIcon" class="weather-icon">☀️</div>
+            <div id="temp" class="temperature">--</div>
         </div>
 
-        <div id="weather-content" class="weather-content loading">
+        <!-- Caché par défaut -->
+        <div class="weather-details">
 
-            <div id="city" class="city">
+            <div id="city" class="city" style="margin-top:12px;">
                 Localisation...
-            </div>
-
-            <div class="main-weather">
-                <div id="weatherIcon" class="weather-icon">☀️</div>
-                <div id="temp" class="temperature">--</div>
             </div>
 
             <div class="details">
@@ -46,6 +50,8 @@
         </div>
 
     </div>
+
+</div>
 
     <div class="indoor">
         🏠 Intérieur : 21.5°C
@@ -126,6 +132,7 @@
 
     </div>
 </div>
+
 
 
 <!-- ── NavBar ── -->
