@@ -20,45 +20,44 @@
 
     <div class="weather-card" onclick="toggleMeteo(this)">
 
-    <!-- Loader cube -->
-    <div id="weather-loader" class="weather-loader-wrap">
-        <span class="loader"></span>
-    </div>
-
-    <div id="weather-content" class="weather-content loading">
-
-        <!-- Toujours visible -->
-        <div class="main-weather">
-            <div id="weatherIcon" class="weather-icon">☀️</div>
-            <div id="temp" class="temperature">--</div>
+        <div id="weather-loader" class="weather-loader-wrap">
+            <span class="loader"></span>
         </div>
 
-        <!-- Caché par défaut -->
-        <div class="weather-details">
+        <div id="weather-content" class="weather-content loading">
 
-            <div id="city" class="city" style="margin-top:12px;">
-                Localisation...
+            <!-- Toujours visible -->
+            <div class="main-weather">
+                <div id="weatherIcon" class="weather-icon">☀️</div>
+                <div id="temp" class="temperature">--</div>
             </div>
 
-            <div class="details">
-                <div>🌡️ Ressenti : <span id="feels">--</span>°C</div>
-                <div>💧 Humidité : <span id="humidity">--</span>%</div>
-            </div>
+            <!-- Caché par défaut -->
+            <div class="weather-details">
 
-            <div id="forecast" class="forecast"></div>
+                <div id="city" class="city" style="margin-top:12px;">
+                    Localisation...
+                </div>
+
+                <div class="details">
+                    <div>🌡️ Ressenti : <span id="feels">--</span>°C</div>
+                    <div>💧 Humidité : <span id="humidity">--</span>%</div>
+                </div>
+
+                <div id="forecast" class="forecast"></div>
+
+            </div>
 
         </div>
 
     </div>
-
-</div>
 
     <div class="indoor">
         🏠 Intérieur : 21.5°C
     </div>
 
     <!-- Section Transports -->
-    <div class="transport-card">
+    <div class="transport-card" onclick="toggleTransport(this)">
         <div class="transport-title">🚌 Prochains passages — Mangin</div>
         <div id="transport-list">
             <div class="transport-loading">Chargement des horaires...</div>
@@ -67,7 +66,6 @@
 
 </div>
 
-
 <!-- ── Page Appareils ── -->
 <div id="allDevice" class="page container" style="display:none;">
     <h1>Tous les Appareils</h1>
@@ -75,9 +73,7 @@
 
     <div class="weather-card">
 
-        <h2 style="margin-bottom:20px;">
-            💡 Éclairage
-        </h2>
+        <h2 style="margin-bottom:20px;">💡 Éclairage</h2>
 
         <div class="device">
             <span>Led Placard</span>
@@ -101,13 +97,11 @@
     </div>
 </div>
 
-
 <!-- ── Page Température ── -->
 <div id="temperature" class="page container" style="display:none;">
     <h1>🌡️ Température</h1>
     <p>Thermostats et capteurs.</p>
 </div>
-
 
 <!-- ── Page Caméras ── -->
 <div id="camera" class="page container" style="display:none;">
@@ -115,16 +109,13 @@
     <p>Flux vidéo à venir.</p>
 </div>
 
-
 <!-- ── Page Paramètres ── -->
 <div id="settings" class="page container" style="display:none;">
     <h1>⚙️ Paramètres</h1>
     <p>Configuration du dashboard.</p>
     <div class="weather-card">
 
-        <h2 style="margin-bottom:20px;">
-            🖥️ Affichage
-        </h2>
+        <h2 style="margin-bottom:20px;">🖥️ Affichage</h2>
 
         <button class="toggle" onclick="fullscreen()">
             ⛶ Plein écran
@@ -132,8 +123,6 @@
 
     </div>
 </div>
-
-
 
 <!-- ── NavBar ── -->
 <div class="navbar">
