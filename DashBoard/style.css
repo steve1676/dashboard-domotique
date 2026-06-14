@@ -250,6 +250,25 @@ body {
     background: #374151;
 }
 
+/* ── Ligne météo + transports ── */
+.top-row {
+    display: flex;
+    gap: 20px;
+    align-items: stretch;
+    margin-bottom: 30px;
+}
+
+.top-row .weather-card {
+    flex: 2;
+    margin-bottom: 0;
+}
+
+.top-row .transport-card {
+    flex: 1;
+    margin-bottom: 0;
+    min-width: 0;
+}
+
 /* ── Transports ── */
 .transport-card {
     background: #1f2937;
@@ -369,5 +388,9 @@ body {
 
     body {
         overflow-x: hidden;
+    }
+
+    .top-row {
+        flex-direction: column;
     }
 }
