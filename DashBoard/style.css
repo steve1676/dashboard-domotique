@@ -295,3 +295,53 @@ body {
     opacity: 0.25;
     pointer-events: none;
 }
+
+/* Mobile */
+@media (max-width: 768px) {
+
+    #time {
+        font-size: 4rem;
+    }
+
+    #date {
+        font-size: 1.5rem;
+    }
+
+    /* ← AJOUT : réduit le padding du conteneur principal */
+    .container {
+        padding: 16px;
+        padding-bottom: 120px;
+    }
+
+    .weather-card {
+        margin-bottom: 10px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .forecast {
+        gap: 10px;
+        margin-top: 20px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr); /* 3 cases sur mobile */
+    }
+
+    .forecast > * {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .forecast-item {
+        padding: 8px;
+    }
+
+    .forecast-temp {
+        font-size: 1.3rem;
+        margin-top: 5px;
+    }
+
+    /* ← AJOUT : empêche le scroll horizontal */
+    body {
+        overflow-x: hidden;
+    }
+}
