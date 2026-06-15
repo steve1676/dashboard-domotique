@@ -129,8 +129,8 @@ async function updateTransports() {
         const t2 = data.departures?.["2"]?.["1"]?.hours || [];
         const t3 = data.departures?.["3"]?.["1"]?.hours || [];
 
-        const next2 = t2.filter(h => toMin(h.time) > nowMin).slice(0, 3);
-        const next3 = t3.filter(h => toMin(h.time) > nowMin).slice(0, 3);
+        const next2 = t2.filter(h => toMin(h.time) > nowMin).slice(0, 2);
+        const next3 = t3.filter(h => toMin(h.time) > nowMin).slice(0, 2);
 
         // Fusion et tri chronologique
         const merged = [
