@@ -43,6 +43,10 @@ body {
     cursor: pointer;
 }
 
+.weather-card .main-weather {
+    justify-content: center;
+}
+
 .city {
     font-size: 1.5rem;
     color: #94a3b8;
