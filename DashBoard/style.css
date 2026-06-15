@@ -259,12 +259,12 @@ body {
 }
 
 .top-row .weather-card {
-    flex: 3;
+    flex: 1;
     margin-bottom: 0;
 }
 
 .top-row .transport-card {
-    flex: 2;
+    flex: 1;
     margin-bottom: 0;
     min-width: 0;
 }
