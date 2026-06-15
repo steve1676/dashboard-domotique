@@ -173,13 +173,14 @@ body {
     pointer-events: none;
 }
 
-/* ── Intérieur ── */
-.indoor {
+/* ── Favoris ── */
+.favoris {
     background: #1f2937;
     border-radius: 25px;
     padding: 25px;
     font-size: 2rem;
     margin-bottom: 30px;
+    justify-content: center;
 }
 
 /* ── Appareils ── */
