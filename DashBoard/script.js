@@ -52,7 +52,7 @@ async function getWeather(lat, lon) {
         forecastContainer.innerHTML = "";
         const currentHour = new Date().getHours();
 
-        for (let i = 1; i <= 4; i++) {
+        for (let i = 1; i <= 3; i++) {
             const hour = (currentHour + i) % 24;
             const temp = Math.round(data.hourly.temperature_2m[currentHour + i]);
             forecastContainer.innerHTML += `
