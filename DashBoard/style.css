@@ -43,10 +43,6 @@ body {
     cursor: pointer;
 }
 
-.weather-card .main-weather {
-    justify-content: center;
-}
-
 .city {
     font-size: 1.5rem;
     color: #94a3b8;
@@ -263,10 +259,27 @@ body {
 }
 
 .top-row .weather-card {
-    flex: 1;
+    flex: 2;
     margin-bottom: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;  /* centre vertical */
 }
 
+.top-row .weather-card .main-weather {
+    justify-content: center;  /* centre horizontal */
+}
+
+/* Quand déplié : revient à gauche */
+.top-row .weather-card.expanded {
+    justify-content: flex-start;
+}
+
+.top-row .weather-card.expanded .main-weather {
+    justify-content: flex-start;
+}
+
+/* dépli transport */
 .top-row .transport-card {
     flex: 1;
     margin-bottom: 0;
