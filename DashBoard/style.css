@@ -186,6 +186,7 @@ body {
 .fav-title{
     border-bottom: 1px solid white;
     padding-bottom: 3px;
+    align-items: center;
 }
 
 /* ── Appareils ── */
