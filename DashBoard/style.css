@@ -174,13 +174,18 @@ body {
 }
 
 /* ── Favoris ── */
-.favoris {
+.fav {
     background: #1f2937;
     border-radius: 25px;
     padding: 25px;
     font-size: 2rem;
     margin-bottom: 30px;
     justify-content: center;
+}
+
+.fav-title{
+    border-bottom: 1px solid white;
+    padding-bottom: 3px;
 }
 
 /* ── Appareils ── */
