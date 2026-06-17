@@ -71,6 +71,11 @@
         <span class="fav-title" style="color:white">✩ Appareils favoris</span>
     </div>
 
+    <!-- Mode Miroir -->
+    <div class="mirror-card" onclick="startMirror()">
+        <span>🪞 Mode Miroir</span>
+    </div>
+
 </div>
 
 <!-- ── Page Appareils ── -->
@@ -160,6 +165,13 @@
     <button class="nav-btn" onclick="showPage('temperature', this)">🌡️</button>
     <button class="nav-btn" onclick="showPage('camera', this)">📷</button>
     <button class="nav-btn" onclick="showPage('settings', this)">⚙️</button>
+</div>
+
+<!-- ── Overlay Mode Miroir ── -->
+<div id="mirrorOverlay" class="mirror-overlay">
+    <video id="mirrorVideo" autoplay playsinline></video>
+    <button class="mirror-close" onclick="stopMirror()">✕</button>
+    <div id="mirrorError" class="mirror-error"></div>
 </div>
 
 <script src="script.js"></script>

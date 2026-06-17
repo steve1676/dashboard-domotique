@@ -212,3 +212,37 @@ function fullscreen() {
         document.exitFullscreen();
     }
 }
+
+
+// ─── Mode Miroir ────────────────────────────────────────────────────────────
+
+let mirrorStream = null;
+
+async function startMirror() {
+    const overlay = document.getElementById("mirrorOverlay");
+    const video   = document.getElementById("mirrorVideo");
+    const errorEl = document.getElementById("mirrorError");
+
+    errorEl.textContent = "";
+
+    try {
+        mirrorStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "user" },
+            audio: false
+        });
+        video.srcObject = mirrorStream;
+        overlay.classList.add("active");
+    } catch (err) {
+        console.error("Caméra :", err);
+        errorEl.textContent = "⚠️ Impossible d'accéder à la caméra avant.";
+        overlay.classList.add("active");
+    }
+}
+
+function stopMirror() {
+    if (mirrorStream) {
+        mirrorStream.getTracks().forEach(track => track.stop());
+        mirrorStream = null;
+    }
+    document.getElementById("mirrorOverlay").classList.remove("active");
+}
