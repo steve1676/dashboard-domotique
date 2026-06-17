@@ -319,16 +319,15 @@ body {
     background: #374151;
 }
 
-/* ── Ligne météo + transports ── */
+/* ── Ligne météo + transports + miroir : 2 cases par ligne ── */
 .top-row {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
     gap: 20px;
-    align-items: stretch;
     margin-bottom: 30px;
 }
 
 .top-row .weather-card {
-    flex: 1;
     margin-bottom: 0;
     display: flex;
     flex-direction: column;
@@ -350,9 +349,17 @@ body {
 
 /* dépli transport */
 .top-row .transport-card {
-    flex: 1;
     margin-bottom: 0;
     min-width: 0;
+}
+
+/* miroir dans la rangée du haut : même taille, même hauteur (grille = stretch par défaut) */
+.top-row .mirror-card {
+    margin-bottom: 0;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* ── Transports ── */
@@ -477,6 +484,6 @@ body {
     }
 
     .top-row {
-        flex-direction: column;
+        grid-template-columns: 1fr;
     }
 }
