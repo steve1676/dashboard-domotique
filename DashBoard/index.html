@@ -69,6 +69,36 @@
             <span style="font-size: 35px; font-weight: bold;">🪞 Miroir</span>
         </div>
 
+        <!-- Spotify -->
+        <div class="spotify-card" id="spotifyCard">
+
+            <div id="spotifyAlbumArt" class="spotify-bg"></div>
+
+            <div class="spotify-overlay">
+
+                <div id="spotifyLoggedOut" class="spotify-login">
+                    <button onclick="spotifyLogin()">🎵 Connecter Spotify</button>
+                </div>
+
+                <div id="spotifyPlayer" class="spotify-player" style="display:none;">
+
+                    <div class="spotify-track">
+                        <div id="spotifyTitle" class="spotify-title">—</div>
+                        <div id="spotifyArtist" class="spotify-artist">—</div>
+                    </div>
+
+                    <div class="spotify-controls">
+                        <button onclick="spotifyPrev()">⏮</button>
+                        <button id="spotifyPlayPause" onclick="spotifyTogglePlay()">⏸</button>
+                        <button onclick="spotifyNext()">⏭</button>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
 
     <!-- Favoris -->
