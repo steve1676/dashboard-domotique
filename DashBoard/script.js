@@ -251,7 +251,7 @@ function stopMirror() {
 // ─── Spotify ────────────────────────────────────────────────────────────────
 
 const SPOTIFY_CLIENT_ID    = "e5f7b5f7ee1747f6a10f9c2a87af35a5"; // ← 
-const SPOTIFY_REDIRECT_URI = "https://github.com/steve1676/dashboard-domotique/tree/main/DashBoard";
+const SPOTIFY_REDIRECT_URI = "https://steve1676.github.io/dashboard-domotique/DashBoard/";
 const SPOTIFY_SCOPES       = "user-read-playback-state user-read-currently-playing user-modify-playback-state";
 
 let spotifyLastTrackId = null;
