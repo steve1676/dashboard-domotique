@@ -248,6 +248,38 @@ function stopMirror() {
 }
 
 
+// ─── Widgets de l'Accueil ────────────────────────────────────────────────────
+
+const WIDGETS = [
+    { widgetId: 'widget-meteo',     checkId: 'chk-meteo'     },
+    { widgetId: 'widget-transport', checkId: 'chk-transport'  },
+    { widgetId: 'widget-miroir',    checkId: 'chk-miroir'     },
+    { widgetId: 'spotifyCard',      checkId: 'chk-spotify'    },
+];
+
+function initWidgetToggles() {
+    const saved = JSON.parse(localStorage.getItem('widgets_visibility') || '{}');
+    WIDGETS.forEach(({ widgetId, checkId }) => {
+        const visible = saved[widgetId] !== false; // true par défaut
+        const el  = document.getElementById(widgetId);
+        const chk = document.getElementById(checkId);
+        if (el)  el.style.display  = visible ? '' : 'none';
+        if (chk) chk.checked       = visible;
+    });
+}
+
+function toggleWidget(widgetId, visible) {
+    const el = document.getElementById(widgetId);
+    if (el) el.style.display = visible ? '' : 'none';
+
+    const saved = JSON.parse(localStorage.getItem('widgets_visibility') || '{}');
+    saved[widgetId] = visible;
+    localStorage.setItem('widgets_visibility', JSON.stringify(saved));
+}
+
+initWidgetToggles();
+
+
 // ─── Spotify ────────────────────────────────────────────────────────────────
 
 const SPOTIFY_CLIENT_ID    = "e5f7b5f7ee1747f6a10f9c2a87af35a5"; // ← 

@@ -22,7 +22,7 @@
     <div class="top-row">
 
         <!-- Météo -->
-        <div class="weather-card" onclick="toggleMeteo(this)">
+        <div id="widget-meteo" class="weather-card" onclick="toggleMeteo(this)">
 
             <div id="weather-loader" class="weather-loader-wrap">
                 <span class="loader"></span>
@@ -57,7 +57,7 @@
         </div>
 
         <!-- Transports -->
-        <div class="transport-card" onclick="toggleTransport(this)">
+        <div id="widget-transport" class="transport-card" onclick="toggleTransport(this)">
             <div class="transport-title">🚌 Mangin</div>
             <div id="transport-list">
                 <div class="transport-loading">Chargement...</div>
@@ -65,7 +65,7 @@
         </div>
 
         <!-- Mode Miroir -->
-        <div class="mirror-card" onclick="startMirror()">
+        <div id="widget-miroir" class="mirror-card" onclick="startMirror()">
             <span style="font-size: 35px; font-weight: bold;">🪞 Miroir</span>
         </div>
 
@@ -191,7 +191,38 @@
 
         <h2 style="margin-bottom:20px;">🖥️ Wiggets de l'Accueil</h2>
 
-        
+        <div class="widget-item">
+            <span class="widget-label">🌤️ Météo</span>
+            <label class="switch">
+                <input type="checkbox" id="chk-meteo" onchange="toggleWidget('widget-meteo', this.checked)">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="widget-item">
+            <span class="widget-label">🚌 Transport</span>
+            <label class="switch">
+                <input type="checkbox" id="chk-transport" onchange="toggleWidget('widget-transport', this.checked)">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="widget-item">
+            <span class="widget-label">🪞 Miroir</span>
+            <label class="switch">
+                <input type="checkbox" id="chk-miroir" onchange="toggleWidget('widget-miroir', this.checked)">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="widget-item">
+            <span class="widget-label">🎵 Spotify</span>
+            <label class="switch">
+                <input type="checkbox" id="chk-spotify" onchange="toggleWidget('spotifyCard', this.checked)">
+                <span class="slider"></span>
+            </label>
+        </div>
+
     </div>
 
 </div>
