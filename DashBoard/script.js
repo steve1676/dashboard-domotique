@@ -126,7 +126,7 @@ navigator.geolocation.watchPosition(
     error => {
         console.error(error);
         getWeather(47.2172, -1.5534);
-        document.getElementById("city").textContent = "📍 Nantes";
+        document.getElementById("city").textContent = "Nantes";
     },
     { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
 );
