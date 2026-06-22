@@ -94,26 +94,41 @@ async function getCityName(lat, lon) {
     }
 }
 
-function getLocation() {
-    navigator.geolocation.getCurrentPosition(
-        async position => {
-            const { latitude, longitude } = position.coords;
-            getWeather(latitude, longitude);
-            const cityEl = document.getElementById("city");
-            cityEl.textContent = "📍 Localisation...";
-            const name = await getCityName(latitude, longitude);
-            cityEl.textContent = "📍 " + name;
-        },
-        error => {
-            console.error(error);
-            getWeather(47.2172, -1.5534);
-            document.getElementById("city").textContent = "📍 Nantes";
-        }
-    );
+let lastLat = null;
+let lastLon = null;
+let weatherInterval = null;
+
+async function updateLocation(latitude, longitude) {
+    // Ne rafraîchit que si on s'est déplacé de plus de ~200m
+    if (lastLat !== null) {
+        const dist = Math.hypot(latitude - lastLat, longitude - lastLon);
+        if (dist < 0.002) return; // ~200m en degrés
+    }
+    lastLat = latitude;
+    lastLon = longitude;
+
+    getWeather(latitude, longitude);
+
+    const cityEl = document.getElementById("city");
+    cityEl.textContent = "📍 Localisation...";
+    const name = await getCityName(latitude, longitude);
+    cityEl.textContent = "📍 " + name;
+
+    // Rafraîchit la météo toutes les 10 min pour la même position
+    clearInterval(weatherInterval);
+    weatherInterval = setInterval(() => getWeather(latitude, longitude), 600000);
 }
 
-getLocation();
-setInterval(getLocation, 600000);
+// watchPosition = mise à jour automatique dès que la position change
+navigator.geolocation.watchPosition(
+    position => updateLocation(position.coords.latitude, position.coords.longitude),
+    error => {
+        console.error(error);
+        getWeather(47.2172, -1.5534);
+        document.getElementById("city").textContent = "📍 Nantes";
+    },
+    { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+);
 
 
 // ─── Transports — Temps réel Naolib via plan.naolib.fr ──────────────────────
