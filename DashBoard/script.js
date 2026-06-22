@@ -21,8 +21,11 @@ function toggleMeteo(card) {
 }
 
 function getWeatherIcon(code) {
-    if ([0].includes(code))                         return "☀️";
-    if ([1, 2, 3].includes(code))                   return "⛅";
+    const hour = new Date().getHours();
+    const isNight = hour < 7 || hour >= 21;
+
+    if ([0].includes(code))                         return isNight ? "🌕" : "☀️";
+    if ([1, 2, 3].includes(code))                   return isNight ? "🌙" : "⛅";
     if ([45, 48].includes(code))                    return "🌫️";
     if ([51, 53, 55, 61, 63, 65].includes(code))    return "🌧️";
     if ([71, 73, 75, 77].includes(code))            return "❄️";
@@ -72,16 +75,39 @@ async function getWeather(lat, lon) {
     }
 }
 
+async function getCityName(lat, lon) {
+    try {
+        const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=fr`,
+            { headers: { "Accept-Language": "fr" } }
+        );
+        const data = await response.json();
+        // Priorité : ville > commune > village > comté
+        return data.address?.city
+            || data.address?.town
+            || data.address?.village
+            || data.address?.county
+            || "Position actuelle";
+    } catch (err) {
+        console.error("Geocoding :", err);
+        return "Position actuelle";
+    }
+}
+
 function getLocation() {
     navigator.geolocation.getCurrentPosition(
-        position => {
-            getWeather(position.coords.latitude, position.coords.longitude);
-            document.getElementById("city").textContent = "Position actuelle";
+        async position => {
+            const { latitude, longitude } = position.coords;
+            getWeather(latitude, longitude);
+            const cityEl = document.getElementById("city");
+            cityEl.textContent = "📍 Localisation...";
+            const name = await getCityName(latitude, longitude);
+            cityEl.textContent = "📍 " + name;
         },
         error => {
             console.error(error);
             getWeather(47.2172, -1.5534);
-            document.getElementById("city").textContent = "Nantes";
+            document.getElementById("city").textContent = "📍 Nantes";
         }
     );
 }
