@@ -111,9 +111,9 @@ async function updateLocation(latitude, longitude) {
     getWeather(latitude, longitude);
 
     const cityEl = document.getElementById("city");
-    cityEl.textContent = "📍 Localisation...";
+    cityEl.textContent = " Localisation...";
     const name = await getCityName(latitude, longitude);
-    cityEl.textContent = "📍 " + name;
+    cityEl.textContent = name;
 
     // Rafraîchit la météo toutes les 10 min pour la même position
     clearInterval(weatherInterval);
