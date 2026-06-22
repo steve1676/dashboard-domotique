@@ -651,3 +651,22 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+/* ── Fond dynamique météo ── */
+#widget-meteo {
+    transition: background-image 0.8s ease;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Texte lisible sur photo */
+#widget-meteo .weather-content {
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.7);
+}
+
+#widget-meteo .weather-loader-wrap {
+    position: relative;
+    z-index: 1;
+}
