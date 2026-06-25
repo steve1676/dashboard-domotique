@@ -25,7 +25,7 @@ function getWeatherIcon(code) {
     const isNight = hour < 7 || hour >= 21;
 
     if ([0].includes(code))                         return isNight ? "🌕" : "☀️";
-    if ([1, 2, 3].includes(code))                   return isNight ? "🌙" : "⛅";
+    if ([1, 2, 3].includes(code))                   return isNight ? "☁️" : "⛅";
     if ([45, 48].includes(code))                    return "🌫️";
     if ([51, 53, 55, 61, 63, 65].includes(code))    return "🌧️";
     if ([71, 73, 75, 77].includes(code))            return "❄️";
@@ -111,9 +111,9 @@ async function updateLocation(latitude, longitude) {
     getWeather(latitude, longitude);
 
     const cityEl = document.getElementById("city");
-    cityEl.textContent = "📍 Localisation...";
+    cityEl.textContent = " Localisation...";
     const name = await getCityName(latitude, longitude);
-    cityEl.textContent = "📍 " + name;
+    cityEl.textContent =  name;
 
     // Rafraîchit la météo toutes les 10 min pour la même position
     clearInterval(weatherInterval);
@@ -126,7 +126,7 @@ navigator.geolocation.watchPosition(
     error => {
         console.error(error);
         getWeather(47.2172, -1.5534);
-        document.getElementById("city").textContent = "📍 Nantes";
+        document.getElementById("city").textContent = "Nantes";
     },
     { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
 );
