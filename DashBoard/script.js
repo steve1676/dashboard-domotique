@@ -25,7 +25,7 @@ function getWeatherIcon(code) {
     const isNight = hour < 7 || hour >= 21;
 
     if ([0].includes(code))                         return isNight ? "🌕" : "☀️";
-    if ([1, 2, 3].includes(code))                   return isNight ? "☁️" : "⛅";
+    if ([1, 2, 3].includes(code))                   return isNight ? "🌙" : "⛅";
     if ([45, 48].includes(code))                    return "🌫️";
     if ([51, 53, 55, 61, 63, 65].includes(code))    return "🌧️";
     if ([71, 73, 75, 77].includes(code))            return "❄️";
@@ -111,9 +111,9 @@ async function updateLocation(latitude, longitude) {
     getWeather(latitude, longitude);
 
     const cityEl = document.getElementById("city");
-    cityEl.textContent = " Localisation...";
+    cityEl.textContent = "📍 Localisation...";
     const name = await getCityName(latitude, longitude);
-    cityEl.textContent = name;
+    cityEl.textContent = "📍 " + name;
 
     // Rafraîchit la météo toutes les 10 min pour la même position
     clearInterval(weatherInterval);
@@ -126,7 +126,7 @@ navigator.geolocation.watchPosition(
     error => {
         console.error(error);
         getWeather(47.2172, -1.5534);
-        document.getElementById("city").textContent = "Nantes";
+        document.getElementById("city").textContent = "📍 Nantes";
     },
     { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
 );
@@ -554,42 +554,55 @@ spotifyHandleRedirect().then(() => {
 });
 
 // ─── Fond dynamique météo ────────────────────────────────────────────────────
+// Images Unsplash : libres de droits, sans restriction de hotlink
 
-const BASE_IMG = "https://s.w-x.co/WeatherImages_Web";
+const WEATHER_IMAGES = {
+    "clear-day":    "weather-images/clear-day.jpg",
+    "clear-night":  "weather-images/clear-night.jpg",
+    "partly-day":   "weather-images/partly-day.jpg",
+    "partly-night": "weather-images/partly-night.jpg",
+    "cloudy-day":   "weather-images/cloudy-day.jpg",
+    "cloudy-night": "weather-images/cloudy-night.jpg",
+    "fog-day":      "weather-images/fog-day.jpg",
+    "fog-night":    "weather-images/fog-night.jpg",
+    "drizzle-day":  "weather-images/drizzle-day.jpg",
+    "drizzle-night":"weather-images/drizzle-night.jpg",
+    "rain-day":     "weather-images/rain-day.jpg",
+    "rain-night":   "weather-images/rain-night.jpg",
+    "snow-day":     "weather-images/snow-day.jpg",
+    "snow-night":   "weather-images/snow-night.jpg",
+    "storm":        "weather-images/storm.jpg",
+};
 
 function getWeatherImage(code) {
     const hour = new Date().getHours();
     const isNight = hour < 7 || hour >= 21;
-    const sfx = isNight ? "-night_1.jpg" : "_1.jpg";
+    const t = isNight ? "night" : "day";
 
     if (code === 0)
-        return BASE_IMG + "/WeatherImage_Clear" + sfx;
-    if (code === 1)
-        return BASE_IMG + "/WeatherImage_MostlyClear" + sfx;
-    if (code === 2)
-        return BASE_IMG + "/WeatherImage_PartlyCloudy" + sfx;
+        return WEATHER_IMAGES["clear-" + t];
+    if ([1, 2].includes(code))
+        return WEATHER_IMAGES["partly-" + t];
     if (code === 3)
-        return BASE_IMG + "/WeatherImage_Cloudy" + (isNight ? "-night_1.jpg" : "_1.jpg");
+        return WEATHER_IMAGES["cloudy-" + t];
     if ([45, 48].includes(code))
-        return BASE_IMG + "/WeatherImage_Fog_1.jpg";
+        return WEATHER_IMAGES["fog-" + t];
     if ([51, 53, 55].includes(code))
-        return BASE_IMG + "/WeatherImage_Drizzle" + sfx;
+        return WEATHER_IMAGES["drizzle-" + t];
     if ([61, 63, 65].includes(code))
-        return BASE_IMG + "/WeatherImage_Rain" + sfx;
+        return WEATHER_IMAGES["rain-" + t];
     if ([71, 73, 75, 77].includes(code))
-        return BASE_IMG + "/WeatherImage_Snow" + sfx;
+        return WEATHER_IMAGES["snow-" + t];
     if ([95, 96, 99].includes(code))
-        return BASE_IMG + "/WeatherImage_Thunderstorm" + sfx;
+        return WEATHER_IMAGES["storm"];
 
-    // Fallback nuageux
-    return BASE_IMG + "/WeatherImage_MostlyCloudy" + sfx;
+    return WEATHER_IMAGES["cloudy-" + t];
 }
 
 function applyWeatherBackground(code) {
     const card = document.getElementById("widget-meteo");
     const url  = getWeatherImage(code);
 
-    // Préchargement pour éviter le flash
     const img = new Image();
     img.onload = () => {
         card.style.backgroundImage    = "url('" + url + "')";
@@ -598,7 +611,6 @@ function applyWeatherBackground(code) {
         card.style.animation          = "none";
     };
     img.onerror = () => {
-        // Fallback dégradé si l'image ne charge pas
         card.style.backgroundImage = "none";
         card.style.background      = "#1f2937";
     };
