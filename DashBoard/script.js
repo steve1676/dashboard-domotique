@@ -237,7 +237,7 @@ function showPage(pageId, button) {
     document.querySelectorAll(".page").forEach(page => {
         page.style.display = "none";
     });
-    document.getElementById(pageId).style.display = "block";
+    document.getElementById(pageId).style.display = "";
     document.querySelectorAll(".nav-btn").forEach(btn => {
         btn.classList.remove("active-nav");
     });
