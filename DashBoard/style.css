@@ -657,7 +657,7 @@ body {
 
     #home.container {
         display: grid;
-        grid-template-columns: minmax(320px, 480px) 1fr;
+        grid-template-columns: 1fr 1fr;
         grid-template-rows: auto 1fr;
         column-gap: 50px;
         align-items: start;
