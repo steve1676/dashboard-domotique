@@ -616,3 +616,79 @@ function applyWeatherBackground(code) {
     };
     img.src = url;
 }
+
+//--------Favorits--------------------------------------------------------------
+
+function loadFavorites() {
+    const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
+
+    document.querySelectorAll(".device").forEach(device => {
+        const name = device.querySelector("span").textContent;
+        const star = device.querySelector(".favorite-btn");
+
+        if (favorites.includes(name)) {
+            star.classList.add("active");
+            star.textContent = "★";
+        }
+    });
+
+    refreshFavoriteList();
+}
+
+function toggleFavorite(btn) {
+
+    const device = btn.closest(".device");
+    const name = device.querySelector("span").textContent;
+
+    let favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
+
+    if (favorites.includes(name)) {
+        favorites = favorites.filter(f => f !== name);
+        btn.classList.remove("active");
+        btn.textContent = "☆";
+    } else {
+        favorites.push(name);
+        btn.classList.add("active");
+        btn.textContent = "★";
+    }
+
+    localStorage.setItem("favorites", JSON.stringify(favorites));
+
+    refreshFavoriteList();
+}
+
+function refreshFavoriteList() {
+
+    const container = document.querySelector(".fav");
+
+    container.innerHTML = `
+        <span class="fav-title" style="color:white">
+            ✩ Appareils favoris
+        </span>
+    `;
+
+    const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
+
+    if (favorites.length === 0) {
+        container.innerHTML += `
+            <p style="margin-top:20px;color:#94a3b8;">
+                Aucun appareil favori
+            </p>
+        `;
+        return;
+    }
+
+    favorites.forEach(name => {
+
+        const item = document.createElement("div");
+        item.className = "device";
+
+        item.innerHTML = `
+            <span>${name}</span>
+        `;
+
+        container.appendChild(item);
+    });
+}
+
+loadFavorites();

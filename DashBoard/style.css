@@ -714,3 +714,27 @@ body {
     position: relative;
     z-index: 1;
 }
+
+/* -- Favorits -- */
+.device-info{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.favorite-btn{
+    background:none;
+    border:none;
+    color:#888;
+    font-size:26px;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.favorite-btn.active{
+    color:#facc15;
+}
+
+.favorite-btn:hover{
+    transform:scale(1.15);
+}
