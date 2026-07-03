@@ -690,8 +690,14 @@ body {
         padding: 10px 0 10px 50px;
         margin-bottom: 0;
         display: flex;
+        flex-direction: column;
         align-items: flex-start;
         justify-content: flex-start;
+    }
+
+    /* Les favoris eux-mêmes doivent prendre toute la largeur dispo */
+    #home .fav .device {
+        width: 100%;
     }
 
 }
