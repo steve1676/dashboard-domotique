@@ -99,30 +99,30 @@
 
         </div>
 
-    </div>
+        <!-- Chromecast -->
+        <div class="spotify-card chromecast-card" id="chromecastCard">
 
-    <!-- Chromecast -->
-    <div class="chromecast-card" id="chromecastCard">
+            <div id="chromecastBg" class="spotify-bg"></div>
 
-        <div id="chromecastBg" class="spotify-bg"></div>
+            <div class="spotify-overlay">
 
-        <div class="spotify-overlay">
-
-            <div id="chromecastIdle" class="spotify-login" style="display:flex;">
-                <span style="font-size:1.1rem;color:#cbd5e1;">📺 Aucune diffusion en cours</span>
-            </div>
-
-            <div id="chromecastPlayer" class="spotify-player" style="display:none;">
-
-                <div class="spotify-track">
-                    <div id="chromecastTitle" class="spotify-title">—</div>
-                    <div id="chromecastSubtitle" class="spotify-artist">—</div>
+                <div id="chromecastIdle" class="spotify-login" style="display:flex;">
+                    <span style="font-size:1.1rem;color:#cbd5e1;">📺 Aucune diffusion en cours</span>
                 </div>
 
-                <div class="spotify-controls">
-                    <button onclick="chromecastControl('media_previous_track')">⏮</button>
-                    <button id="chromecastPlayPause" onclick="chromecastTogglePlay()">⏸</button>
-                    <button onclick="chromecastControl('media_next_track')">⏭</button>
+                <div id="chromecastPlayer" class="spotify-player" style="display:none;">
+
+                    <div class="spotify-track">
+                        <div id="chromecastTitle" class="spotify-title">—</div>
+                        <div id="chromecastSubtitle" class="spotify-artist">—</div>
+                    </div>
+
+                    <div class="spotify-controls">
+                        <button onclick="chromecastControl('media_previous_track')">⏮</button>
+                        <button id="chromecastPlayPause" onclick="chromecastTogglePlay()">⏸</button>
+                        <button onclick="chromecastControl('media_next_track')">⏭</button>
+                    </div>
+
                 </div>
 
             </div>

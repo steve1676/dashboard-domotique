@@ -397,24 +397,10 @@ body {
     background: rgba(255,255,255,0.25);
 }
 
-/* miroir + spotify dans la rangée du haut : même comportement de grille */
+/* miroir + spotify + chromecast dans la rangée du haut : même comportement de grille */
 .top-row .spotify-card {
     margin-bottom: 0;
     min-width: 0;
-}
-
-/* ── Chromecast (pleine largeur, sous la top-row) ── */
-.chromecast-card {
-    position: relative;
-    border-radius: 25px;
-    overflow: hidden;
-    min-height: 140px;
-    background: #1f2937;
-    margin-bottom: 30px;
-}
-
-.chromecast-card .spotify-bg {
-    background-color: #374151;
 }
 
 /* ── NavBar ── */
