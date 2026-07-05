@@ -101,6 +101,36 @@
 
     </div>
 
+    <!-- Chromecast -->
+    <div class="chromecast-card" id="chromecastCard">
+
+        <div id="chromecastBg" class="spotify-bg"></div>
+
+        <div class="spotify-overlay">
+
+            <div id="chromecastIdle" class="spotify-login" style="display:flex;">
+                <span style="font-size:1.1rem;color:#cbd5e1;">📺 Aucune diffusion en cours</span>
+            </div>
+
+            <div id="chromecastPlayer" class="spotify-player" style="display:none;">
+
+                <div class="spotify-track">
+                    <div id="chromecastTitle" class="spotify-title">—</div>
+                    <div id="chromecastSubtitle" class="spotify-artist">—</div>
+                </div>
+
+                <div class="spotify-controls">
+                    <button onclick="chromecastControl('media_previous_track')">⏮</button>
+                    <button id="chromecastPlayPause" onclick="chromecastTogglePlay()">⏸</button>
+                    <button onclick="chromecastControl('media_next_track')">⏭</button>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
     <!-- Favoris -->
     <div class="fav">
         <span class="fav-title" style="color:white">✩ Appareils favoris</span>
@@ -181,6 +211,14 @@
             <span class="widget-label">🎵 Spotify</span>
             <label class="switch">
                 <input type="checkbox" id="chk-spotify" onchange="toggleWidget('spotifyCard', this.checked)">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="widget-item">
+            <span class="widget-label">📺 Chromecast</span>
+            <label class="switch">
+                <input type="checkbox" id="chk-chromecast" onchange="toggleWidget('chromecastCard', this.checked)">
                 <span class="slider"></span>
             </label>
         </div>

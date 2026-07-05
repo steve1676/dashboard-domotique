@@ -403,6 +403,20 @@ body {
     min-width: 0;
 }
 
+/* ── Chromecast (pleine largeur, sous la top-row) ── */
+.chromecast-card {
+    position: relative;
+    border-radius: 25px;
+    overflow: hidden;
+    min-height: 140px;
+    background: #1f2937;
+    margin-bottom: 30px;
+}
+
+.chromecast-card .spotify-bg {
+    background-color: #374151;
+}
+
 /* ── NavBar ── */
 .navbar {
     position: fixed;

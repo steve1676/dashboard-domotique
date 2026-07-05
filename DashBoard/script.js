@@ -430,6 +430,7 @@ const WIDGETS = [
     { widgetId: 'widget-transport', checkId: 'chk-transport'  },
     { widgetId: 'widget-miroir',    checkId: 'chk-miroir'     },
     { widgetId: 'spotifyCard',      checkId: 'chk-spotify'    },
+    { widgetId: 'chromecastCard',   checkId: 'chk-chromecast' },
 ];
 
 function initWidgetToggles() {
@@ -685,6 +686,98 @@ spotifyHandleRedirect().then(() => {
     spotifyUpdatePlayer();
     setInterval(spotifyUpdatePlayer, 5000);
 });
+
+// ─── Chromecast (via Home Assistant) ─────────────────────────────────────────
+
+// ⚠️ À CONFIGURER : entity_id de ton Chromecast dans Home Assistant
+// (HA → Outils de développement → États, cherche "media_player.xxx")
+const CHROMECAST_ENTITY_ID = "media_player.chromecast";
+
+let chromecastLastImage = null;
+
+function chromecastShowIdle() {
+    document.getElementById("chromecastIdle").style.display = "flex";
+    document.getElementById("chromecastPlayer").style.display = "none";
+}
+
+function chromecastShowPlayer() {
+    document.getElementById("chromecastIdle").style.display = "none";
+    document.getElementById("chromecastPlayer").style.display = "flex";
+}
+
+async function updateChromecast() {
+    try {
+        const response = await fetch(`${HA_CONFIG.url}/api/states/${CHROMECAST_ENTITY_ID}`, {
+            headers: {
+                Authorization: `Bearer ${HA_CONFIG.token}`,
+                "Content-Type": "application/json"
+            }
+        });
+
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        const data  = await response.json();
+        const attrs = data.attributes || {};
+
+        // Rien en cours (éteint, en veille, ou pas de média chargé)
+        if (["off", "idle", "unavailable", "standby"].includes(data.state) || !attrs.media_title) {
+            chromecastShowIdle();
+            chromecastLastImage = null;
+            return;
+        }
+
+        chromecastShowPlayer();
+
+        document.getElementById("chromecastTitle").textContent = attrs.media_title || "—";
+
+        // Sous-titre : artiste (musique), ou nom de l'appli/série selon le contenu
+        const subtitle = attrs.media_artist || attrs.media_series_title || attrs.app_name || "";
+        document.getElementById("chromecastSubtitle").textContent = subtitle;
+
+        document.getElementById("chromecastPlayPause").textContent =
+            data.state === "playing" ? "⏸" : "▶";
+
+        // Image (jaquette / miniature), relative à l'URL de Home Assistant si besoin
+        const image = attrs.entity_picture
+            ? (attrs.entity_picture.startsWith("http") ? attrs.entity_picture : HA_CONFIG.url + attrs.entity_picture)
+            : null;
+
+        if (image && image !== chromecastLastImage) {
+            chromecastLastImage = image;
+            document.getElementById("chromecastBg").style.backgroundImage = `url(${image})`;
+        } else if (!image) {
+            chromecastLastImage = null;
+            document.getElementById("chromecastBg").style.backgroundImage = "none";
+        }
+
+    } catch (err) {
+        console.error("Chromecast :", err);
+        chromecastShowIdle();
+    }
+}
+
+async function chromecastControl(service) {
+    try {
+        await fetch(`${HA_CONFIG.url}/api/services/media_player/${service}`, {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${HA_CONFIG.token}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ entity_id: CHROMECAST_ENTITY_ID })
+        });
+    } catch (err) {
+        console.error("Chromecast contrôle :", err);
+    }
+    setTimeout(updateChromecast, 500);
+}
+
+function chromecastTogglePlay() {
+    chromecastControl("media_play_pause");
+}
+
+updateChromecast();
+setInterval(updateChromecast, 5000);
+
 
 // ─── Fond dynamique météo ────────────────────────────────────────────────────
 // Images Unsplash : libres de droits, sans restriction de hotlink
