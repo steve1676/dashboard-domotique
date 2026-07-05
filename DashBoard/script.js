@@ -211,24 +211,157 @@ updateTransports();
 setInterval(updateTransports, 30000);
 
 
-// ─── Appareils ──────────────────────────────────────────────────────────────
+// ─── Appareils — Home Assistant ──────────────────────────────────────────────
 
-function toggle(button) {
-    if (button.classList.contains("active")) {
-        button.classList.remove("active");
-        button.textContent = "OFF";
-    } else {
-        button.classList.add("active");
-        button.textContent = "ON";
+// ⚠️ À CONFIGURER : adresse locale de ton HA + jeton d'accès longue durée
+const HA_CONFIG = {
+    url: "http://192.168.1.50:8123",   // ← remplace par l'IP:port de ton Home Assistant
+    token: "COLLE_TON_TOKEN_ICI"       // ← Profil → Sécurité → Jetons d'accès longue durée
+};
+
+// ⚠️ À CONFIGURER : tes pièces et tes appareils (entity_id trouvables dans
+// HA → Outils de développement → États)
+const ROOMS = [
+    {
+        name: "Salon",
+        devices: [
+            { entity_id: "light.led_placard", label: "Led Placard" },
+            { entity_id: "switch.poele_e",     label: "Poêle E" },
+            { entity_id: "switch.tv",           label: "TV" }
+        ]
+    },
+    {
+        name: "Salle de bain",
+        devices: [
+            { entity_id: "light.ampoule_sdb", label: "Ampoule" }
+        ]
+    }
+];
+
+// Map à plat : entity_id -> { label, room }
+const HA_DEVICES = {};
+ROOMS.forEach(room => {
+    room.devices.forEach(d => {
+        HA_DEVICES[d.entity_id] = { label: d.label, room: room.name };
+    });
+});
+
+const haStates = {}; // entity_id -> "on" | "off" | "unavailable" ...
+
+function haShowStatus(message) {
+    const el = document.getElementById("ha-status");
+    if (!message) {
+        el.style.display = "none";
+        return;
+    }
+    el.textContent = message;
+    el.style.display = "block";
+}
+
+function haIsOn(entityId) {
+    return haStates[entityId] === "on";
+}
+
+async function haFetchStates() {
+    try {
+        const response = await fetch(`${HA_CONFIG.url}/api/states`, {
+            headers: {
+                Authorization: `Bearer ${HA_CONFIG.token}`,
+                "Content-Type": "application/json"
+            }
+        });
+
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        const data = await response.json();
+
+        data.forEach(entity => {
+            if (HA_DEVICES[entity.entity_id]) {
+                haStates[entity.entity_id] = entity.state;
+            }
+        });
+
+        haShowStatus(null);
+        renderRooms();
+        refreshFavoriteList();
+
+    } catch (err) {
+        console.error("Home Assistant :", err);
+        haShowStatus("⚠️ Impossible de joindre Home Assistant.");
     }
 }
 
-function allOff() {
-    document.querySelectorAll(".toggle").forEach(button => {
-        button.classList.remove("active");
-        button.textContent = "OFF";
+async function haToggle(entityId) {
+    // Optimiste : on inverse tout de suite dans l'UI
+    haStates[entityId] = haIsOn(entityId) ? "off" : "on";
+    renderRooms();
+    refreshFavoriteList();
+
+    try {
+        const response = await fetch(`${HA_CONFIG.url}/api/services/homeassistant/toggle`, {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${HA_CONFIG.token}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ entity_id: entityId })
+        });
+        if (!response.ok) throw new Error("HTTP " + response.status);
+
+    } catch (err) {
+        console.error("Home Assistant toggle :", err);
+        haShowStatus("⚠️ Action impossible, nouvelle tentative...");
+    }
+
+    // Re-synchronise avec l'état réel peu après
+    setTimeout(haFetchStates, 1000);
+}
+
+function renderRooms() {
+    const container = document.getElementById("rooms-container");
+    container.innerHTML = "";
+
+    ROOMS.forEach(room => {
+        const card = document.createElement("div");
+        card.className = "weather-card";
+        card.style.marginTop = "20px";
+
+        const title = document.createElement("h2");
+        title.style.marginBottom = "20px";
+        title.style.fontWeight = "bold";
+        title.style.fontSize = "30px";
+        title.textContent = room.name;
+        card.appendChild(title);
+
+        room.devices.forEach(d => {
+            const isFav = getFavorites().includes(d.entity_id);
+            const on = haIsOn(d.entity_id);
+
+            const row = document.createElement("div");
+            row.className = "device";
+            row.innerHTML = `
+                <div class="device-info">
+                    <button class="favorite-btn ${isFav ? "active" : ""}"
+                            onclick="toggleFavorite('${d.entity_id}')">${isFav ? "★" : "☆"}</button>
+                    <span>${d.label}</span>
+                </div>
+                <button class="toggle ${on ? "active" : ""}"
+                        onclick="haToggle('${d.entity_id}')">${on ? "ON" : "OFF"}</button>
+            `;
+            card.appendChild(row);
+        });
+
+        container.appendChild(card);
     });
 }
+
+function allOff() {
+    Object.keys(HA_DEVICES).forEach(entityId => {
+        if (haStates[entityId] === "on") haToggle(entityId);
+    });
+}
+
+haFetchStates();
+setInterval(haFetchStates, 5000);
 
 
 // ─── Navigation ─────────────────────────────────────────────────────────────
@@ -619,41 +752,22 @@ function applyWeatherBackground(code) {
 
 //--------Favorits--------------------------------------------------------------
 
-function loadFavorites() {
-    const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-
-    document.querySelectorAll(".device").forEach(device => {
-        const name = device.querySelector("span").textContent;
-        const star = device.querySelector(".favorite-btn");
-
-        if (favorites.includes(name)) {
-            star.classList.add("active");
-            star.textContent = "★";
-        }
-    });
-
-    refreshFavoriteList();
+function getFavorites() {
+    return JSON.parse(localStorage.getItem("favorites") || "[]");
 }
 
-function toggleFavorite(btn) {
+function toggleFavorite(entityId) {
+    let favorites = getFavorites();
 
-    const device = btn.closest(".device");
-    const name = device.querySelector("span").textContent;
-
-    let favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
-
-    if (favorites.includes(name)) {
-        favorites = favorites.filter(f => f !== name);
-        btn.classList.remove("active");
-        btn.textContent = "☆";
+    if (favorites.includes(entityId)) {
+        favorites = favorites.filter(f => f !== entityId);
     } else {
-        favorites.push(name);
-        btn.classList.add("active");
-        btn.textContent = "★";
+        favorites.push(entityId);
     }
 
     localStorage.setItem("favorites", JSON.stringify(favorites));
 
+    renderRooms();
     refreshFavoriteList();
 }
 
@@ -667,7 +781,7 @@ function refreshFavoriteList() {
         </span>
     `;
 
-    const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
+    const favorites = getFavorites().filter(id => HA_DEVICES[id]); // ignore favoris obsolètes
 
     if (favorites.length === 0) {
         container.innerHTML += `
@@ -678,17 +792,20 @@ function refreshFavoriteList() {
         return;
     }
 
-    favorites.forEach(name => {
+    favorites.forEach(entityId => {
+        const info = HA_DEVICES[entityId];
+        const on = haIsOn(entityId);
 
         const item = document.createElement("div");
         item.className = "device";
-
         item.innerHTML = `
-            <span>${name}</span>
+            <div class="device-info">
+                <span>${info.label}</span>
+            </div>
+            <button class="toggle ${on ? "active" : ""}"
+                    onclick="haToggle('${entityId}')">${on ? "ON" : "OFF"}</button>
         `;
 
         container.appendChild(item);
     });
 }
-
-loadFavorites();
