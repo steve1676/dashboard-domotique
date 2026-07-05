@@ -184,9 +184,19 @@ body {
 }
 
 .fav-title{
+    display: block;
     border-bottom: 1px solid white;
     padding-bottom: 3px;
+    margin-bottom: 20px;
     align-items: center;
+}
+
+.fav .device {
+    padding: 8px 0;
+}
+
+.fav .device:last-child {
+    margin-bottom: 0;
 }
 
 /* ── Appareils ── */
