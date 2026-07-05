@@ -215,8 +215,8 @@ setInterval(updateTransports, 30000);
 
 // ⚠️ À CONFIGURER : adresse locale de ton HA + jeton d'accès longue durée
 const HA_CONFIG = {
-    url: "http://192.168.1.50:8123",   // ← remplace par l'IP:port de ton Home Assistant
-    token: "COLLE_TON_TOKEN_ICI"       // ← Profil → Sécurité → Jetons d'accès longue durée
+    url: "http://192.168.1.55:8123",
+    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJlY2E3ZjVhN2VlY2U0MGUyYTAxZGI3OTBjYmIyYTAwMiIsImlhdCI6MTc4MzI0ODQ4MywiZXhwIjoyMDk4NjA4NDgzfQ.Nq8NkfkNiRmUF7GXHPbXfiAFHZxdT_C62Kp_BaO43l8"
 };
 
 // ⚠️ À CONFIGURER : tes pièces et tes appareils (entity_id trouvables dans
@@ -225,9 +225,9 @@ const ROOMS = [
     {
         name: "Salon",
         devices: [
-            { entity_id: "light.led_placard", label: "Led Placard" },
+            { entity_id: "light.salon_les_led_du_placard_outlet", label: "Led Placard" },
             { entity_id: "switch.poele_e",     label: "Poêle E" },
-            { entity_id: "switch.tv",           label: "TV" }
+            { entity_id: "media_player.latele_2",           label: "TV" }
         ]
     },
     {
