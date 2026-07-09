@@ -364,6 +364,50 @@ haFetchStates();
 setInterval(haFetchStates, 5000);
 
 
+// ─── Batterie téléphone (via Home Assistant / app Companion) ────────────────
+
+// ⚠️ À CONFIGURER : entity_id du capteur batterie créé par l'app Companion
+// (HA → Outils de développement → États, filtre "battery")
+const BATTERY_ENTITY_ID = "sensor.z_flip6_battery_level";
+const BATTERY_THRESHOLD = 10;
+
+async function updateBattery() {
+    const badge = document.getElementById("battery-badge");
+    if (!badge) return;
+
+    try {
+        const response = await fetch(`${HA_CONFIG.url}/api/states/${BATTERY_ENTITY_ID}`, {
+            headers: {
+                Authorization: `Bearer ${HA_CONFIG.token}`,
+                "Content-Type": "application/json"
+            }
+        });
+
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        const data  = await response.json();
+        const level = parseInt(data.state, 10);
+
+        if (isNaN(level)) {
+            badge.textContent = "🔋 --%";
+            badge.classList.remove("low-battery");
+            return;
+        }
+
+        const icon = level <= BATTERY_THRESHOLD ? "🪫" : "🔋";
+        badge.textContent = `${icon} ${level}%`;
+        badge.classList.toggle("low-battery", level <= BATTERY_THRESHOLD);
+
+    } catch (err) {
+        console.error("Batterie téléphone :", err);
+        badge.textContent = "🔋 --%";
+        badge.classList.remove("low-battery");
+    }
+}
+
+updateBattery();
+setInterval(updateBattery, 5000);
+
+
 // ─── Navigation ─────────────────────────────────────────────────────────────
 
 function showPage(pageId, button) {
