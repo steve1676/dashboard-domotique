@@ -366,7 +366,7 @@ setInterval(haFetchStates, 5000);
 
 // ─── Batterie téléphones (via Home Assistant / app Companion) ───────────────
 
-const BATTERY_THRESHOLD = 10;
+const BATTERY_THRESHOLD = 15;
 
 function getPhones() {
     return JSON.parse(localStorage.getItem("phones_config") || "[]");
