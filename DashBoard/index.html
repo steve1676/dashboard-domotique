@@ -25,7 +25,7 @@
     <div class="top-row">
 
         <!-- Météo -->
-        <div id="widget-meteo" class="weather-card" onclick="toggleMeteo(this)">
+        <div id="widget-meteo" class="weather-card" onclick="openWidgetModal('meteo')">
 
             <div id="weather-loader" class="weather-loader-wrap">
                 <span class="loader"></span>
@@ -39,28 +39,12 @@
                     <div id="temp" class="temperature">--</div>
                 </div>
 
-                <!-- Caché par défaut -->
-                <div class="weather-details">
-
-                    <div id="city" class="city" style="margin-top:12px;">
-                        Localisation...
-                    </div>
-
-                    <div class="details">
-                        <div>🌡️ Ressenti : <span id="feels">--</span>°C</div>
-                        <div>💧 Humidité : <span id="humidity">--</span>%</div>
-                    </div>
-
-                    <div id="forecast" class="forecast"></div>
-
-                </div>
-
             </div>
 
         </div>
 
         <!-- Transports -->
-        <div id="widget-transport" class="transport-card" onclick="toggleTransport(this)">
+        <div id="widget-transport" class="transport-card" onclick="openWidgetModal('transport')">
             <div class="transport-title">🚌 Mangin</div>
             <div id="transport-list">
                 <div class="transport-loading">Chargement...</div>
@@ -245,6 +229,43 @@
     <button class="nav-btn" onclick="showPage('temperature', this)">🌡️</button>
     <button class="nav-btn" onclick="showPage('camera', this)">📷</button>
     <button class="nav-btn" onclick="showPage('settings', this)">⚙️</button>
+</div>
+
+<!-- ── Modale Widgets (météo / transport) ── -->
+<div id="widgetModal" class="widget-modal-overlay" onclick="if(event.target===this) closeWidgetModal()">
+    <div class="widget-modal">
+        <button class="widget-modal-close" onclick="closeWidgetModal()">✕</button>
+
+        <!-- Détail Météo -->
+        <div id="modal-meteo" class="widget-modal-section">
+
+            <div class="main-weather" style="justify-content:center;">
+                <div id="weatherIconModal" class="weather-icon">☀️</div>
+                <div id="tempModal" class="temperature">--</div>
+            </div>
+
+            <div id="city" class="city" style="margin-top:20px;">
+                Localisation...
+            </div>
+
+            <div class="details">
+                <div>🌡️ Ressenti : <span id="feels">--</span>°C</div>
+                <div>💧 Humidité : <span id="humidity">--</span>%</div>
+            </div>
+
+            <div id="forecast" class="forecast"></div>
+
+        </div>
+
+        <!-- Détail Transport -->
+        <div id="modal-transport" class="widget-modal-section">
+            <div class="transport-title" style="margin-bottom:20px;">🚌 Mangin</div>
+            <div id="transport-list-modal">
+                <div class="transport-loading">Chargement...</div>
+            </div>
+        </div>
+
+    </div>
 </div>
 
 <!-- ── Overlay Mode Miroir ── -->

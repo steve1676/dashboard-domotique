@@ -16,9 +16,19 @@ updateClock();
 
 // ─── Météo ──────────────────────────────────────────────────────────────────
 
-function toggleMeteo(card) {
-    card.classList.toggle('expanded');
+function openWidgetModal(section) {
+    document.querySelectorAll('.widget-modal-section').forEach(el => el.classList.remove('visible'));
+    document.getElementById('modal-' + section).classList.add('visible');
+    document.getElementById('widgetModal').classList.add('visible');
 }
+
+function closeWidgetModal() {
+    document.getElementById('widgetModal').classList.remove('visible');
+}
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeWidgetModal();
+});
 
 function getWeatherIcon(code) {
     const hour = new Date().getHours();
@@ -46,10 +56,15 @@ async function getWeather(lat, lon) {
         );
         const data = await response.json();
 
-        document.getElementById("temp").textContent      = Math.round(data.current.temperature_2m) + "°C";
+        const tempText = Math.round(data.current.temperature_2m) + "°C";
+        const iconText = getWeatherIcon(data.current.weather_code);
+
+        document.getElementById("temp").textContent      = tempText;
+        document.getElementById("tempModal").textContent = tempText;
         document.getElementById("feels").textContent     = Math.round(data.current.apparent_temperature);
         document.getElementById("humidity").textContent  = data.current.relative_humidity_2m;
-        document.getElementById("weatherIcon").textContent = getWeatherIcon(data.current.weather_code);
+        document.getElementById("weatherIcon").textContent      = iconText;
+        document.getElementById("weatherIconModal").textContent = iconText;
         applyWeatherBackground(data.current.weather_code);
 
         const forecastContainer = document.getElementById("forecast");
@@ -134,17 +149,9 @@ navigator.geolocation.watchPosition(
 
 // ─── Transports — Temps réel Naolib via plan.naolib.fr ──────────────────────
 
-function toggleTransport(card) {
-    card.classList.toggle("open");
-    const rows = card.querySelectorAll(".transport-row");
-    rows.forEach((row, i) => {
-        if (i === 0) return; // 1er toujours visible
-        row.classList.toggle("visible", card.classList.contains("open"));
-    });
-}
-
 async function updateTransports() {
-    const container = document.getElementById("transport-list");
+    const container      = document.getElementById("transport-list");
+    const modalContainer  = document.getElementById("transport-list-modal");
 
     try {
         const response = await fetch("https://plan.naolib.fr/api/stop/logical/9630");
@@ -181,7 +188,9 @@ async function updateTransports() {
         ].sort((a, b) => toMin(a.time) - toMin(b.time));
 
         if (!merged.length) {
-            container.innerHTML = `<div class="transport-loading">🕐 Aucun passage immédiat.</div>`;
+            const emptyHtml = `<div class="transport-loading">🕐 Aucun passage immédiat.</div>`;
+            container.innerHTML = emptyHtml;
+            modalContainer.innerHTML = emptyHtml;
             return;
         }
 
@@ -195,15 +204,19 @@ async function updateTransports() {
             </div>`;
         });
 
+        // Carte : seul le 1er passage visible
         container.innerHTML = html;
-
-        // Seul le 1er passage visible par défaut
         const rows = container.querySelectorAll(".transport-row");
         if (rows.length > 0) rows[0].classList.add("visible");
 
+        // Modale : tous les passages visibles
+        modalContainer.innerHTML = html;
+
     } catch (err) {
         console.error("Erreur transports :", err);
-        container.innerHTML = `<div class="transport-error">⚠️ Impossible de charger les horaires.</div>`;
+        const errorHtml = `<div class="transport-error">⚠️ Impossible de charger les horaires.</div>`;
+        container.innerHTML = errorHtml;
+        modalContainer.innerHTML = errorHtml;
     }
 }
 

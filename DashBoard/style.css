@@ -129,18 +129,6 @@ body {
     margin-top: 10px;
 }
 
-.weather-details {
-    max-height: 0;
-    overflow: hidden;
-    opacity: 0;
-    transition: max-height 0.4s ease, opacity 0.3s ease;
-}
-
-.weather-card.expanded .weather-details {
-    max-height: 500px;
-    opacity: 1;
-}
-
 /* Loader météo */
 .weather-loader-wrap {
     display: none;
@@ -286,6 +274,67 @@ body {
 
 .mirror-card:active {
     background: #374151;
+}
+
+/* ── Modale Widgets (météo / transport) ── */
+.widget-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 998;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.widget-modal-overlay.visible {
+    display: flex;
+}
+
+.widget-modal {
+    position: relative;
+    background: #1f2937;
+    border-radius: 25px;
+    padding: 35px;
+    width: 100%;
+    max-width: 480px;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: widget-modal-pop 0.2s ease;
+}
+
+@keyframes widget-modal-pop {
+    from { transform: scale(0.92); opacity: 0; }
+    to   { transform: scale(1);    opacity: 1; }
+}
+
+.widget-modal-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: #374151;
+    border: none;
+    color: white;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    font-size: 1.1rem;
+    cursor: pointer;
+}
+
+.widget-modal-section {
+    display: none;
+}
+
+.widget-modal-section.visible {
+    display: block;
+}
+
+/* Dans la modale, tout est toujours visible (pas de dépli) */
+.widget-modal #transport-list-modal .transport-row {
+    display: flex;
 }
 
 .mirror-overlay {
@@ -485,15 +534,6 @@ body {
     justify-content: center;  /* centre horizontal */
 }
 
-/* Quand déplié : revient à gauche */
-.top-row .weather-card.expanded {
-    justify-content: flex-start;
-}
-
-.top-row .weather-card.expanded .main-weather {
-    justify-content: flex-start;
-}
-
 /* dépli transport */
 .top-row .transport-card {
     margin-bottom: 0;
@@ -528,10 +568,6 @@ body {
     content: " ▼";
     font-size: 0.9rem;
     color: #94a3b8;
-}
-
-.transport-card.open .transport-title::after {
-    content: " ▲";
 }
 
 .transport-row {
