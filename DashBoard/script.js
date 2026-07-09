@@ -368,7 +368,7 @@ setInterval(haFetchStates, 5000);
 
 // ⚠️ À CONFIGURER : entity_id du capteur batterie créé par l'app Companion
 // (HA → Outils de développement → États, filtre "battery")
-const BATTERY_ENTITY_ID = "sensor.z_flip6_battery_level";
+const BATTERY_ENTITY_ID = "sensor.telephone_de_steve_battery_level";
 const BATTERY_THRESHOLD = 10;
 
 async function updateBattery() {

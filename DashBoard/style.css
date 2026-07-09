@@ -709,6 +709,12 @@ body {
         margin-bottom: 20px;
     }
 
+    /* Batterie poussée à droite de la colonne horloge, juste avant la ligne verticale */
+    #home .clock-row {
+        justify-content: space-between;
+        width: 100%;
+    }
+
     /* Grille 2x2 des widgets sous l'horloge */
     #home .top-row {
         grid-column: 1;
