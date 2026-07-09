@@ -16,7 +16,7 @@
     <div class="clock">
         <div class="clock-row">
             <h1 id="time">00:00</h1>
-            <span class="battery-badge" id="battery-badge">🔋 --%</span>
+            <div class="battery-badges" id="battery-badges"></div>
         </div>
         <p id="date">Chargement...</p>
     </div>
@@ -176,9 +176,17 @@
 
         <h2 style="margin-bottom:20px;">🖥️ Affichage</h2>
 
-        <button class="toggle" onclick="fullscreen()">
-            ⛶ Plein écran
-        </button>
+        <h3 class="phones-title" style="margin-top:0;padding-top:0;border-top:none;">🔋 État de batterie de vos appareils</h3>
+
+        <div id="phones-list"></div>
+
+        <div class="phone-add-row">
+            <input type="text" id="new-phone-name" placeholder="Nom (ex: Téléphone de Steve)">
+            <select id="new-phone-entity">
+                <option value="">Détection en cours...</option>
+            </select>
+            <button class="phone-add-btn" onclick="addPhone()">+ Ajouter</button>
+        </div>
 
     </div>
 

@@ -34,6 +34,12 @@ body {
     gap: 14px;
 }
 
+.battery-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
 .battery-badge {
     font-size: 1.1rem;
     font-weight: 600;
@@ -636,6 +642,90 @@ body {
 
 .switch input:checked + .slider::before {
     transform: translateX(26px);
+}
+
+/* ── Paramètres – Téléphones (batterie) ── */
+.phones-title {
+    margin: 25px 0 15px;
+    padding-top: 15px;
+    border-top: 1px solid #374151;
+    font-size: 1.2rem;
+}
+
+.phone-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid #374151;
+}
+
+.phone-item:last-child {
+    border-bottom: none;
+}
+
+.phone-name-input {
+    flex: 1;
+    background: #374151;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 12px;
+    color: white;
+    font-size: 1rem;
+}
+
+.phone-entity {
+    color: #94a3b8;
+    font-size: 0.85rem;
+    max-width: 40%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.phone-remove {
+    background: rgba(248, 113, 113, 0.15);
+    border: none;
+    color: #f87171;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    font-size: 1rem;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.phone-add-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.phone-add-row input,
+.phone-add-row select {
+    flex: 1;
+    min-width: 140px;
+    background: #374151;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: white;
+    font-size: 1rem;
+}
+
+.phone-add-row input::placeholder {
+    color: #94a3b8;
+}
+
+.phone-add-btn {
+    background: #22c55e;
+    border: none;
+    color: white;
+    font-weight: bold;
+    border-radius: 10px;
+    padding: 10px 18px;
+    cursor: pointer;
 }
 
 /* ── Mobile ── */

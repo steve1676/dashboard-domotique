@@ -364,48 +364,183 @@ haFetchStates();
 setInterval(haFetchStates, 5000);
 
 
-// ─── Batterie téléphone (via Home Assistant / app Companion) ────────────────
+// ─── Batterie téléphones (via Home Assistant / app Companion) ───────────────
 
-// ⚠️ À CONFIGURER : entity_id du capteur batterie créé par l'app Companion
-// (HA → Outils de développement → États, filtre "battery")
-const BATTERY_ENTITY_ID = "sensor.telephone_de_steve_battery_level";
 const BATTERY_THRESHOLD = 10;
 
-async function updateBattery() {
-    const badge = document.getElementById("battery-badge");
-    if (!badge) return;
+function getPhones() {
+    return JSON.parse(localStorage.getItem("phones_config") || "[]");
+}
 
+function savePhones(phones) {
+    localStorage.setItem("phones_config", JSON.stringify(phones));
+}
+
+// Interroge HA et ne garde que les capteurs de batterie (device_class: battery)
+async function fetchAvailableBatterySensors() {
     try {
-        const response = await fetch(`${HA_CONFIG.url}/api/states/${BATTERY_ENTITY_ID}`, {
+        const response = await fetch(`${HA_CONFIG.url}/api/states`, {
             headers: {
                 Authorization: `Bearer ${HA_CONFIG.token}`,
                 "Content-Type": "application/json"
             }
         });
-
         if (!response.ok) throw new Error("HTTP " + response.status);
-        const data  = await response.json();
-        const level = parseInt(data.state, 10);
+        const data = await response.json();
 
-        if (isNaN(level)) {
-            badge.textContent = "🔋 --%";
-            badge.classList.remove("low-battery");
-            return;
-        }
-
-        const icon = level <= BATTERY_THRESHOLD ? "🪫" : "🔋";
-        badge.textContent = `${icon} ${level}%`;
-        badge.classList.toggle("low-battery", level <= BATTERY_THRESHOLD);
+        return data
+            .filter(e =>
+                e.entity_id.startsWith("sensor.") &&
+                e.attributes?.device_class === "battery"
+            )
+            .map(e => ({
+                entity_id: e.entity_id,
+                name: e.attributes.friendly_name || e.entity_id
+            }))
+            .sort((a, b) => a.name.localeCompare(b.name));
 
     } catch (err) {
-        console.error("Batterie téléphone :", err);
-        badge.textContent = "🔋 --%";
-        badge.classList.remove("low-battery");
+        console.error("Détection capteurs batterie :", err);
+        return null;
     }
 }
 
-updateBattery();
-setInterval(updateBattery, 5000);
+async function refreshPhoneEntitySelect() {
+    const select = document.getElementById("new-phone-entity");
+    if (!select) return;
+
+    const sensors = await fetchAvailableBatterySensors();
+
+    if (sensors === null) {
+        select.innerHTML = `<option value="">⚠️ Home Assistant injoignable</option>`;
+        return;
+    }
+
+    const already = new Set(getPhones().map(p => p.entity_id));
+    const available = sensors.filter(s => !already.has(s.entity_id));
+
+    if (available.length === 0) {
+        select.innerHTML = `<option value="">Aucun nouveau capteur détecté</option>`;
+        return;
+    }
+
+    select.innerHTML = `<option value="">Choisir un appareil détecté...</option>` +
+        available.map(s => `<option value="${s.entity_id}">${s.name}</option>`).join("");
+}
+
+function addPhone() {
+    const nameInput   = document.getElementById("new-phone-name");
+    const entitySelect = document.getElementById("new-phone-entity");
+    const label     = nameInput.value.trim();
+    const entity_id = entitySelect.value;
+
+    if (!label || !entity_id) return;
+
+    const phones = getPhones();
+    phones.push({ id: Date.now().toString(), label, entity_id });
+    savePhones(phones);
+
+    nameInput.value = "";
+
+    renderPhonesList();
+    renderBatteryBadges();
+    refreshPhoneEntitySelect();
+}
+
+function removePhone(id) {
+    savePhones(getPhones().filter(p => p.id !== id));
+    renderPhonesList();
+    renderBatteryBadges();
+    refreshPhoneEntitySelect();
+}
+
+function renamePhone(id, newLabel) {
+    const phones = getPhones();
+    const phone = phones.find(p => p.id === id);
+    if (phone) phone.label = newLabel.trim() || phone.label;
+    savePhones(phones);
+    renderBatteryBadges();
+}
+
+function renderPhonesList() {
+    const container = document.getElementById("phones-list");
+    if (!container) return;
+
+    const phones = getPhones();
+
+    if (phones.length === 0) {
+        container.innerHTML = `<p style="color:#94a3b8;padding:10px 0;">Aucun téléphone suivi pour l'instant.</p>`;
+        return;
+    }
+
+    container.innerHTML = "";
+    phones.forEach(p => {
+        const row = document.createElement("div");
+        row.className = "phone-item";
+        row.innerHTML = `
+            <input type="text" class="phone-name-input" value="${p.label}"
+                   onchange="renamePhone('${p.id}', this.value)">
+            <span class="phone-entity">${p.entity_id}</span>
+            <button class="phone-remove" onclick="removePhone('${p.id}')">✕</button>
+        `;
+        container.appendChild(row);
+    });
+}
+
+async function fetchBatteryLevel(entityId) {
+    try {
+        const response = await fetch(`${HA_CONFIG.url}/api/states/${entityId}`, {
+            headers: {
+                Authorization: `Bearer ${HA_CONFIG.token}`,
+                "Content-Type": "application/json"
+            }
+        });
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        const data  = await response.json();
+        const level = parseInt(data.state, 10);
+        return isNaN(level) ? null : level;
+    } catch (err) {
+        console.error("Batterie", entityId, ":", err);
+        return null;
+    }
+}
+
+async function renderBatteryBadges() {
+    const container = document.getElementById("battery-badges");
+    if (!container) return;
+
+    const phones = getPhones();
+    if (phones.length === 0) {
+        container.innerHTML = "";
+        return;
+    }
+
+    const results = await Promise.all(
+        phones.map(async p => ({ ...p, level: await fetchBatteryLevel(p.entity_id) }))
+    );
+
+    container.innerHTML = "";
+    results.forEach(p => {
+        const badge = document.createElement("span");
+        badge.className = "battery-badge";
+
+        if (p.level === null) {
+            badge.textContent = `🔋 ${p.label} --%`;
+        } else {
+            const icon = p.level <= BATTERY_THRESHOLD ? "🪫" : "🔋";
+            badge.textContent = `${icon} ${p.label} ${p.level}%`;
+            if (p.level <= BATTERY_THRESHOLD) badge.classList.add("low-battery");
+        }
+
+        container.appendChild(badge);
+    });
+}
+
+renderPhonesList();
+renderBatteryBadges();
+refreshPhoneEntitySelect();
+setInterval(renderBatteryBadges, 5000);
+setInterval(refreshPhoneEntitySelect, 30000); // détecte les nouveaux capteurs périodiquement
 
 
 // ─── Navigation ─────────────────────────────────────────────────────────────
@@ -419,17 +554,6 @@ function showPage(pageId, button) {
         btn.classList.remove("active-nav");
     });
     button.classList.add("active-nav");
-}
-
-
-// ─── Plein écran ─────────────────────────────────────────────────────────────
-
-function fullscreen() {
-    if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen();
-    } else {
-        document.exitFullscreen();
-    }
 }
 
 
