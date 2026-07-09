@@ -860,6 +860,26 @@ spotifyHandleRedirect().then(() => {
 const CHROMECAST_ENTITY_ID = "media_player.latele";
 
 let chromecastLastImage = null;
+let chromecastImageObjectUrl = null;
+
+async function chromecastLoadImage(image) {
+    try {
+        const response = await fetch(image, {
+            headers: { Authorization: `Bearer ${HA_CONFIG.token}` }
+        });
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+
+        // On libère l'ancienne image avant de poser la nouvelle
+        if (chromecastImageObjectUrl) URL.revokeObjectURL(chromecastImageObjectUrl);
+        chromecastImageObjectUrl = objectUrl;
+
+        document.getElementById("chromecastBg").style.backgroundImage = `url(${objectUrl})`;
+    } catch (err) {
+        console.error("Chromecast image :", err);
+    }
+}
 
 function chromecastShowIdle() {
     document.getElementById("chromecastIdle").style.display = "flex";
@@ -888,6 +908,11 @@ async function updateChromecast() {
         if (["off", "idle", "unavailable", "standby"].includes(data.state) || !attrs.media_title) {
             chromecastShowIdle();
             chromecastLastImage = null;
+            if (chromecastImageObjectUrl) {
+                URL.revokeObjectURL(chromecastImageObjectUrl);
+                chromecastImageObjectUrl = null;
+            }
+            document.getElementById("chromecastBg").style.backgroundImage = "none";
             return;
         }
 
@@ -909,9 +934,13 @@ async function updateChromecast() {
 
         if (image && image !== chromecastLastImage) {
             chromecastLastImage = image;
-            document.getElementById("chromecastBg").style.backgroundImage = `url(${image})`;
+            chromecastLoadImage(image);
         } else if (!image) {
             chromecastLastImage = null;
+            if (chromecastImageObjectUrl) {
+                URL.revokeObjectURL(chromecastImageObjectUrl);
+                chromecastImageObjectUrl = null;
+            }
             document.getElementById("chromecastBg").style.backgroundImage = "none";
         }
 
