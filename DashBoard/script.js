@@ -868,8 +868,92 @@ spotifyHandleRedirect().then(() => {
 
 const CHROMECAST_ENTITY_ID = "media_player.latele";
 
+// Clé API YouTube Data v3 — à créer sur https://console.cloud.google.com
+// (active "YouTube Data API v3" puis crée une clé API dans "Identifiants")
+const YOUTUBE_API_KEY = "AIzaSyCDc5MPkXyNH6P7xo_aZRgMuv1ouO5T8ZA";
+
 let chromecastLastImage = null;
 let chromecastImageObjectUrl = null;
+let chromecastLastSearchedTitle = null;
+
+const YOUTUBE_THUMB_CACHE_KEY = "chromecast_yt_thumb_cache";
+
+function chromecastGetThumbCache() {
+    try {
+        return JSON.parse(localStorage.getItem(YOUTUBE_THUMB_CACHE_KEY) || "{}");
+    } catch {
+        return {};
+    }
+}
+
+function chromecastSaveThumbCache(cache) {
+    try {
+        localStorage.setItem(YOUTUBE_THUMB_CACHE_KEY, JSON.stringify(cache));
+    } catch (err) {
+        console.error("Chromecast cache vignette :", err);
+    }
+}
+
+// Recherche une vignette YouTube à partir du titre de la vidéo (utilisé quand
+// HA ne fournit pas entity_picture). Résultat mis en cache par titre pour
+// économiser le quota gratuit de l'API (100 unités par recherche).
+async function chromecastSearchYoutubeThumbnail(title) {
+    if (!YOUTUBE_API_KEY || YOUTUBE_API_KEY.startsWith("COLLE_")) return null;
+
+    const cache = chromecastGetThumbCache();
+    if (cache[title]) return cache[title];
+
+    try {
+        const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&type=video&q=${encodeURIComponent(title)}&key=${YOUTUBE_API_KEY}`;
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        const data = await response.json();
+
+        const thumbnails = data.items?.[0]?.snippet?.thumbnails;
+        const thumb = thumbnails?.high?.url || thumbnails?.medium?.url || thumbnails?.default?.url || null;
+
+        if (thumb) {
+            cache[title] = thumb;
+            chromecastSaveThumbCache(cache);
+        }
+        return thumb;
+    } catch (err) {
+        console.error("Chromecast recherche YouTube :", err);
+        return null;
+    }
+}
+
+// Fallback visuel (couleur + icône) quand aucune image n'est disponible / trouvée
+const CHROMECAST_APP_STYLES = {
+    "youtube":        { color: "#FF0000", icon: "▶️" },
+    "netflix":        { color: "#141414", icon: "🅽" },
+    "disney+":        { color: "#113CCF", icon: "✦" },
+    "prime video":    { color: "#00A8E1", icon: "▶" },
+    "spotify":        { color: "#1DB954", icon: "🎵" },
+    "plex":           { color: "#E5A00D", icon: "▶" },
+    "twitch":         { color: "#9146FF", icon: "🎮" },
+    "default":        { color: "#374151", icon: "📺" }
+};
+
+function chromecastApplyFallback(appName) {
+    const key = (appName || "").toLowerCase();
+    const style = CHROMECAST_APP_STYLES[key] || CHROMECAST_APP_STYLES["default"];
+
+    const bg = document.getElementById("chromecastBg");
+    bg.style.backgroundImage = "none";
+    bg.style.backgroundColor = style.color;
+    bg.textContent = style.icon;
+    bg.style.display = "flex";
+    bg.style.alignItems = "center";
+    bg.style.justifyContent = "center";
+    bg.style.fontSize = "48px";
+}
+
+function chromecastClearFallback() {
+    const bg = document.getElementById("chromecastBg");
+    bg.textContent = "";
+    bg.style.backgroundColor = "#374151";
+}
 
 async function chromecastLoadImage(image) {
     try {
@@ -914,10 +998,12 @@ async function updateChromecast() {
         if (["off", "idle", "unavailable", "standby"].includes(data.state) || !attrs.media_title) {
             chromecastShowIdle();
             chromecastLastImage = null;
+            chromecastLastSearchedTitle = null;
             if (chromecastImageObjectUrl) {
                 URL.revokeObjectURL(chromecastImageObjectUrl);
                 chromecastImageObjectUrl = null;
             }
+            chromecastClearFallback();
             document.getElementById("chromecastBg").style.backgroundImage = "none";
             return;
         }
@@ -938,16 +1024,40 @@ async function updateChromecast() {
             ? (attrs.entity_picture.startsWith("http") ? attrs.entity_picture : HA_CONFIG.url + attrs.entity_picture)
             : null;
 
-        if (image && image !== chromecastLastImage) {
-            chromecastLastImage = image;
-            chromecastLoadImage(image);
-        } else if (!image) {
+        if (image) {
+            if (image !== chromecastLastImage) {
+                chromecastLastImage = image;
+                chromecastLastSearchedTitle = null;
+                chromecastClearFallback();
+                chromecastLoadImage(image);
+            }
+        } else if (attrs.app_name && attrs.app_name.toLowerCase() === "youtube" && attrs.media_title) {
+            // Pas d'entity_picture fournie par HA : on tente de retrouver la
+            // vignette via une recherche YouTube sur le titre (une seule fois par titre)
             chromecastLastImage = null;
+            if (attrs.media_title !== chromecastLastSearchedTitle) {
+                chromecastLastSearchedTitle = attrs.media_title;
+                chromecastApplyFallback(attrs.app_name); // affichage immédiat pendant la recherche
+
+                const searchedTitle = attrs.media_title;
+                chromecastSearchYoutubeThumbnail(searchedTitle).then((thumb) => {
+                    // On ignore le résultat si le titre a changé entre-temps (évite les races)
+                    if (thumb && chromecastLastSearchedTitle === searchedTitle) {
+                        chromecastClearFallback();
+                        // Pose directe en CSS (pas de fetch/blob) : i.ytimg.com ne renvoie
+                        // pas toujours d'en-têtes CORS compatibles avec une lecture en blob
+                        document.getElementById("chromecastBg").style.backgroundImage = `url(${thumb})`;
+                    }
+                });
+            }
+        } else {
+            chromecastLastImage = null;
+            chromecastLastSearchedTitle = null;
             if (chromecastImageObjectUrl) {
                 URL.revokeObjectURL(chromecastImageObjectUrl);
                 chromecastImageObjectUrl = null;
             }
-            document.getElementById("chromecastBg").style.backgroundImage = "none";
+            chromecastApplyFallback(attrs.app_name);
         }
 
     } catch (err) {
