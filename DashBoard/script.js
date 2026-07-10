@@ -229,7 +229,7 @@ setInterval(updateTransports, 30000);
 // URL du proxy local qui protège le token HA (voir dossier ha-proxy/).
 // Le token n'existe plus jamais ici, côté navigateur.
 const HA_CONFIG = {
-    url: "http://192.168.1.18:8787/ha/api/"
+    url: "http://192.168.1.18:8787/"
 };
 
 // ⚠️ À CONFIGURER : tes pièces et tes appareils (entity_id trouvables dans
