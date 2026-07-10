@@ -226,10 +226,10 @@ setInterval(updateTransports, 30000);
 
 // ─── Appareils — Home Assistant ──────────────────────────────────────────────
 
-// ⚠️ À CONFIGURER : adresse locale de ton HA + jeton d'accès longue durée
+// URL du proxy local qui protège le token HA (voir dossier ha-proxy/).
+// Le token n'existe plus jamais ici, côté navigateur.
 const HA_CONFIG = {
-    url: "http://192.168.1.55:8123",
-    token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJlY2E3ZjVhN2VlY2U0MGUyYTAxZGI3OTBjYmIyYTAwMiIsImlhdCI6MTc4MzI0ODQ4MywiZXhwIjoyMDk4NjA4NDgzfQ.Nq8NkfkNiRmUF7GXHPbXfiAFHZxdT_C62Kp_BaO43l8"
+    url: "http://192.168.1.18:8787/ha/api/"
 };
 
 // ⚠️ À CONFIGURER : tes pièces et tes appareils (entity_id trouvables dans
@@ -279,7 +279,6 @@ async function haFetchStates() {
     try {
         const response = await fetch(`${HA_CONFIG.url}/api/states`, {
             headers: {
-                Authorization: `Bearer ${HA_CONFIG.token}`,
                 "Content-Type": "application/json"
             }
         });
@@ -313,7 +312,6 @@ async function haToggle(entityId) {
         const response = await fetch(`${HA_CONFIG.url}/api/services/homeassistant/toggle`, {
             method: "POST",
             headers: {
-                Authorization: `Bearer ${HA_CONFIG.token}`,
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({ entity_id: entityId })
@@ -394,7 +392,6 @@ async function fetchAvailableBatterySensors() {
     try {
         const response = await fetch(`${HA_CONFIG.url}/api/states`, {
             headers: {
-                Authorization: `Bearer ${HA_CONFIG.token}`,
                 "Content-Type": "application/json"
             }
         });
@@ -504,7 +501,6 @@ async function fetchBatteryLevel(entityId) {
     try {
         const response = await fetch(`${HA_CONFIG.url}/api/states/${entityId}`, {
             headers: {
-                Authorization: `Bearer ${HA_CONFIG.token}`,
                 "Content-Type": "application/json"
             }
         });
@@ -877,9 +873,7 @@ let chromecastImageObjectUrl = null;
 
 async function chromecastLoadImage(image) {
     try {
-        const response = await fetch(image, {
-            headers: { Authorization: `Bearer ${HA_CONFIG.token}` }
-        });
+        const response = await fetch(image);
         if (!response.ok) throw new Error("HTTP " + response.status);
         const blob = await response.blob();
         const objectUrl = URL.createObjectURL(blob);
@@ -908,7 +902,6 @@ async function updateChromecast() {
     try {
         const response = await fetch(`${HA_CONFIG.url}/api/states/${CHROMECAST_ENTITY_ID}`, {
             headers: {
-                Authorization: `Bearer ${HA_CONFIG.token}`,
                 "Content-Type": "application/json"
             }
         });
@@ -968,7 +961,6 @@ async function chromecastControl(service) {
         await fetch(`${HA_CONFIG.url}/api/services/media_player/${service}`, {
             method: "POST",
             headers: {
-                Authorization: `Bearer ${HA_CONFIG.token}`,
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({ entity_id: CHROMECAST_ENTITY_ID })
