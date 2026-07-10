@@ -866,7 +866,7 @@ spotifyHandleRedirect().then(() => {
 
 // ─── Chromecast (via Home Assistant) ─────────────────────────────────────────
 
-const CHROMECAST_ENTITY_ID = "media_player.latele_2";
+const CHROMECAST_ENTITY_ID = "media_player.latele";
 
 let chromecastLastImage = null;
 let chromecastImageObjectUrl = null;
