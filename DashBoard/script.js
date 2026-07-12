@@ -148,44 +148,238 @@ navigator.geolocation.watchPosition(
 
 
 // ─── Transports — Temps réel Naolib via plan.naolib.fr ──────────────────────
+// Config par l'utilisateur (page Paramètres) : liste d'arrêts connus dans
+// stops.json + choix ligne/direction par arrêt, stockés en localStorage.
+
+const STOPS_JSON_URL   = "stops.json";
+const NAOLIB_API_BASE  = "https://plan.naolib.fr/api/stop/logical/";
+
+let knownStops = [];          // contenu de stops.json : [{id, label}, ...]
+const stopDataCache = {};     // stopId -> dernière réponse de l'API (cache mémoire)
+
+function getTransportRoutes() {
+    return JSON.parse(localStorage.getItem("transport_routes_config") || "[]");
+}
+
+function saveTransportRoutes(routes) {
+    localStorage.setItem("transport_routes_config", JSON.stringify(routes));
+}
+
+async function loadKnownStops() {
+    try {
+        const res = await fetch(STOPS_JSON_URL, { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        knownStops = await res.json();
+    } catch (err) {
+        console.error("Impossible de charger stops.json :", err);
+        knownStops = [];
+    }
+    populateTransportStopSelect();
+}
+
+function populateTransportStopSelect() {
+    const select = document.getElementById("new-transport-stop");
+    if (!select) return;
+    select.innerHTML = `<option value="">Choisir un arrêt...</option>` +
+        knownStops.map(s => `<option value="${s.id}">${s.label}</option>`).join("");
+}
+
+async function fetchNaolibStop(stopId) {
+    if (stopDataCache[stopId]) return stopDataCache[stopId];
+    const res = await fetch(NAOLIB_API_BASE + stopId);
+    if (!res.ok) throw new Error("HTTP " + res.status + " pour l'arrêt " + stopId);
+    const data = await res.json();
+    stopDataCache[stopId] = data;
+    return data;
+}
+
+async function onTransportStopChange() {
+    const stopSelect = document.getElementById("new-transport-stop");
+    const lineSelect = document.getElementById("new-transport-line");
+    const dirSelect  = document.getElementById("new-transport-direction");
+
+    lineSelect.innerHTML = `<option value="">— Ligne —</option>`;
+    dirSelect.innerHTML  = `<option value="">— Direction —</option>`;
+    lineSelect.disabled = true;
+    dirSelect.disabled  = true;
+
+    const stopId = stopSelect.value;
+    if (!stopId) return;
+
+    try {
+        delete stopDataCache[stopId]; // on force un fetch frais quand on configure
+        const data = await fetchNaolibStop(stopId);
+        const lines = data.linked_lines || [];
+        lineSelect.innerHTML = `<option value="">— Ligne —</option>` +
+            lines.map(l => `<option value="${l.id}">${l.number} — ${l.name}</option>`).join("");
+        lineSelect.disabled = false;
+    } catch (err) {
+        console.error("Erreur chargement arrêt :", err);
+        lineSelect.innerHTML = `<option value="">⚠️ Erreur de chargement</option>`;
+    }
+}
+
+function onTransportLineChange() {
+    const stopId = document.getElementById("new-transport-stop").value;
+    const lineId = document.getElementById("new-transport-line").value;
+    const dirSelect = document.getElementById("new-transport-direction");
+
+    dirSelect.innerHTML = `<option value="">— Direction —</option>`;
+    dirSelect.disabled = true;
+
+    if (!stopId || !lineId) return;
+    const data = stopDataCache[stopId];
+    if (!data) return;
+
+    const line = (data.linked_lines || []).find(l => String(l.id) === String(lineId));
+    if (!line) return;
+
+    dirSelect.innerHTML = `<option value="">— Direction —</option>` +
+        (line.directions || []).map(d => `<option value="${d.direction}">${d.name}</option>`).join("");
+    dirSelect.disabled = false;
+}
+
+// Palette tournante déterministe (pas les vraies couleurs officielles TAN,
+// juste de quoi distinguer visuellement les lignes que tu ajoutes)
+function lineColor(lineNumber) {
+    const palette = ["#e2001a", "#0069e2", "#f59e0b", "#22c55e", "#a855f7", "#ec4899", "#14b8a6", "#f97316"];
+    let hash = 0;
+    for (const ch of String(lineNumber)) hash = (hash * 31 + ch.charCodeAt(0)) % palette.length;
+    return palette[Math.abs(hash) % palette.length];
+}
+
+function addTransportRoute() {
+    const stopSelect = document.getElementById("new-transport-stop");
+    const lineSelect = document.getElementById("new-transport-line");
+    const dirSelect  = document.getElementById("new-transport-direction");
+
+    const stopId    = stopSelect.value;
+    const lineId    = lineSelect.value;
+    const direction = dirSelect.value;
+
+    if (!stopId || !lineId || !direction) return;
+
+    const stopLabel  = stopSelect.options[stopSelect.selectedIndex].textContent;
+    const lineNumber = lineSelect.options[lineSelect.selectedIndex].textContent.split(" — ")[0].trim();
+    const destLabel  = dirSelect.options[dirSelect.selectedIndex].textContent;
+
+    const routes = getTransportRoutes();
+    routes.push({
+        id: Date.now().toString(),
+        stopId, stopLabel,
+        lineId, lineNumber,
+        direction, destLabel,
+        color: lineColor(lineNumber)
+    });
+    saveTransportRoutes(routes);
+
+    renderTransportRoutesList();
+    updateTransports();
+
+    // Reset des selects pour un prochain ajout
+    stopSelect.value = "";
+    lineSelect.innerHTML = `<option value="">— Ligne —</option>`;
+    lineSelect.disabled = true;
+    dirSelect.innerHTML = `<option value="">— Direction —</option>`;
+    dirSelect.disabled = true;
+}
+
+function removeTransportRoute(id) {
+    saveTransportRoutes(getTransportRoutes().filter(r => r.id !== id));
+    renderTransportRoutesList();
+    updateTransports();
+}
+
+function renderTransportRoutesList() {
+    const container = document.getElementById("transport-routes-list");
+    if (!container) return;
+
+    const routes = getTransportRoutes();
+
+    if (routes.length === 0) {
+        container.innerHTML = `<p style="color:#94a3b8;padding:10px 0;">Aucune ligne configurée pour l'instant.</p>`;
+        return;
+    }
+
+    container.innerHTML = "";
+    routes.forEach(r => {
+        const row = document.createElement("div");
+        row.className = "transport-route-item";
+        row.innerHTML = `
+            <span class="line-badge" style="background:${r.color};color:white">${r.lineNumber}</span>
+            <span class="transport-route-label">${r.destLabel} <span class="transport-route-stop">(${r.stopLabel})</span></span>
+            <button class="phone-remove" onclick="removeTransportRoute('${r.id}')">✕</button>
+        `;
+        container.appendChild(row);
+    });
+}
+
+function updateTransportWidgetTitle() {
+    const routes = getTransportRoutes();
+    const titleEl      = document.getElementById("transport-title");
+    const titleModalEl = document.getElementById("transport-title-modal");
+
+    let label = "🚌 Transport";
+    if (routes.length > 0) {
+        const uniqueStops = [...new Set(routes.map(r => r.stopLabel))];
+        label = uniqueStops.length === 1 ? `🚌 ${uniqueStops[0]}` : "🚌 Transport";
+    }
+
+    if (titleEl)      titleEl.textContent = label;
+    if (titleModalEl) titleModalEl.textContent = label;
+}
 
 async function updateTransports() {
     const container      = document.getElementById("transport-list");
     const modalContainer  = document.getElementById("transport-list-modal");
 
+    updateTransportWidgetTitle();
+
+    const routes = getTransportRoutes();
+
+    if (routes.length === 0) {
+        const emptyHtml = `<div class="transport-loading">⚙️ Configure au moins une ligne dans les Paramètres.</div>`;
+        container.innerHTML = emptyHtml;
+        modalContainer.innerHTML = emptyHtml;
+        return;
+    }
+
+    const now    = new Date();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+
+    function toMin(hhmm) {
+        const [h, m] = hhmm.split(":").map(Number);
+        let total = h * 60 + m;
+        if (total < nowMin - 120) total += 24 * 60; // passage minuit
+        return total;
+    }
+
+    function waitLabel(hhmm) {
+        const diff = toMin(hhmm) - nowMin;
+        if (diff <= 0)  return "À quai";
+        if (diff < 60)  return `${diff} min`;
+        return hhmm;
+    }
+
     try {
-        const response = await fetch("https://plan.naolib.fr/api/stop/logical/9630");
-        if (!response.ok) throw new Error("HTTP " + response.status);
-        const data = await response.json();
+        // Un seul appel API par arrêt, même si plusieurs lignes y sont configurées
+        const stopIds = [...new Set(routes.map(r => r.stopId))];
+        const stopDataById = {};
+        await Promise.all(stopIds.map(async id => {
+            delete stopDataCache[id]; // toujours des horaires frais au refresh
+            stopDataById[id] = await fetchNaolibStop(id);
+        }));
 
-        const now    = new Date();
-        const nowMin = now.getHours() * 60 + now.getMinutes();
+        let merged = [];
+        routes.forEach(r => {
+            const data = stopDataById[r.stopId];
+            if (!data) return;
+            const hours = data.departures?.[r.lineId]?.[r.direction]?.hours || [];
+            const next = hours.filter(h => toMin(h.time) > nowMin).slice(0, 2);
+            next.forEach(h => merged.push({ ...h, line: r.lineNumber, dest: r.destLabel, color: r.color }));
+        });
 
-        function toMin(hhmm) {
-            const [h, m] = hhmm.split(":").map(Number);
-            let total = h * 60 + m;
-            if (total < nowMin - 120) total += 24 * 60; // passage minuit
-            return total;
-        }
-
-        function waitLabel(hhmm) {
-            const diff = toMin(hhmm) - nowMin;
-            if (diff <= 0)  return "À quai";
-            if (diff < 60)  return `${diff} min`;
-            return hhmm;
-        }
-
-        const t2 = data.departures?.["2"]?.["1"]?.hours || [];
-        const t3 = data.departures?.["3"]?.["1"]?.hours || [];
-
-        const next2 = t2.filter(h => toMin(h.time) > nowMin).slice(0, 2);
-        const next3 = t3.filter(h => toMin(h.time) > nowMin).slice(0, 2);
-
-        // Fusion et tri chronologique
-        const merged = [
-            ...next2.map(h => ({ ...h, line: "2", dest: "Orvault Grand Val", color: "#e2001a" })),
-            ...next3.map(h => ({ ...h, line: "3", dest: "Marcel Paul",       color: "#0069e2" }))
-        ].sort((a, b) => toMin(a.time) - toMin(b.time));
+        merged.sort((a, b) => toMin(a.time) - toMin(b.time));
 
         if (!merged.length) {
             const emptyHtml = `<div class="transport-loading">🕐 Aucun passage immédiat.</div>`;
@@ -220,6 +414,8 @@ async function updateTransports() {
     }
 }
 
+loadKnownStops();
+renderTransportRoutesList();
 updateTransports();
 setInterval(updateTransports, 30000);
 

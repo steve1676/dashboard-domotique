@@ -45,7 +45,7 @@
 
         <!-- Transports -->
         <div id="widget-transport" class="transport-card" onclick="openWidgetModal('transport')">
-            <div class="transport-title">🚌 Mangin</div>
+            <div id="transport-title" class="transport-title">🚌 Transport</div>
             <div id="transport-list">
                 <div class="transport-loading">Chargement...</div>
             </div>
@@ -176,6 +176,27 @@
 
     <div class="weather-card" style="margin-top: 30px;">
 
+        <h2 style="margin-bottom:20px;">🚌 Lignes de transport (Naolib)</h2>
+
+        <div id="transport-routes-list"></div>
+
+        <div class="phone-add-row">
+            <select id="new-transport-stop" onchange="onTransportStopChange()">
+                <option value="">Choisir un arrêt...</option>
+            </select>
+            <select id="new-transport-line" onchange="onTransportLineChange()" disabled>
+                <option value="">— Ligne —</option>
+            </select>
+            <select id="new-transport-direction" disabled>
+                <option value="">— Direction —</option>
+            </select>
+            <button class="phone-add-btn" onclick="addTransportRoute()">+ Ajouter</button>
+        </div>
+
+    </div>
+
+    <div class="weather-card" style="margin-top: 30px;">
+
         <h2 style="margin-bottom:20px;">🖥️ Wiggets de l'Accueil</h2>
 
         <div class="widget-item">
@@ -259,7 +280,7 @@
 
         <!-- Détail Transport -->
         <div id="modal-transport" class="widget-modal-section">
-            <div class="transport-title" style="margin-bottom:20px;">🚌 Mangin</div>
+            <div id="transport-title-modal" class="transport-title" style="margin-bottom:20px;">🚌 Transport</div>
             <div id="transport-list-modal">
                 <div class="transport-loading">Chargement...</div>
             </div>
