@@ -374,7 +374,7 @@ async function updateTransports() {
         routes.forEach(r => {
             const data = stopDataById[r.stopId];
             if (!data) return;
-            const hours = data.departures?.[r.lineId]?.[r.direction]?.hours || [];
+            const hours = data.departures?.[r.lineNumber]?.[r.direction]?.hours || [];
             const next = hours.filter(h => toMin(h.time) > nowMin).slice(0, 2);
             next.forEach(h => merged.push({ ...h, line: r.lineNumber, dest: r.destLabel, color: r.color }));
         });
