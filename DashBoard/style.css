@@ -941,3 +941,62 @@ body {
 .favorite-btn:hover{
     transform:scale(1.15);
 }
+/* ─── Alertes trafic (infotrafic Naolib) ─────────────────────────────────── */
+
+.transport-alert-badge {
+    font-size: 0.75em;
+    margin-left: 4px;
+    animation: alert-pulse 2s ease-in-out infinite;
+}
+
+@keyframes alert-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+.transport-alert-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    background: rgba(245, 158, 11, 0.1);
+    border-left: 3px solid #f59e0b;
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-top: 10px;
+    font-size: 0.85rem;
+}
+
+.transport-alert-item .alert-icon {
+    flex-shrink: 0;
+    font-size: 1rem;
+}
+
+.transport-alert-item .alert-content {
+    color: #e2e8f0;
+}
+
+.transport-alert-item .alert-lines {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+}
+
+.transport-alert-item .alert-line-tag {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: white;
+}
+
+.transport-alert-item .alert-title {
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.transport-alert-item .alert-dates {
+    color: #94a3b8;
+    font-size: 0.78rem;
+    margin-top: 2px;
+}

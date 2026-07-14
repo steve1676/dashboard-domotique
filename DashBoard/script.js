@@ -241,7 +241,124 @@ function onTransportLineChange() {
 
 // Palette tournante déterministe (pas les vraies couleurs officielles TAN,
 // juste de quoi distinguer visuellement les lignes que tu ajoutes)
+// Couleurs officielles issues du GTFS Naolib (routes.txt / route_color).
+// 108 lignes couvertes. Fallback par hash pour toute ligne absente de cette table
+// (ex : nouvelle ligne créée après la dernière mise à jour du GTFS).
+const OFFICIAL_LINE_COLORS = {
+    "1": "#00a754",
+    "2": "#e30613",
+    "3": "#2581c4",
+    "4": "#ffcd1c",
+    "5": "#0bbbef",
+    "10": "#ffed00",
+    "11": "#e8b975",
+    "12": "#a1daf8",
+    "23": "#0bbbef",
+    "26": "#009640",
+    "27": "#a1daf8",
+    "28": "#a1daf8",
+    "30": "#ffed00",
+    "33": "#f5b5d3",
+    "36": "#65c2c4",
+    "38": "#009640",
+    "40": "#ffed00",
+    "42": "#c8d300",
+    "47": "#bca3ce",
+    "50": "#ffed00",
+    "59": "#f5b5d3",
+    "60": "#ffed00",
+    "66": "#2581c4",
+    "67": "#2581c4",
+    "69": "#d39e46",
+    "71": "#c8d300",
+    "75": "#e8b975",
+    "77": "#a1daf8",
+    "78": "#f7a600",
+    "79": "#f5b5d3",
+    "80": "#ffed00",
+    "81": "#65c2c4",
+    "85": "#f5b5d3",
+    "86": "#0bbbef",
+    "87": "#f7a600",
+    "88": "#a877b2",
+    "89": "#76b82a",
+    "91": "#009640",
+    "93": "#65c2c4",
+    "95": "#c8d300",
+    "96": "#f7a600",
+    "97": "#bca3ce",
+    "98": "#f7a600",
+    "101": "#a9162e",
+    "102": "#a9162e",
+    "104": "#a9162e",
+    "105": "#a9162e",
+    "107": "#a9162e",
+    "108": "#a9162e",
+    "109": "#a9162e",
+    "111": "#a9162e",
+    "112": "#a9162e",
+    "115": "#a9162e",
+    "117": "#a9162e",
+    "118": "#a9162e",
+    "119": "#a9162e",
+    "122": "#a9162e",
+    "127": "#a9162e",
+    "128": "#a9162e",
+    "129": "#a9162e",
+    "131": "#a9162e",
+    "135": "#a9162e",
+    "137": "#a9162e",
+    "138": "#a9162e",
+    "139": "#a9162e",
+    "141": "#a9162e",
+    "142": "#a9162e",
+    "147": "#a9162e",
+    "149": "#a9162e",
+    "152": "#a9162e",
+    "157": "#a9162e",
+    "158": "#a9162e",
+    "159": "#a9162e",
+    "162": "#a9162e",
+    "168": "#a9162e",
+    "169": "#a9162e",
+    "172": "#a9162e",
+    "179": "#a9162e",
+    "189": "#a9162e",
+    "192": "#a9162e",
+    "1B": "#00a754",
+    "C1": "#0bbbef",
+    "C2": "#ee7402",
+    "C20": "#ffed00",
+    "C3": "#f7a600",
+    "C4": "#76b82a",
+    "C6": "#a877b2",
+    "C7": "#c8d300",
+    "C8": "#c8d300",
+    "C9": "#f5b5d3",
+    "E1": "#e30613",
+    "E4": "#e30613",
+    "E5": "#e30613",
+    "E8": "#e30613",
+    "LCE": "#00a754",
+    "LCN": "#e30613",
+    "LCO": "#2581c4",
+    "N1": "#2aaab6",
+    "N2": "#2aaab6",
+    "N3": "#2aaab6",
+    "NA": "#a1daf8",
+    "NC": "#ffffff",
+    "NGG": "#2581c4",
+    "NN": "#f91aff",
+    "NO": "#fffa3e",
+    "NS": "#00ffc2",
+    "TE1": "#502391",
+    "TE2": "#2581c4"
+};
+
 function lineColor(lineNumber) {
+    const key = String(lineNumber).trim();
+    if (OFFICIAL_LINE_COLORS[key]) return OFFICIAL_LINE_COLORS[key];
+
     const palette = ["#e2001a", "#0069e2", "#f59e0b", "#22c55e", "#a855f7", "#ec4899", "#14b8a6", "#f97316"];
     let hash = 0;
     for (const ch of String(lineNumber)) hash = (hash * 31 + ch.charCodeAt(0)) % palette.length;
@@ -418,6 +535,88 @@ loadKnownStops();
 renderTransportRoutesList();
 updateTransports();
 setInterval(updateTransports, 30000);
+
+
+// ─── Transports — Alertes trafic (infotrafic) ────────────────────────────────
+
+const NAOLIB_INFOTRAFIC_URL = "https://plan.naolib.fr/api/infotrafic";
+
+// Rend le texte HTML de la description de l'API en texte simple lisible
+function stripHtmlToText(html) {
+    const tmp = document.createElement("div");
+    tmp.innerHTML = html
+        .replace(/<br\s*\/?>/gi, "\n")
+        .replace(/<\/p>/gi, "\n")
+        .replace(/<\/?strong>/gi, "")
+        .replace(/<\/?span[^>]*>/gi, "");
+    const text = (tmp.textContent || tmp.innerText || "").trim();
+    return text.replace(/\n{2,}/g, "\n").trim();
+}
+
+async function updateInfotrafic() {
+    const badge = document.getElementById("transport-alert-badge");
+    const modalBox = document.getElementById("transport-alerts-modal");
+    if (!badge || !modalBox) return;
+
+    const routes = getTransportRoutes();
+    if (!routes.length) {
+        badge.style.display = "none";
+        modalBox.innerHTML = "";
+        return;
+    }
+
+    // Lignes actuellement configurées dans le dashboard (numéros, ex: "2", "C3")
+    const myLines = new Set(routes.map(r => r.lineNumber));
+
+    try {
+        const res = await fetch(NAOLIB_INFOTRAFIC_URL, { headers: { Accept: "application/json" } });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
+        const disruptions = data.disruptions || [];
+
+        // Ne garde que les perturbations touchant au moins une des lignes suivies
+        const relevant = disruptions.filter(d =>
+            (d.lineIds || []).some(id => myLines.has(String(id)))
+        );
+
+        if (!relevant.length) {
+            badge.style.display = "none";
+            modalBox.innerHTML = "";
+            return;
+        }
+
+        badge.style.display = "inline";
+
+        let html = "";
+        relevant.forEach(d => {
+            const lineTags = (d.lineIds || [])
+                .filter(id => myLines.has(String(id)))
+                .map(id => `<span class="alert-line-tag" style="background:${lineColor(id)}">${id}</span>`)
+                .join("");
+
+            const description = stripHtmlToText(d.description || d.name || "");
+
+            html += `<div class="transport-alert-item">
+                <span class="alert-icon">⚠️</span>
+                <div class="alert-content">
+                    <div class="alert-lines">${lineTags}</div>
+                    <div class="alert-title">${d.name || ""}</div>
+                    <div>${description}</div>
+                    <div class="alert-dates">${d.startAt || ""} → ${d.endAt || ""}</div>
+                </div>
+            </div>`;
+        });
+
+        modalBox.innerHTML = html;
+
+    } catch (err) {
+        console.error("Erreur infotrafic :", err);
+        // Silencieux : une alerte trafic indisponible ne doit pas casser le reste du widget
+    }
+}
+
+updateInfotrafic();
+setInterval(updateInfotrafic, 5 * 60 * 1000); // 5 min, les perturbations changent peu souvent
 
 
 // ─── Appareils — Home Assistant ──────────────────────────────────────────────
