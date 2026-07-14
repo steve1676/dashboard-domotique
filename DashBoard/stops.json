@@ -1,4 +1,19 @@
 [
+  //Tram
+  { "id": 9619, "label": "Wattignies" },
+  { "id": 9620, "label": "Pirmil" },
+  { "id": 9627, "label": "Hôtel Dieu" },
+  { "id": 9628, "label": "Pont Rousseau - Martyrs" },
   { "id": 9630, "label": "Mangin" },
-  { "id": 9642, "label": "Commerce" }
+  { "id": 9637, "label": "Gare de Pont Rousseau" },
+  { "id": 9638, "label": "Aimé Delrue" },
+  { "id": 9642, "label": "Commerce" },
+  { "id": 9643, "label": "Vincent Gâche" },
+  { "id": 9648, "label": "Place du Cirque" },
+  { "id": 9656, "label": "50 Otages" },
+  //Busway
+  { "id": 9720, "label": "Greneraie" },
+  { "id": 9750, "label": "Beaulieu" },
+  //Bus
+  { "id": 9930, "label": "St Nicolas" },
 ]
