@@ -1,5 +1,4 @@
 [
-  //Tram
   { "id": 9619, "label": "Wattignies" },
   { "id": 9620, "label": "Pirmil" },
   { "id": 9627, "label": "Hôtel Dieu" },
@@ -11,9 +10,9 @@
   { "id": 9643, "label": "Vincent Gâche" },
   { "id": 9648, "label": "Place du Cirque" },
   { "id": 9656, "label": "50 Otages" },
-  //Busway
   { "id": 9720, "label": "Greneraie" },
   { "id": 9750, "label": "Beaulieu" },
-  //Bus
   { "id": 9930, "label": "St Nicolas" },
+  { "id": 10558, "label": "Tripode" },
+  { "id": 10806, "label": "Île de Nantes" }
 ]
