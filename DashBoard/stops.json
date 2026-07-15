@@ -1,4750 +1,4753 @@
-[
-  {
-    "id": 9656,
-    "label": "50 Otages"
-  },
-  {
-    "id": 9618,
-    "label": "8 Mai"
-  },
-  {
-    "id": 10756,
-    "label": "Abbé Chérel"
-  },
-  {
-    "id": 9782,
-    "label": "Abel Durand"
-  },
-  {
-    "id": 10409,
-    "label": "Adrienne Bolland"
-  },
-  {
-    "id": 9815,
-    "label": "Aéroclub"
-  },
-  {
-    "id": 9814,
-    "label": "Aéroport"
-  },
-  {
-    "id": 10567,
-    "label": "Aérospatiale"
-  },
-  {
-    "id": 10270,
-    "label": "Aiguillon"
-  },
-  {
-    "id": 9638,
-    "label": "Aimé Delrue"
-  },
-  {
-    "id": 10569,
-    "label": "Airbus"
-  },
-  {
-    "id": 9621,
-    "label": "Alexandre Vincent - Ste-Thérèse"
-  },
-  {
-    "id": 9715,
-    "label": "Allende"
-  },
-  {
-    "id": 9979,
-    "label": "Ambroise Paré"
-  },
-  {
-    "id": 9770,
-    "label": "Américains"
-  },
-  {
-    "id": 10286,
-    "label": "Ampère"
-  },
-  {
-    "id": 10295,
-    "label": "Ampère"
-  },
-  {
-    "id": 9922,
-    "label": "Anatole France"
-  },
-  {
-    "id": 10097,
-    "label": "Angebardière"
-  },
-  {
-    "id": 9935,
-    "label": "Angevinière"
-  },
-  {
-    "id": 10125,
-    "label": "Angle Chaillou"
-  },
-  {
-    "id": 10407,
-    "label": "Antarès"
-  },
-  {
-    "id": 10203,
-    "label": "Antons"
-  },
-  {
-    "id": 10145,
-    "label": "Apave"
-  },
-  {
-    "id": 10189,
-    "label": "Aquitaine"
-  },
-  {
-    "id": 10301,
-    "label": "Arago"
-  },
-  {
-    "id": 10490,
-    "label": "Arbois"
-  },
-  {
-    "id": 10172,
-    "label": "Arcades"
-  },
-  {
-    "id": 10134,
-    "label": "Argonautes"
-  },
-  {
-    "id": 10305,
-    "label": "Aristide Briand"
-  },
-  {
-    "id": 10024,
-    "label": "Armor"
-  },
-  {
-    "id": 10449,
-    "label": "Armoricaine"
-  },
-  {
-    "id": 10690,
-    "label": "Armorique"
-  },
-  {
-    "id": 9887,
-    "label": "Audubon"
-  },
-  {
-    "id": 10606,
-    "label": "Augé"
-  },
-  {
-    "id": 10353,
-    "label": "Aulne"
-  },
-  {
-    "id": 10494,
-    "label": "Aurore"
-  },
-  {
-    "id": 10501,
-    "label": "Aveneaux"
-  },
-  {
-    "id": 10368,
-    "label": "Avenue des Pins"
-  },
-  {
-    "id": 9692,
-    "label": "Babinière"
-  },
-  {
-    "id": 9707,
-    "label": "Bac d'Indret"
-  },
-  {
-    "id": 10425,
-    "label": "Bac de Couëron"
-  },
-  {
-    "id": 10809,
-    "label": "Bac du Pellerin"
-  },
-  {
-    "id": 10506,
-    "label": "Bagatelle"
-  },
-  {
-    "id": 9623,
-    "label": "Balinière"
-  },
-  {
-    "id": 10532,
-    "label": "Barbinière"
-  },
-  {
-    "id": 10775,
-    "label": "Barigaudais"
-  },
-  {
-    "id": 10358,
-    "label": "Baronnière"
-  },
-  {
-    "id": 10772,
-    "label": "Barriére Noire"
-  },
-  {
-    "id": 9701,
-    "label": "Bas-Chantenay"
-  },
-  {
-    "id": 10789,
-    "label": "Basse Canterie"
-  },
-  {
-    "id": 9959,
-    "label": "Basse Chênaie"
-  },
-  {
-    "id": 10691,
-    "label": "Basse Hillière"
-  },
-  {
-    "id": 9733,
-    "label": "Basse Île"
-  },
-  {
-    "id": 10442,
-    "label": "Basse Orévière"
-  },
-  {
-    "id": 9911,
-    "label": "Basse-Goulaine"
-  },
-  {
-    "id": 10317,
-    "label": "Basse-Indre"
-  },
-  {
-    "id": 10154,
-    "label": "Basses Jouannes"
-  },
-  {
-    "id": 10523,
-    "label": "Bastière"
-  },
-  {
-    "id": 10229,
-    "label": "Bastille"
-  },
-  {
-    "id": 9810,
-    "label": "Batignolles"
-  },
-  {
-    "id": 10780,
-    "label": "Bauche Malo"
-  },
-  {
-    "id": 10805,
-    "label": "Baudelaire"
-  },
-  {
-    "id": 9905,
-    "label": "Baugerie"
-  },
-  {
-    "id": 10027,
-    "label": "Bd Charles Gautier"
-  },
-  {
-    "id": 9684,
-    "label": "Bd de Doulon"
-  },
-  {
-    "id": 9925,
-    "label": "Bd des Anglais"
-  },
-  {
-    "id": 10109,
-    "label": "Bd des Sports"
-  },
-  {
-    "id": 10381,
-    "label": "Beau Soleil"
-  },
-  {
-    "id": 9915,
-    "label": "Beaugency"
-  },
-  {
-    "id": 10653,
-    "label": "Beauger"
-  },
-  {
-    "id": 9693,
-    "label": "Beaujoire"
-  },
-  {
-    "id": 9750,
-    "label": "Beaulieu"
-  },
-  {
-    "id": 10170,
-    "label": "Beauregard"
-  },
-  {
-    "id": 9645,
-    "label": "Beauséjour"
-  },
-  {
-    "id": 10769,
-    "label": "Beautour"
-  },
-  {
-    "id": 10076,
-    "label": "Beauvaiserie"
-  },
-  {
-    "id": 10375,
-    "label": "Beauvoir"
-  },
-  {
-    "id": 10703,
-    "label": "Behinière"
-  },
-  {
-    "id": 10196,
-    "label": "Beillevaire"
-  },
-  {
-    "id": 9777,
-    "label": "Bel Air"
-  },
-  {
-    "id": 10236,
-    "label": "Bel Endroit"
-  },
-  {
-    "id": 10596,
-    "label": "Bel Être"
-  },
-  {
-    "id": 10132,
-    "label": "Bêle"
-  },
-  {
-    "id": 10812,
-    "label": "Bêle"
-  },
-  {
-    "id": 10265,
-    "label": "Belem"
-  },
-  {
-    "id": 9980,
-    "label": "Belges - Montbazon"
-  },
-  {
-    "id": 10390,
-    "label": "Belle Etoile"
-  },
-  {
-    "id": 10184,
-    "label": "Belle Île"
-  },
-  {
-    "id": 10243,
-    "label": "Bellestre"
-  },
-  {
-    "id": 10346,
-    "label": "Bellevue"
-  },
-  {
-    "id": 10040,
-    "label": "Belloc"
-  },
-  {
-    "id": 10565,
-    "label": "Bélouga"
-  },
-  {
-    "id": 10256,
-    "label": "Bénélux"
-  },
-  {
-    "id": 10803,
-    "label": "Bénoni Goullin"
-  },
-  {
-    "id": 10500,
-    "label": "Bergerie"
-  },
-  {
-    "id": 9933,
-    "label": "Bergeronnettes"
-  },
-  {
-    "id": 10187,
-    "label": "Berligout"
-  },
-  {
-    "id": 9738,
-    "label": "Berlin"
-  },
-  {
-    "id": 9784,
-    "label": "Berlioz"
-  },
-  {
-    "id": 10036,
-    "label": "Bernanos"
-  },
-  {
-    "id": 10043,
-    "label": "Bernanos"
-  },
-  {
-    "id": 10048,
-    "label": "Bertrand"
-  },
-  {
-    "id": 10436,
-    "label": "Bessonneau"
-  },
-  {
-    "id": 10212,
-    "label": "Bigeottière"
-  },
-  {
-    "id": 9634,
-    "label": "Bignon"
-  },
-  {
-    "id": 9877,
-    "label": "Bignonnet"
-  },
-  {
-    "id": 10637,
-    "label": "Bignons"
-  },
-  {
-    "id": 10164,
-    "label": "Bio Ouest Laënnec"
-  },
-  {
-    "id": 9985,
-    "label": "Blanchet"
-  },
-  {
-    "id": 9855,
-    "label": "Blanchetière"
-  },
-  {
-    "id": 9890,
-    "label": "Blancho"
-  },
-  {
-    "id": 10099,
-    "label": "Blordière"
-  },
-  {
-    "id": 10624,
-    "label": "BN"
-  },
-  {
-    "id": 10147,
-    "label": "Bobby Sands"
-  },
-  {
-    "id": 10188,
-    "label": "Bodinières"
-  },
-  {
-    "id": 10207,
-    "label": "Bois Cesbron"
-  },
-  {
-    "id": 10232,
-    "label": "Bois de La Noé"
-  },
-  {
-    "id": 9941,
-    "label": "Bois des Anses"
-  },
-  {
-    "id": 10032,
-    "label": "Bois Hardy"
-  },
-  {
-    "id": 10376,
-    "label": "Bois Jaulin"
-  },
-  {
-    "id": 10206,
-    "label": "Bois Raguenet"
-  },
-  {
-    "id": 10739,
-    "label": "Bois Robillard"
-  },
-  {
-    "id": 10140,
-    "label": "Bois St-Lys"
-  },
-  {
-    "id": 9858,
-    "label": "Bois Tillac"
-  },
-  {
-    "id": 10421,
-    "label": "Boisbonne"
-  },
-  {
-    "id": 9647,
-    "label": "Boissière"
-  },
-  {
-    "id": 10773,
-    "label": "Bon Acquet"
-  },
-  {
-    "id": 9788,
-    "label": "Bonde"
-  },
-  {
-    "id": 9751,
-    "label": "Bonne Garde"
-  },
-  {
-    "id": 10663,
-    "label": "Bonneville"
-  },
-  {
-    "id": 10231,
-    "label": "Boris Vian"
-  },
-  {
-    "id": 9884,
-    "label": "Bossis"
-  },
-  {
-    "id": 10732,
-    "label": "Bottière"
-  },
-  {
-    "id": 10235,
-    "label": "Bouaye Coteaux"
-  },
-  {
-    "id": 9695,
-    "label": "Bouffay"
-  },
-  {
-    "id": 9776,
-    "label": "Bougainville"
-  },
-  {
-    "id": 9718,
-    "label": "Bougon"
-  },
-  {
-    "id": 9947,
-    "label": "Bougrière"
-  },
-  {
-    "id": 10747,
-    "label": "Boulay Paty"
-  },
-  {
-    "id": 10394,
-    "label": "Boulodrome"
-  },
-  {
-    "id": 10740,
-    "label": "Bourderies"
-  },
-  {
-    "id": 10055,
-    "label": "Bourdonnais"
-  },
-  {
-    "id": 9727,
-    "label": "Bourdonnières"
-  },
-  {
-    "id": 9650,
-    "label": "Bourgeonnière"
-  },
-  {
-    "id": 10364,
-    "label": "Bourgogne"
-  },
-  {
-    "id": 10319,
-    "label": "Bourgonnière"
-  },
-  {
-    "id": 10679,
-    "label": "Bournière"
-  },
-  {
-    "id": 10528,
-    "label": "Bourrelière"
-  },
-  {
-    "id": 10486,
-    "label": "Bout des Landes"
-  },
-  {
-    "id": 10042,
-    "label": "Bout des Pavés"
-  },
-  {
-    "id": 10717,
-    "label": "Bouteillerie"
-  },
-  {
-    "id": 10782,
-    "label": "Bouteillerie"
-  },
-  {
-    "id": 10535,
-    "label": "Boutière"
-  },
-  {
-    "id": 9928,
-    "label": "Bouvardière"
-  },
-  {
-    "id": 10217,
-    "label": "Bouvernière"
-  },
-  {
-    "id": 9713,
-    "label": "Bouvre"
-  },
-  {
-    "id": 10072,
-    "label": "Brains"
-  },
-  {
-    "id": 9767,
-    "label": "Branchoire"
-  },
-  {
-    "id": 10131,
-    "label": "Bréchetière"
-  },
-  {
-    "id": 9624,
-    "label": "Bretagne"
-  },
-  {
-    "id": 10434,
-    "label": "Bretinais"
-  },
-  {
-    "id": 10095,
-    "label": "Bretonnière"
-  },
-  {
-    "id": 10389,
-    "label": "Briandière"
-  },
-  {
-    "id": 10792,
-    "label": "Brillaudière"
-  },
-  {
-    "id": 10087,
-    "label": "Brindais"
-  },
-  {
-    "id": 10560,
-    "label": "Brossais"
-  },
-  {
-    "id": 10413,
-    "label": "Brouillard"
-  },
-  {
-    "id": 9758,
-    "label": "Bruneau"
-  },
-  {
-    "id": 10219,
-    "label": "Bugallière"
-  },
-  {
-    "id": 10262,
-    "label": "Buisson"
-  },
-  {
-    "id": 10779,
-    "label": "Buronnerie"
-  },
-  {
-    "id": 10770,
-    "label": "Bussaudière"
-  },
-  {
-    "id": 9936,
-    "label": "Bussonnière"
-  },
-  {
-    "id": 10520,
-    "label": "Butte des Landes"
-  },
-  {
-    "id": 10174,
-    "label": "Buzardières"
-  },
-  {
-    "id": 10583,
-    "label": "Caboteurs"
-  },
-  {
-    "id": 9774,
-    "label": "Cabrol"
-  },
-  {
-    "id": 10249,
-    "label": "Cadoire"
-  },
-  {
-    "id": 9828,
-    "label": "Caillou Blanc"
-  },
-  {
-    "id": 10768,
-    "label": "Cale de Beautour"
-  },
-  {
-    "id": 10572,
-    "label": "Californie"
-  },
-  {
-    "id": 9898,
-    "label": "Cambronne"
-  },
-  {
-    "id": 9978,
-    "label": "Camus"
-  },
-  {
-    "id": 9893,
-    "label": "Canal"
-  },
-  {
-    "id": 10022,
-    "label": "Canclaux"
-  },
-  {
-    "id": 10279,
-    "label": "Capellia"
-  },
-  {
-    "id": 10452,
-    "label": "Capitaine Grant"
-  },
-  {
-    "id": 9871,
-    "label": "Carquefou"
-  },
-  {
-    "id": 9764,
-    "label": "Carrière Misery"
-  },
-  {
-    "id": 10190,
-    "label": "Carrières"
-  },
-  {
-    "id": 10422,
-    "label": "Carterons"
-  },
-  {
-    "id": 10255,
-    "label": "Cartier"
-  },
-  {
-    "id": 10646,
-    "label": "Casimir Perier"
-  },
-  {
-    "id": 10547,
-    "label": "Cassegrain"
-  },
-  {
-    "id": 10718,
-    "label": "Casterneau"
-  },
-  {
-    "id": 10395,
-    "label": "Castorama"
-  },
-  {
-    "id": 9820,
-    "label": "Cèdre"
-  },
-  {
-    "id": 10581,
-    "label": "Centaure"
-  },
-  {
-    "id": 10071,
-    "label": "Centre de Bouaye"
-  },
-  {
-    "id": 10579,
-    "label": "Centre de Bouguenais"
-  },
-  {
-    "id": 9869,
-    "label": "Centre de Carquefou"
-  },
-  {
-    "id": 9851,
-    "label": "Centre de La Chapelle"
-  },
-  {
-    "id": 10464,
-    "label": "Centre de Mauves"
-  },
-  {
-    "id": 9956,
-    "label": "Centre de Thouaré"
-  },
-  {
-    "id": 10743,
-    "label": "CES Petite Lande"
-  },
-  {
-    "id": 9882,
-    "label": "Chabossière"
-  },
-  {
-    "id": 10741,
-    "label": "Chai Gallais"
-  },
-  {
-    "id": 9801,
-    "label": "Chalâtres"
-  },
-  {
-    "id": 9966,
-    "label": "Châlet"
-  },
-  {
-    "id": 9904,
-    "label": "Chalonges"
-  },
-  {
-    "id": 10689,
-    "label": "Chalonges"
-  },
-  {
-    "id": 10748,
-    "label": "Chambelles"
-  },
-  {
-    "id": 10034,
-    "label": "Champ de Courses"
-  },
-  {
-    "id": 10062,
-    "label": "Champ de Foire"
-  },
-  {
-    "id": 9822,
-    "label": "Champ de l'Alouette"
-  },
-  {
-    "id": 10130,
-    "label": "Champ de Manoeuvre"
-  },
-  {
-    "id": 9987,
-    "label": "Champ Fleuri"
-  },
-  {
-    "id": 10526,
-    "label": "Champonnière"
-  },
-  {
-    "id": 9670,
-    "label": "Chantiers Navals"
-  },
-  {
-    "id": 9808,
-    "label": "Chantrerie - Grandes Écoles"
-  },
-  {
-    "id": 9790,
-    "label": "Chanzy"
-  },
-  {
-    "id": 9875,
-    "label": "Chapeau Berger"
-  },
-  {
-    "id": 10546,
-    "label": "Chapeau Verni"
-  },
-  {
-    "id": 10089,
-    "label": "Chapelet"
-  },
-  {
-    "id": 10161,
-    "label": "Chapelle Laënnec"
-  },
-  {
-    "id": 10695,
-    "label": "Chapellerie"
-  },
-  {
-    "id": 10595,
-    "label": "Chapelles"
-  },
-  {
-    "id": 9868,
-    "label": "Charbonneau"
-  },
-  {
-    "id": 10211,
-    "label": "Charbonnière"
-  },
-  {
-    "id": 9832,
-    "label": "Charlière"
-  },
-  {
-    "id": 10639,
-    "label": "Charmes"
-  },
-  {
-    "id": 10357,
-    "label": "Charmille"
-  },
-  {
-    "id": 10348,
-    "label": "Chassay"
-  },
-  {
-    "id": 9709,
-    "label": "Chat qui Guette"
-  },
-  {
-    "id": 9862,
-    "label": "Chat qui Guette"
-  },
-  {
-    "id": 9768,
-    "label": "Châtaigniers"
-  },
-  {
-    "id": 9706,
-    "label": "Château d'Aux"
-  },
-  {
-    "id": 9632,
-    "label": "Château de Rezé"
-  },
-  {
-    "id": 9714,
-    "label": "Châtelets"
-  },
-  {
-    "id": 10575,
-    "label": "Châtelier"
-  },
-  {
-    "id": 10272,
-    "label": "Chaupières"
-  },
-  {
-    "id": 10113,
-    "label": "Chaussée"
-  },
-  {
-    "id": 10116,
-    "label": "Chaussée"
-  },
-  {
-    "id": 10064,
-    "label": "Chausserie"
-  },
-  {
-    "id": 10758,
-    "label": "Chaussin Robinet"
-  },
-  {
-    "id": 9834,
-    "label": "Chauvais"
-  },
-  {
-    "id": 10029,
-    "label": "Chauvinière"
-  },
-  {
-    "id": 10101,
-    "label": "Chemin Bleu"
-  },
-  {
-    "id": 10693,
-    "label": "Chemin Nantais"
-  },
-  {
-    "id": 10302,
-    "label": "Chemin Rouge"
-  },
-  {
-    "id": 9746,
-    "label": "Chêne Creux"
-  },
-  {
-    "id": 9658,
-    "label": "Chêne des Anglais"
-  },
-  {
-    "id": 10108,
-    "label": "Chêne Gala"
-  },
-  {
-    "id": 10697,
-    "label": "Chêne Vert"
-  },
-  {
-    "id": 10683,
-    "label": "Chenonceau"
-  },
-  {
-    "id": 10645,
-    "label": "Chevalerie"
-  },
-  {
-    "id": 10210,
-    "label": "Cheverny"
-  },
-  {
-    "id": 10227,
-    "label": "Cheveux Blancs"
-  },
-  {
-    "id": 10788,
-    "label": "Chevrue"
-  },
-  {
-    "id": 10222,
-    "label": "Chézine"
-  },
-  {
-    "id": 10469,
-    "label": "Chinon"
-  },
-  {
-    "id": 10511,
-    "label": "Choblèterie"
-  },
-  {
-    "id": 9794,
-    "label": "Chocolaterie"
-  },
-  {
-    "id": 10251,
-    "label": "Chohonnière"
-  },
-  {
-    "id": 10505,
-    "label": "Cholière"
-  },
-  {
-    "id": 10765,
-    "label": "Cimetière de Beautour"
-  },
-  {
-    "id": 10028,
-    "label": "Cimetière Gaudinière"
-  },
-  {
-    "id": 10382,
-    "label": "Cimetière La Montagne"
-  },
-  {
-    "id": 10666,
-    "label": "Cimetière St-Clair"
-  },
-  {
-    "id": 10419,
-    "label": "Cimetière St-Joseph"
-  },
-  {
-    "id": 10253,
-    "label": "Cimetière Vieux Doulon"
-  },
-  {
-    "id": 10702,
-    "label": "Circuit du Vallon"
-  },
-  {
-    "id": 9766,
-    "label": "Cirque - Marais"
-  },
-  {
-    "id": 10557,
-    "label": "Cité des Congrès"
-  },
-  {
-    "id": 9939,
-    "label": "Clairais"
-  },
-  {
-    "id": 10562,
-    "label": "Claire Roman"
-  },
-  {
-    "id": 10594,
-    "label": "Classerie"
-  },
-  {
-    "id": 10008,
-    "label": "Claude Bernard"
-  },
-  {
-    "id": 9950,
-    "label": "Clémencière"
-  },
-  {
-    "id": 9847,
-    "label": "Clépettre"
-  },
-  {
-    "id": 10293,
-    "label": "Clétras"
-  },
-  {
-    "id": 10195,
-    "label": "Clos Ami"
-  },
-  {
-    "id": 10814,
-    "label": "Clos Bonnet"
-  },
-  {
-    "id": 9991,
-    "label": "Clos du Moulin"
-  },
-  {
-    "id": 10387,
-    "label": "Clos Roux"
-  },
-  {
-    "id": 10171,
-    "label": "Clos Siban"
-  },
-  {
-    "id": 9740,
-    "label": "Clos Toreau"
-  },
-  {
-    "id": 10502,
-    "label": "Closeaux"
-  },
-  {
-    "id": 10369,
-    "label": "Clotais"
-  },
-  {
-    "id": 10533,
-    "label": "Clouet"
-  },
-  {
-    "id": 9879,
-    "label": "Clouzeaux"
-  },
-  {
-    "id": 9972,
-    "label": "Cochard"
-  },
-  {
-    "id": 10155,
-    "label": "Cochardières"
-  },
-  {
-    "id": 10266,
-    "label": "Colinière"
-  },
-  {
-    "id": 10699,
-    "label": "Collège Ste-Anne"
-  },
-  {
-    "id": 9765,
-    "label": "Colonac"
-  },
-  {
-    "id": 9642,
-    "label": "Commerce"
-  },
-  {
-    "id": 10209,
-    "label": "Congo"
-  },
-  {
-    "id": 10197,
-    "label": "Conraie"
-  },
-  {
-    "id": 9736,
-    "label": "Conservatoire"
-  },
-  {
-    "id": 10730,
-    "label": "Convention"
-  },
-  {
-    "id": 10016,
-    "label": "Copernic - Musées"
-  },
-  {
-    "id": 10541,
-    "label": "Coqueluchon"
-  },
-  {
-    "id": 10001,
-    "label": "Corberie"
-  },
-  {
-    "id": 9988,
-    "label": "Corbinerie"
-  },
-  {
-    "id": 9912,
-    "label": "Corbon"
-  },
-  {
-    "id": 10320,
-    "label": "Corlay"
-  },
-  {
-    "id": 10327,
-    "label": "Cormerais"
-  },
-  {
-    "id": 10366,
-    "label": "Corniche"
-  },
-  {
-    "id": 9846,
-    "label": "Cotalard"
-  },
-  {
-    "id": 10386,
-    "label": "Coteaux"
-  },
-  {
-    "id": 9957,
-    "label": "Coty"
-  },
-  {
-    "id": 9804,
-    "label": "Couchant"
-  },
-  {
-    "id": 10672,
-    "label": "Couchant"
-  },
-  {
-    "id": 9973,
-    "label": "Coudray"
-  },
-  {
-    "id": 10192,
-    "label": "Couëron Bougon"
-  },
-  {
-    "id": 9888,
-    "label": "Couëron Océan"
-  },
-  {
-    "id": 10475,
-    "label": "Coupries"
-  },
-  {
-    "id": 10269,
-    "label": "Courocerie"
-  },
-  {
-    "id": 9771,
-    "label": "Courteline"
-  },
-  {
-    "id": 10753,
-    "label": "Cousteau"
-  },
-  {
-    "id": 10127,
-    "label": "Coutancière"
-  },
-  {
-    "id": 10361,
-    "label": "Cravate"
-  },
-  {
-    "id": 10657,
-    "label": "Crémetterie"
-  },
-  {
-    "id": 10276,
-    "label": "Crétinières"
-  },
-  {
-    "id": 10514,
-    "label": "Criport"
-  },
-  {
-    "id": 9803,
-    "label": "Croissant"
-  },
-  {
-    "id": 10457,
-    "label": "Croisy"
-  },
-  {
-    "id": 9676,
-    "label": "Croix Bonneau"
-  },
-  {
-    "id": 9739,
-    "label": "Croix de Rezé"
-  },
-  {
-    "id": 10477,
-    "label": "Croix des Fosses"
-  },
-  {
-    "id": 10245,
-    "label": "Croix Jeannette"
-  },
-  {
-    "id": 9861,
-    "label": "Croix Truin"
-  },
-  {
-    "id": 10630,
-    "label": "Curie"
-  },
-  {
-    "id": 10733,
-    "label": "Cuvier"
-  },
-  {
-    "id": 10086,
-    "label": "D2A - Aéroport"
-  },
-  {
-    "id": 10667,
-    "label": "Dalby"
-  },
-  {
-    "id": 10660,
-    "label": "Danais"
-  },
-  {
-    "id": 10291,
-    "label": "Danemark"
-  },
-  {
-    "id": 10300,
-    "label": "Danube"
-  },
-  {
-    "id": 10406,
-    "label": "Davum"
-  },
-  {
-    "id": 10323,
-    "label": "Dayat"
-  },
-  {
-    "id": 10118,
-    "label": "De Gaulle"
-  },
-  {
-    "id": 10017,
-    "label": "Delacroix"
-  },
-  {
-    "id": 9929,
-    "label": "Delorme"
-  },
-  {
-    "id": 10784,
-    "label": "Denillére"
-  },
-  {
-    "id": 10632,
-    "label": "Déportés"
-  },
-  {
-    "id": 9763,
-    "label": "Dervallières"
-  },
-  {
-    "id": 9802,
-    "label": "Desaix"
-  },
-  {
-    "id": 10306,
-    "label": "Désirade"
-  },
-  {
-    "id": 10738,
-    "label": "Desmoulins"
-  },
-  {
-    "id": 9849,
-    "label": "Desnerie"
-  },
-  {
-    "id": 9773,
-    "label": "Diane"
-  },
-  {
-    "id": 10445,
-    "label": "Dolto"
-  },
-  {
-    "id": 9880,
-    "label": "Domaine"
-  },
-  {
-    "id": 10674,
-    "label": "Doucet"
-  },
-  {
-    "id": 9908,
-    "label": "Douettée"
-  },
-  {
-    "id": 9969,
-    "label": "Doumer"
-  },
-  {
-    "id": 10146,
-    "label": "Drillet"
-  },
-  {
-    "id": 10472,
-    "label": "Droitière"
-  },
-  {
-    "id": 10239,
-    "label": "Drouillard"
-  },
-  {
-    "id": 10776,
-    "label": "Drouillet"
-  },
-  {
-    "id": 10685,
-    "label": "Druides"
-  },
-  {
-    "id": 9675,
-    "label": "Du Chaffault"
-  },
-  {
-    "id": 9687,
-    "label": "Duchesse Anne - Château"
-  },
-  {
-    "id": 9747,
-    "label": "Duchesse Anne-Chateau"
-  },
-  {
-    "id": 10006,
-    "label": "Duguay Trouin"
-  },
-  {
-    "id": 10226,
-    "label": "Dukas"
-  },
-  {
-    "id": 10150,
-    "label": "Dumont d'Urville"
-  },
-  {
-    "id": 10734,
-    "label": "Dunant"
-  },
-  {
-    "id": 10075,
-    "label": "Échoppes"
-  },
-  {
-    "id": 10626,
-    "label": "Écobuts"
-  },
-  {
-    "id": 9659,
-    "label": "École Centrale - Audencia"
-  },
-  {
-    "id": 10412,
-    "label": "École Vétérinaire"
-  },
-  {
-    "id": 9999,
-    "label": "Écoles"
-  },
-  {
-    "id": 10377,
-    "label": "Écoles"
-  },
-  {
-    "id": 10023,
-    "label": "Écosse"
-  },
-  {
-    "id": 10018,
-    "label": "Édit de Nantes"
-  },
-  {
-    "id": 10009,
-    "label": "Edith Piaf"
-  },
-  {
-    "id": 9674,
-    "label": "Égalité"
-  },
-  {
-    "id": 9778,
-    "label": "Eglantine"
-  },
-  {
-    "id": 10078,
-    "label": "Eglise"
-  },
-  {
-    "id": 10504,
-    "label": "Einstein"
-  },
-  {
-    "id": 10328,
-    "label": "Embarcadère"
-  },
-  {
-    "id": 9811,
-    "label": "Embellie"
-  },
-  {
-    "id": 10726,
-    "label": "Enchanterie"
-  },
-  {
-    "id": 10081,
-    "label": "Ennerie Corbon"
-  },
-  {
-    "id": 10077,
-    "label": "Épinais"
-  },
-  {
-    "id": 10314,
-    "label": "Epinay"
-  },
-  {
-    "id": 10767,
-    "label": "Epinette"
-  },
-  {
-    "id": 9919,
-    "label": "Équipement"
-  },
-  {
-    "id": 9963,
-    "label": "Éraudière"
-  },
-  {
-    "id": 9845,
-    "label": "Erdre Active"
-  },
-  {
-    "id": 9865,
-    "label": "Erdreau"
-  },
-  {
-    "id": 10681,
-    "label": "ESAT Vertonne"
-  },
-  {
-    "id": 10641,
-    "label": "Escall"
-  },
-  {
-    "id": 9629,
-    "label": "Espace Diderot"
-  },
-  {
-    "id": 10215,
-    "label": "Eugène Sue"
-  },
-  {
-    "id": 10408,
-    "label": "Europe"
-  },
-  {
-    "id": 10614,
-    "label": "Europe"
-  },
-  {
-    "id": 9829,
-    "label": "Evardière"
-  },
-  {
-    "id": 9867,
-    "label": "Fac de Droit"
-  },
-  {
-    "id": 9872,
-    "label": "Fac de Lettres"
-  },
-  {
-    "id": 9661,
-    "label": "Facultés"
-  },
-  {
-    "id": 9932,
-    "label": "Fallières"
-  },
-  {
-    "id": 10168,
-    "label": "Faneurs"
-  },
-  {
-    "id": 10124,
-    "label": "Fantaisie"
-  },
-  {
-    "id": 9881,
-    "label": "Fardière"
-  },
-  {
-    "id": 10133,
-    "label": "Fauvelière"
-  },
-  {
-    "id": 9636,
-    "label": "Félix Faure"
-  },
-  {
-    "id": 9997,
-    "label": "Félix Tableau"
-  },
-  {
-    "id": 10670,
-    "label": "Fenaison"
-  },
-  {
-    "id": 9615,
-    "label": "Ferrière"
-  },
-  {
-    "id": 10230,
-    "label": "Fief Guérin"
-  },
-  {
-    "id": 9842,
-    "label": "Flandres"
-  },
-  {
-    "id": 9866,
-    "label": "Fleuriaye"
-  },
-  {
-    "id": 10427,
-    "label": "Fleurs"
-  },
-  {
-    "id": 9986,
-    "label": "Flora Tristan"
-  },
-  {
-    "id": 10722,
-    "label": "Floride"
-  },
-  {
-    "id": 9789,
-    "label": "Foch - Cathédrale"
-  },
-  {
-    "id": 10508,
-    "label": "Fonderies"
-  },
-  {
-    "id": 9906,
-    "label": "Fontaine"
-  },
-  {
-    "id": 10796,
-    "label": "Foresterie"
-  },
-  {
-    "id": 10046,
-    "label": "Forêt"
-  },
-  {
-    "id": 10214,
-    "label": "Forum d'Orvault"
-  },
-  {
-    "id": 10275,
-    "label": "Foulquier"
-  },
-  {
-    "id": 10751,
-    "label": "Frachon"
-  },
-  {
-    "id": 10622,
-    "label": "Fraîches"
-  },
-  {
-    "id": 10762,
-    "label": "Framboisiers"
-  },
-  {
-    "id": 10456,
-    "label": "François Baudry"
-  },
-  {
-    "id": 10437,
-    "label": "François II"
-  },
-  {
-    "id": 10810,
-    "label": "François Mitterrand"
-  },
-  {
-    "id": 10005,
-    "label": "Franklin"
-  },
-  {
-    "id": 10360,
-    "label": "Frébaudière"
-  },
-  {
-    "id": 10344,
-    "label": "Frégate"
-  },
-  {
-    "id": 10518,
-    "label": "Frémoire"
-  },
-  {
-    "id": 10627,
-    "label": "Frêne Rond"
-  },
-  {
-    "id": 10345,
-    "label": "Frênes"
-  },
-  {
-    "id": 10082,
-    "label": "Frères Rousseau"
-  },
-  {
-    "id": 9800,
-    "label": "Fresche Blanc"
-  },
-  {
-    "id": 10737,
-    "label": "Fresnel"
-  },
-  {
-    "id": 10642,
-    "label": "Fructidor"
-  },
-  {
-    "id": 9698,
-    "label": "Gachet"
-  },
-  {
-    "id": 10712,
-    "label": "Gagnerie"
-  },
-  {
-    "id": 9743,
-    "label": "Galarne"
-  },
-  {
-    "id": 10563,
-    "label": "Galheur"
-  },
-  {
-    "id": 10716,
-    "label": "Gambetta"
-  },
-  {
-    "id": 9831,
-    "label": "Gandonnière"
-  },
-  {
-    "id": 10166,
-    "label": "Gare d'Indre"
-  },
-  {
-    "id": 10074,
-    "label": "Gare de Bouaye"
-  },
-  {
-    "id": 9889,
-    "label": "Gare de Chantenay"
-  },
-  {
-    "id": 10173,
-    "label": "Gare de Couëron"
-  },
-  {
-    "id": 9722,
-    "label": "Gare de l'État"
-  },
-  {
-    "id": 10120,
-    "label": "Gare de La Chapelle"
-  },
-  {
-    "id": 10470,
-    "label": "Gare de Mauves"
-  },
-  {
-    "id": 9637,
-    "label": "Gare de Pont Rousseau"
-  },
-  {
-    "id": 10539,
-    "label": "Gare de Vertou Nord"
-  },
-  {
-    "id": 10481,
-    "label": "Gare de Vertou Sud"
-  },
-  {
-    "id": 9907,
-    "label": "Gare des Pas Enchantés"
-  },
-  {
-    "id": 9685,
-    "label": "Gare Maritime"
-  },
-  {
-    "id": 9690,
-    "label": "Gare Nord - Jardin des Plantes"
-  },
-  {
-    "id": 9749,
-    "label": "Gare Sud"
-  },
-  {
-    "id": 9816,
-    "label": "Gare Sud"
-  },
-  {
-    "id": 10213,
-    "label": "Garenne"
-  },
-  {
-    "id": 10362,
-    "label": "Garettes - Landreau"
-  },
-  {
-    "id": 10600,
-    "label": "Garillère"
-  },
-  {
-    "id": 10488,
-    "label": "Garotterie"
-  },
-  {
-    "id": 9728,
-    "label": "Gaston Veil"
-  },
-  {
-    "id": 10178,
-    "label": "Gâtine"
-  },
-  {
-    "id": 10585,
-    "label": "Gauguin"
-  },
-  {
-    "id": 10234,
-    "label": "Gautellerie"
-  },
-  {
-    "id": 10080,
-    "label": "Gendronnerie"
-  },
-  {
-    "id": 10589,
-    "label": "George Sand"
-  },
-  {
-    "id": 10121,
-    "label": "Géraudière"
-  },
-  {
-    "id": 9823,
-    "label": "Gergaudière"
-  },
-  {
-    "id": 10135,
-    "label": "Germaine Tillion"
-  },
-  {
-    "id": 10287,
-    "label": "Gesvres"
-  },
-  {
-    "id": 10284,
-    "label": "Gesvrine"
-  },
-  {
-    "id": 9895,
-    "label": "Gibraye"
-  },
-  {
-    "id": 9960,
-    "label": "Gicquelière"
-  },
-  {
-    "id": 9704,
-    "label": "Gilarderie"
-  },
-  {
-    "id": 9818,
-    "label": "Gilière"
-  },
-  {
-    "id": 10347,
-    "label": "Glacisol"
-  },
-  {
-    "id": 10771,
-    "label": "Gobets"
-  },
-  {
-    "id": 10363,
-    "label": "Gobinière"
-  },
-  {
-    "id": 10537,
-    "label": "Goldens"
-  },
-  {
-    "id": 10202,
-    "label": "Golf"
-  },
-  {
-    "id": 10285,
-    "label": "Gournière"
-  },
-  {
-    "id": 10548,
-    "label": "Grammoire"
-  },
-  {
-    "id": 10714,
-    "label": "Grand Blottereau"
-  },
-  {
-    "id": 9761,
-    "label": "Grand Carcouët"
-  },
-  {
-    "id": 10708,
-    "label": "Grand Chemin"
-  },
-  {
-    "id": 10777,
-    "label": "Grand Chemin"
-  },
-  {
-    "id": 10073,
-    "label": "Grand Fief"
-  },
-  {
-    "id": 9901,
-    "label": "Grand Portail"
-  },
-  {
-    "id": 10781,
-    "label": "Grand-Noé"
-  },
-  {
-    "id": 10342,
-    "label": "Grande Censive"
-  },
-  {
-    "id": 10621,
-    "label": "Grande Lande"
-  },
-  {
-    "id": 10522,
-    "label": "Grande Noëlle"
-  },
-  {
-    "id": 10536,
-    "label": "Grande Noëlle"
-  },
-  {
-    "id": 9635,
-    "label": "Grande Ouche"
-  },
-  {
-    "id": 10633,
-    "label": "Grande Pièce"
-  },
-  {
-    "id": 10402,
-    "label": "Grande-Bretagne"
-  },
-  {
-    "id": 10142,
-    "label": "Grange au Loup"
-  },
-  {
-    "id": 9821,
-    "label": "Grasse Noue"
-  },
-  {
-    "id": 10515,
-    "label": "Grassinière"
-  },
-  {
-    "id": 9720,
-    "label": "Greneraie"
-  },
-  {
-    "id": 9916,
-    "label": "Grezillières"
-  },
-  {
-    "id": 9897,
-    "label": "Grignon"
-  },
-  {
-    "id": 10012,
-    "label": "Grillaud"
-  },
-  {
-    "id": 10158,
-    "label": "Grimau"
-  },
-  {
-    "id": 9697,
-    "label": "Grimaudière"
-  },
-  {
-    "id": 10180,
-    "label": "Grimm"
-  },
-  {
-    "id": 10629,
-    "label": "Gripots"
-  },
-  {
-    "id": 10478,
-    "label": "Grolerie"
-  },
-  {
-    "id": 9769,
-    "label": "Grootaers"
-  },
-  {
-    "id": 10476,
-    "label": "Guerivières"
-  },
-  {
-    "id": 10417,
-    "label": "Guiblinière"
-  },
-  {
-    "id": 10592,
-    "label": "Guilloterie"
-  },
-  {
-    "id": 9970,
-    "label": "Guindré"
-  },
-  {
-    "id": 10761,
-    "label": "Guivettes"
-  },
-  {
-    "id": 10802,
-    "label": "Gustave Roch"
-  },
-  {
-    "id": 9786,
-    "label": "Guy Mollet"
-  },
-  {
-    "id": 9942,
-    "label": "Halbarderie"
-  },
-  {
-    "id": 9680,
-    "label": "Haluchère - Batignolles"
-  },
-  {
-    "id": 9689,
-    "label": "Halvêque"
-  },
-  {
-    "id": 10355,
-    "label": "Hameau Fleuri"
-  },
-  {
-    "id": 10766,
-    "label": "Hameçon"
-  },
-  {
-    "id": 9703,
-    "label": "Hangar à Bananes"
-  },
-  {
-    "id": 9934,
-    "label": "Harouys"
-  },
-  {
-    "id": 9745,
-    "label": "Haubans"
-  },
-  {
-    "id": 10513,
-    "label": "Haudrière"
-  },
-  {
-    "id": 10105,
-    "label": "Haute Forêt"
-  },
-  {
-    "id": 9874,
-    "label": "Haute Gournière"
-  },
-  {
-    "id": 10582,
-    "label": "Haute Île"
-  },
-  {
-    "id": 9995,
-    "label": "Haute Lande"
-  },
-  {
-    "id": 10337,
-    "label": "Haute-Indre"
-  },
-  {
-    "id": 10153,
-    "label": "Hauts de Couëron"
-  },
-  {
-    "id": 10527,
-    "label": "Herbray"
-  },
-  {
-    "id": 10778,
-    "label": "Herbray Village"
-  },
-  {
-    "id": 10051,
-    "label": "Hérelle"
-  },
-  {
-    "id": 9977,
-    "label": "Hermeland"
-  },
-  {
-    "id": 10698,
-    "label": "Hillière"
-  },
-  {
-    "id": 10038,
-    "label": "Hippodrome"
-  },
-  {
-    "id": 10014,
-    "label": "Hongrie"
-  },
-  {
-    "id": 9696,
-    "label": "Hôpital Bellier"
-  },
-  {
-    "id": 10157,
-    "label": "Hôpital Laënnec"
-  },
-  {
-    "id": 10648,
-    "label": "Hôtel de Région"
-  },
-  {
-    "id": 9785,
-    "label": "Hôtel de Ville"
-  },
-  {
-    "id": 9627,
-    "label": "Hôtel Dieu"
-  },
-  {
-    "id": 9721,
-    "label": "Houmaille"
-  },
-  {
-    "id": 10128,
-    "label": "Housseau"
-  },
-  {
-    "id": 10138,
-    "label": "ICAM"
-  },
-  {
-    "id": 10156,
-    "label": "ICO"
-  },
-  {
-    "id": 10111,
-    "label": "Île de France"
-  },
-  {
-    "id": 10806,
-    "label": "Île de Nantes"
-  },
-  {
-    "id": 9716,
-    "label": "Île Macé"
-  },
-  {
-    "id": 9708,
-    "label": "Île Pénot"
-  },
-  {
-    "id": 10607,
-    "label": "Îles de Loire"
-  },
-  {
-    "id": 10163,
-    "label": "Imprimeurs"
-  },
-  {
-    "id": 9883,
-    "label": "Indre"
-  },
-  {
-    "id": 10159,
-    "label": "Internat Laënnec"
-  },
-  {
-    "id": 10658,
-    "label": "Iroise"
-  },
-  {
-    "id": 10257,
-    "label": "Islettes"
-  },
-  {
-    "id": 10294,
-    "label": "IUT"
-  },
-  {
-    "id": 10398,
-    "label": "Jacqueline Auriol"
-  },
-  {
-    "id": 10144,
-    "label": "Jacques Cartier"
-  },
-  {
-    "id": 10561,
-    "label": "Jaguère"
-  },
-  {
-    "id": 10059,
-    "label": "Jahardières"
-  },
-  {
-    "id": 10216,
-    "label": "Jalière"
-  },
-  {
-    "id": 9682,
-    "label": "Jamet"
-  },
-  {
-    "id": 10033,
-    "label": "Janvraie"
-  },
-  {
-    "id": 10401,
-    "label": "Japy"
-  },
-  {
-    "id": 10237,
-    "label": "Jardins de Gaïa"
-  },
-  {
-    "id": 9885,
-    "label": "Jarriais"
-  },
-  {
-    "id": 10185,
-    "label": "Jaunaie"
-  },
-  {
-    "id": 9730,
-    "label": "Jaunais"
-  },
-  {
-    "id": 10696,
-    "label": "Jauneau"
-  },
-  {
-    "id": 10755,
-    "label": "Jean Bart"
-  },
-  {
-    "id": 10092,
-    "label": "Jean Fraix"
-  },
-  {
-    "id": 10021,
-    "label": "Jean Ingres"
-  },
-  {
-    "id": 9617,
-    "label": "Jean Jaurès"
-  },
-  {
-    "id": 9836,
-    "label": "Jean Jaurès"
-  },
-  {
-    "id": 9779,
-    "label": "Jean Macé"
-  },
-  {
-    "id": 10103,
-    "label": "Jean Monnet"
-  },
-  {
-    "id": 9668,
-    "label": "Jean Moulin"
-  },
-  {
-    "id": 9725,
-    "label": "Jean Perrin"
-  },
-  {
-    "id": 9616,
-    "label": "Jean Rostand"
-  },
-  {
-    "id": 10220,
-    "label": "Jeanne Bernard"
-  },
-  {
-    "id": 9742,
-    "label": "Joliverie"
-  },
-  {
-    "id": 10746,
-    "label": "Joncours"
-  },
-  {
-    "id": 10643,
-    "label": "Jonelière"
-  },
-  {
-    "id": 10813,
-    "label": "Jonelière"
-  },
-  {
-    "id": 10056,
-    "label": "Jouetterie"
-  },
-  {
-    "id": 10181,
-    "label": "Juiverie"
-  },
-  {
-    "id": 10339,
-    "label": "Jules Ferry"
-  },
-  {
-    "id": 10564,
-    "label": "Jules Vallès"
-  },
-  {
-    "id": 10720,
-    "label": "Jules Verne"
-  },
-  {
-    "id": 10308,
-    "label": "Jumelière"
-  },
-  {
-    "id": 10397,
-    "label": "Jupiter"
-  },
-  {
-    "id": 10194,
-    "label": "Justice"
-  },
-  {
-    "id": 9967,
-    "label": "Keren"
-  },
-  {
-    "id": 10554,
-    "label": "Koenig"
-  },
-  {
-    "id": 9982,
-    "label": "Koufra"
-  },
-  {
-    "id": 10530,
-    "label": "L'Angebert"
-  },
-  {
-    "id": 10186,
-    "label": "L'Arche"
-  },
-  {
-    "id": 10590,
-    "label": "L'Aufrère"
-  },
-  {
-    "id": 10091,
-    "label": "L'Ébaupin"
-  },
-  {
-    "id": 10700,
-    "label": "L'Ebaupin"
-  },
-  {
-    "id": 10274,
-    "label": "L'Hôpitau"
-  },
-  {
-    "id": 10465,
-    "label": "La Barre"
-  },
-  {
-    "id": 9833,
-    "label": "La Brosse"
-  },
-  {
-    "id": 9737,
-    "label": "La Carrée"
-  },
-  {
-    "id": 9838,
-    "label": "La Chapelle Aulnay"
-  },
-  {
-    "id": 10797,
-    "label": "La Chapelle-sur-Erdre"
-  },
-  {
-    "id": 9853,
-    "label": "La Chesnaie"
-  },
-  {
-    "id": 10047,
-    "label": "La Close"
-  },
-  {
-    "id": 9860,
-    "label": "La Cochère"
-  },
-  {
-    "id": 9844,
-    "label": "La Cogne"
-  },
-  {
-    "id": 10123,
-    "label": "La Côte"
-  },
-  {
-    "id": 10044,
-    "label": "La Coulée"
-  },
-  {
-    "id": 10104,
-    "label": "La Croix"
-  },
-  {
-    "id": 10460,
-    "label": "La Ferme"
-  },
-  {
-    "id": 10233,
-    "label": "La Forêt"
-  },
-  {
-    "id": 10351,
-    "label": "La Garde"
-  },
-  {
-    "id": 9940,
-    "label": "La Grille"
-  },
-  {
-    "id": 10399,
-    "label": "La Hache"
-  },
-  {
-    "id": 9850,
-    "label": "La Haie"
-  },
-  {
-    "id": 10260,
-    "label": "La Haie"
-  },
-  {
-    "id": 10638,
-    "label": "La Herdrie"
-  },
-  {
-    "id": 9752,
-    "label": "La Houssais"
-  },
-  {
-    "id": 10160,
-    "label": "La Lorie"
-  },
-  {
-    "id": 10793,
-    "label": "La Louée"
-  },
-  {
-    "id": 10384,
-    "label": "La Marche"
-  },
-  {
-    "id": 10709,
-    "label": "La Martinière"
-  },
-  {
-    "id": 9705,
-    "label": "La Montagne"
-  },
-  {
-    "id": 10065,
-    "label": "La Noue"
-  },
-  {
-    "id": 10479,
-    "label": "La Plée"
-  },
-  {
-    "id": 10620,
-    "label": "La Plume"
-  },
-  {
-    "id": 10011,
-    "label": "La Roche"
-  },
-  {
-    "id": 9886,
-    "label": "La Salle"
-  },
-  {
-    "id": 10277,
-    "label": "La Source"
-  },
-  {
-    "id": 10439,
-    "label": "Lac de Beaulieu"
-  },
-  {
-    "id": 10309,
-    "label": "Ladoumègue"
-  },
-  {
-    "id": 10102,
-    "label": "Lagathu"
-  },
-  {
-    "id": 9968,
-    "label": "Lallié"
-  },
-  {
-    "id": 10020,
-    "label": "Lamartine"
-  },
-  {
-    "id": 9731,
-    "label": "Lambert"
-  },
-  {
-    "id": 10025,
-    "label": "Lamoricière"
-  },
-  {
-    "id": 10529,
-    "label": "Landas"
-  },
-  {
-    "id": 9679,
-    "label": "Landreau"
-  },
-  {
-    "id": 10610,
-    "label": "Largeau"
-  },
-  {
-    "id": 10225,
-    "label": "Launay"
-  },
-  {
-    "id": 10544,
-    "label": "Laurier Fleuri"
-  },
-  {
-    "id": 10640,
-    "label": "Laurier Fleuri"
-  },
-  {
-    "id": 9671,
-    "label": "Lauriers"
-  },
-  {
-    "id": 9646,
-    "label": "Le Cardo"
-  },
-  {
-    "id": 10466,
-    "label": "Le Cellier"
-  },
-  {
-    "id": 10100,
-    "label": "Le Chêne"
-  },
-  {
-    "id": 10058,
-    "label": "Le Clémois"
-  },
-  {
-    "id": 9724,
-    "label": "Le Corbusier"
-  },
-  {
-    "id": 9762,
-    "label": "Le Goffic"
-  },
-  {
-    "id": 9819,
-    "label": "Le Gray 1"
-  },
-  {
-    "id": 9827,
-    "label": "Le Gray 2"
-  },
-  {
-    "id": 10258,
-    "label": "Le Halleray"
-  },
-  {
-    "id": 9759,
-    "label": "Le Nain"
-  },
-  {
-    "id": 9981,
-    "label": "Le Nain"
-  },
-  {
-    "id": 9863,
-    "label": "Le Pellerin"
-  },
-  {
-    "id": 9837,
-    "label": "Le Roty"
-  },
-  {
-    "id": 10247,
-    "label": "Le Tour"
-  },
-  {
-    "id": 10052,
-    "label": "Lechat"
-  },
-  {
-    "id": 10393,
-    "label": "Lefeuvre"
-  },
-  {
-    "id": 10662,
-    "label": "Lemoine"
-  },
-  {
-    "id": 9826,
-    "label": "Léo Lagrange"
-  },
-  {
-    "id": 10644,
-    "label": "Léon Jost"
-  },
-  {
-    "id": 10647,
-    "label": "Léon Say"
-  },
-  {
-    "id": 10570,
-    "label": "Les Ailes"
-  },
-  {
-    "id": 10367,
-    "label": "Les Anges"
-  },
-  {
-    "id": 10447,
-    "label": "Les Bauches"
-  },
-  {
-    "id": 10692,
-    "label": "Les Buissons"
-  },
-  {
-    "id": 9625,
-    "label": "Les Couëts"
-  },
-  {
-    "id": 9989,
-    "label": "Les Faulx"
-  },
-  {
-    "id": 10450,
-    "label": "Les Lions"
-  },
-  {
-    "id": 10461,
-    "label": "Les Lions"
-  },
-  {
-    "id": 10049,
-    "label": "Les Roches"
-  },
-  {
-    "id": 10664,
-    "label": "Les Salles"
-  },
-  {
-    "id": 9990,
-    "label": "Les Sorinières"
-  },
-  {
-    "id": 10609,
-    "label": "Levoyer"
-  },
-  {
-    "id": 10798,
-    "label": "Leygues"
-  },
-  {
-    "id": 9859,
-    "label": "Libération"
-  },
-  {
-    "id": 10808,
-    "label": "Lieu Unique"
-  },
-  {
-    "id": 10516,
-    "label": "Lilas"
-  },
-  {
-    "id": 10066,
-    "label": "Lindbergh"
-  },
-  {
-    "id": 9807,
-    "label": "Linot"
-  },
-  {
-    "id": 10433,
-    "label": "Lionnière"
-  },
-  {
-    "id": 10723,
-    "label": "Lippmann"
-  },
-  {
-    "id": 10010,
-    "label": "Littré"
-  },
-  {
-    "id": 10341,
-    "label": "Loire"
-  },
-  {
-    "id": 10655,
-    "label": "Lombarderie"
-  },
-  {
-    "id": 9633,
-    "label": "Longchamp"
-  },
-  {
-    "id": 10463,
-    "label": "Lonnières"
-  },
-  {
-    "id": 10410,
-    "label": "Louis Breguet"
-  },
-  {
-    "id": 10496,
-    "label": "Louise Michel"
-  },
-  {
-    "id": 9910,
-    "label": "Lourneau"
-  },
-  {
-    "id": 10054,
-    "label": "Lusançay"
-  },
-  {
-    "id": 10200,
-    "label": "Lycée Appert"
-  },
-  {
-    "id": 10244,
-    "label": "Lycée Brottier"
-  },
-  {
-    "id": 10241,
-    "label": "Lycée d'Orbigny"
-  },
-  {
-    "id": 10721,
-    "label": "Lycée Estienne d'Orves"
-  },
-  {
-    "id": 10459,
-    "label": "Lycée Rieffel"
-  },
-  {
-    "id": 10114,
-    "label": "Madame Curie"
-  },
-  {
-    "id": 10292,
-    "label": "Madeleine"
-  },
-  {
-    "id": 10221,
-    "label": "Madoire"
-  },
-  {
-    "id": 10634,
-    "label": "Magellan"
-  },
-  {
-    "id": 10497,
-    "label": "Magnoliers"
-  },
-  {
-    "id": 10110,
-    "label": "Mahaudières"
-  },
-  {
-    "id": 10201,
-    "label": "Mail"
-  },
-  {
-    "id": 10352,
-    "label": "Maillardière"
-  },
-  {
-    "id": 10312,
-    "label": "Mainguais"
-  },
-  {
-    "id": 10191,
-    "label": "Mairie d'Indre"
-  },
-  {
-    "id": 10228,
-    "label": "Mairie d'Orvault"
-  },
-  {
-    "id": 10578,
-    "label": "Mairie de Bouguenais"
-  },
-  {
-    "id": 10143,
-    "label": "Mairie de Carquefou"
-  },
-  {
-    "id": 9780,
-    "label": "Mairie de Chantenay"
-  },
-  {
-    "id": 9892,
-    "label": "Mairie de Couëron"
-  },
-  {
-    "id": 9672,
-    "label": "Mairie de Doulon"
-  },
-  {
-    "id": 9710,
-    "label": "Mairie de Rezé"
-  },
-  {
-    "id": 10167,
-    "label": "Mairie de St-Herblain"
-  },
-  {
-    "id": 10000,
-    "label": "Mairie des Sorinières"
-  },
-  {
-    "id": 10141,
-    "label": "Maison d'Arrêt"
-  },
-  {
-    "id": 10169,
-    "label": "Maison des Arts"
-  },
-  {
-    "id": 10404,
-    "label": "Maison Neuve"
-  },
-  {
-    "id": 10240,
-    "label": "Maison Poitard"
-  },
-  {
-    "id": 9744,
-    "label": "Maison Radieuse"
-  },
-  {
-    "id": 10545,
-    "label": "Maladrie"
-  },
-  {
-    "id": 10019,
-    "label": "Malakoff"
-  },
-  {
-    "id": 10604,
-    "label": "Malnoue"
-  },
-  {
-    "id": 10391,
-    "label": "Malraux"
-  },
-  {
-    "id": 10800,
-    "label": "Mandel"
-  },
-  {
-    "id": 10510,
-    "label": "Mandon"
-  },
-  {
-    "id": 9630,
-    "label": "Mangin"
-  },
-  {
-    "id": 9669,
-    "label": "Manufacture"
-  },
-  {
-    "id": 10556,
-    "label": "Maraîchers"
-  },
-  {
-    "id": 9626,
-    "label": "Marcel Paul"
-  },
-  {
-    "id": 10299,
-    "label": "Marché Commun"
-  },
-  {
-    "id": 10315,
-    "label": "Marché Commun"
-  },
-  {
-    "id": 10673,
-    "label": "Margelle"
-  },
-  {
-    "id": 9711,
-    "label": "Marguyonnes"
-  },
-  {
-    "id": 10254,
-    "label": "Marie Galante"
-  },
-  {
-    "id": 10289,
-    "label": "Marquis de Dion"
-  },
-  {
-    "id": 10729,
-    "label": "Marrière"
-  },
-  {
-    "id": 10736,
-    "label": "Marseillaise"
-  },
-  {
-    "id": 10616,
-    "label": "Martellière"
-  },
-  {
-    "id": 9732,
-    "label": "Marterie"
-  },
-  {
-    "id": 10485,
-    "label": "Marzilles"
-  },
-  {
-    "id": 9825,
-    "label": "Massigné"
-  },
-  {
-    "id": 10785,
-    "label": "Massonnière"
-  },
-  {
-    "id": 10392,
-    "label": "Matière"
-  },
-  {
-    "id": 9938,
-    "label": "Maurienne"
-  },
-  {
-    "id": 10555,
-    "label": "Mauvoisins"
-  },
-  {
-    "id": 10468,
-    "label": "Mazères"
-  },
-  {
-    "id": 10678,
-    "label": "Mazure"
-  },
-  {
-    "id": 9688,
-    "label": "Médiathèque"
-  },
-  {
-    "id": 10311,
-    "label": "Méditerranée"
-  },
-  {
-    "id": 10566,
-    "label": "Méliès"
-  },
-  {
-    "id": 10050,
-    "label": "Mellinet"
-  },
-  {
-    "id": 10139,
-    "label": "Melpomène"
-  },
-  {
-    "id": 9665,
-    "label": "Mendès France - Bellevue"
-  },
-  {
-    "id": 10727,
-    "label": "Ménétrier"
-  },
-  {
-    "id": 10611,
-    "label": "Mermoz"
-  },
-  {
-    "id": 9891,
-    "label": "Métairie"
-  },
-  {
-    "id": 10659,
-    "label": "Michelet"
-  },
-  {
-    "id": 9655,
-    "label": "Michelet - Sciences"
-  },
-  {
-    "id": 10350,
-    "label": "Mignonnerie"
-  },
-  {
-    "id": 10060,
-    "label": "Millenia"
-  },
-  {
-    "id": 10444,
-    "label": "Millepertuis"
-  },
-  {
-    "id": 10365,
-    "label": "Mimosas"
-  },
-  {
-    "id": 10815,
-    "label": "Mimosas"
-  },
-  {
-    "id": 9949,
-    "label": "Minais"
-  },
-  {
-    "id": 10428,
-    "label": "Minoterie"
-  },
-  {
-    "id": 10204,
-    "label": "Mississipi"
-  },
-  {
-    "id": 10711,
-    "label": "Mitrie"
-  },
-  {
-    "id": 10492,
-    "label": "Mocquelière"
-  },
-  {
-    "id": 10177,
-    "label": "Moinard"
-  },
-  {
-    "id": 10310,
-    "label": "Moinet"
-  },
-  {
-    "id": 9926,
-    "label": "Mondésir"
-  },
-  {
-    "id": 10119,
-    "label": "Monge - Chauvinière"
-  },
-  {
-    "id": 9841,
-    "label": "Mongendrière"
-  },
-  {
-    "id": 9726,
-    "label": "Mont Blanc"
-  },
-  {
-    "id": 9735,
-    "label": "Monteil"
-  },
-  {
-    "id": 10684,
-    "label": "Monteverdi"
-  },
-  {
-    "id": 10688,
-    "label": "Monty"
-  },
-  {
-    "id": 10799,
-    "label": "Monzie"
-  },
-  {
-    "id": 10094,
-    "label": "Morges"
-  },
-  {
-    "id": 10517,
-    "label": "Morlachère"
-  },
-  {
-    "id": 9657,
-    "label": "Morrhonnière - Petit Port"
-  },
-  {
-    "id": 10615,
-    "label": "Mortier Vannerie"
-  },
-  {
-    "id": 10794,
-    "label": "Mortiers Polygone"
-  },
-  {
-    "id": 10068,
-    "label": "Mortrais"
-  },
-  {
-    "id": 9652,
-    "label": "Motte Rouge"
-  },
-  {
-    "id": 10424,
-    "label": "Mouettes"
-  },
-  {
-    "id": 10540,
-    "label": "Moulin"
-  },
-  {
-    "id": 10760,
-    "label": "Moulin"
-  },
-  {
-    "id": 10568,
-    "label": "Moulin à l'Huile"
-  },
-  {
-    "id": 10307,
-    "label": "Moulin Boisseau"
-  },
-  {
-    "id": 10454,
-    "label": "Moulin Brûlé"
-  },
-  {
-    "id": 9944,
-    "label": "Moulin Cassé"
-  },
-  {
-    "id": 10085,
-    "label": "Moulin Cassé"
-  },
-  {
-    "id": 10704,
-    "label": "Moulin Collet"
-  },
-  {
-    "id": 9809,
-    "label": "Moulin de Porterie"
-  },
-  {
-    "id": 10264,
-    "label": "Moulin des Landes"
-  },
-  {
-    "id": 10423,
-    "label": "Moulin Hérel"
-  },
-  {
-    "id": 10250,
-    "label": "Moulin Neuf"
-  },
-  {
-    "id": 10371,
-    "label": "Moulin Rothard"
-  },
-  {
-    "id": 9839,
-    "label": "Mouline"
-  },
-  {
-    "id": 10179,
-    "label": "Moulinets"
-  },
-  {
-    "id": 10070,
-    "label": "Moulinier"
-  },
-  {
-    "id": 9678,
-    "label": "Moutonnerie"
-  },
-  {
-    "id": 10283,
-    "label": "Mulonnière"
-  },
-  {
-    "id": 9748,
-    "label": "Naudières"
-  },
-  {
-    "id": 9683,
-    "label": "Neruda"
-  },
-  {
-    "id": 9639,
-    "label": "Neustrie"
-  },
-  {
-    "id": 9873,
-    "label": "Newton"
-  },
-  {
-    "id": 10297,
-    "label": "Niagara"
-  },
-  {
-    "id": 9918,
-    "label": "Nil"
-  },
-  {
-    "id": 9813,
-    "label": "Nizan"
-  },
-  {
-    "id": 10435,
-    "label": "Noë Allais"
-  },
-  {
-    "id": 10288,
-    "label": "Noé Blanche"
-  },
-  {
-    "id": 9903,
-    "label": "Noé Cottée"
-  },
-  {
-    "id": 10745,
-    "label": "Noë Lambert"
-  },
-  {
-    "id": 10057,
-    "label": "Noë Nozou"
-  },
-  {
-    "id": 10525,
-    "label": "Noë Rocard"
-  },
-  {
-    "id": 10430,
-    "label": "Noë St Jean"
-  },
-  {
-    "id": 9920,
-    "label": "Noëlles"
-  },
-  {
-    "id": 10601,
-    "label": "North House"
-  },
-  {
-    "id": 9824,
-    "label": "Noue Verrière"
-  },
-  {
-    "id": 10129,
-    "label": "Nouveau Bêle"
-  },
-  {
-    "id": 10162,
-    "label": "Océane"
-  },
-  {
-    "id": 10552,
-    "label": "Oliveraie"
-  },
-  {
-    "id": 10429,
-    "label": "Olivier"
-  },
-  {
-    "id": 10282,
-    "label": "Olympe de Gouges"
-  },
-  {
-    "id": 10483,
-    "label": "Onchères"
-  },
-  {
-    "id": 10106,
-    "label": "Ordronneau"
-  },
-  {
-    "id": 10359,
-    "label": "Orvault"
-  },
-  {
-    "id": 9651,
-    "label": "Orvault Grand Val"
-  },
-  {
-    "id": 9644,
-    "label": "Orvault Morlière"
-  },
-  {
-    "id": 10205,
-    "label": "Ouche Cormier"
-  },
-  {
-    "id": 9913,
-    "label": "Ouche des Landes"
-  },
-  {
-    "id": 10623,
-    "label": "Ouche Quinet"
-  },
-  {
-    "id": 10686,
-    "label": "Ouessant"
-  },
-  {
-    "id": 10438,
-    "label": "Pablée"
-  },
-  {
-    "id": 10379,
-    "label": "Pagerie"
-  },
-  {
-    "id": 9717,
-    "label": "Paimboeuf"
-  },
-  {
-    "id": 10580,
-    "label": "Paix"
-  },
-  {
-    "id": 10553,
-    "label": "Palmiers"
-  },
-  {
-    "id": 9996,
-    "label": "Papillons"
-  },
-  {
-    "id": 10259,
-    "label": "Papotière"
-  },
-  {
-    "id": 10296,
-    "label": "Parc"
-  },
-  {
-    "id": 10480,
-    "label": "Parc Bel Air"
-  },
-  {
-    "id": 10415,
-    "label": "Parc Chantrerie"
-  },
-  {
-    "id": 10098,
-    "label": "Parc de la Sèvre"
-  },
-  {
-    "id": 9948,
-    "label": "Parc des Sports"
-  },
-  {
-    "id": 10728,
-    "label": "Parc Potager"
-  },
-  {
-    "id": 10786,
-    "label": "Pas Baril"
-  },
-  {
-    "id": 10543,
-    "label": "Pas d'Ane"
-  },
-  {
-    "id": 10338,
-    "label": "Pasteur"
-  },
-  {
-    "id": 10223,
-    "label": "Patache"
-  },
-  {
-    "id": 10602,
-    "label": "Patis Brûlé"
-  },
-  {
-    "id": 10725,
-    "label": "Patis Rondin"
-  },
-  {
-    "id": 10521,
-    "label": "Patis Viaud"
-  },
-  {
-    "id": 10791,
-    "label": "Pâtis Vinet 1"
-  },
-  {
-    "id": 10790,
-    "label": "Pâtis Vinet 2"
-  },
-  {
-    "id": 10030,
-    "label": "Patouillerie"
-  },
-  {
-    "id": 10117,
-    "label": "Pâtures"
-  },
-  {
-    "id": 10248,
-    "label": "Pavillon"
-  },
-  {
-    "id": 10706,
-    "label": "Pé de Buzay"
-  },
-  {
-    "id": 10524,
-    "label": "Pégers"
-  },
-  {
-    "id": 10321,
-    "label": "Pelousière"
-  },
-  {
-    "id": 10509,
-    "label": "Perdriaux"
-  },
-  {
-    "id": 10710,
-    "label": "Perray"
-  },
-  {
-    "id": 10281,
-    "label": "Perrières"
-  },
-  {
-    "id": 10252,
-    "label": "Perrines"
-  },
-  {
-    "id": 9961,
-    "label": "Perron"
-  },
-  {
-    "id": 10599,
-    "label": "Petit Anjou"
-  },
-  {
-    "id": 10374,
-    "label": "Petit Bois"
-  },
-  {
-    "id": 10724,
-    "label": "Petit Breton"
-  },
-  {
-    "id": 10354,
-    "label": "Petit Chantilly"
-  },
-  {
-    "id": 10467,
-    "label": "Petit Plessis"
-  },
-  {
-    "id": 10041,
-    "label": "Petit Port"
-  },
-  {
-    "id": 9699,
-    "label": "Petit Port - Facultés"
-  },
-  {
-    "id": 10343,
-    "label": "Petit Rocher"
-  },
-  {
-    "id": 10443,
-    "label": "Petit Village"
-  },
-  {
-    "id": 10503,
-    "label": "Petite Censive"
-  },
-  {
-    "id": 10701,
-    "label": "Petits Champs Blancs"
-  },
-  {
-    "id": 10340,
-    "label": "Pétrels"
-  },
-  {
-    "id": 10246,
-    "label": "Piano'cktail"
-  },
-  {
-    "id": 10290,
-    "label": "Picaudière"
-  },
-  {
-    "id": 9719,
-    "label": "Pierre"
-  },
-  {
-    "id": 10577,
-    "label": "Pierre Blanche"
-  },
-  {
-    "id": 9666,
-    "label": "Pin Sec"
-  },
-  {
-    "id": 10003,
-    "label": "Pinier"
-  },
-  {
-    "id": 10680,
-    "label": "Pinier"
-  },
-  {
-    "id": 10715,
-    "label": "Pipay"
-  },
-  {
-    "id": 9620,
-    "label": "Pirmil"
-  },
-  {
-    "id": 10084,
-    "label": "Place des Pêcheurs"
-  },
-  {
-    "id": 9648,
-    "label": "Place du Cirque"
-  },
-  {
-    "id": 10471,
-    "label": "Place St-Méen"
-  },
-  {
-    "id": 10618,
-    "label": "Placis"
-  },
-  {
-    "id": 9614,
-    "label": "Plaisance"
-  },
-  {
-    "id": 10238,
-    "label": "Planche Etienne"
-  },
-  {
-    "id": 9951,
-    "label": "Planchonnais"
-  },
-  {
-    "id": 10719,
-    "label": "Plantiveau"
-  },
-  {
-    "id": 10625,
-    "label": "Planty"
-  },
-  {
-    "id": 9799,
-    "label": "Platanes"
-  },
-  {
-    "id": 10576,
-    "label": "Platière"
-  },
-  {
-    "id": 10451,
-    "label": "Plessis"
-  },
-  {
-    "id": 9792,
-    "label": "Plessis Tison"
-  },
-  {
-    "id": 10090,
-    "label": "Plinguetière"
-  },
-  {
-    "id": 10273,
-    "label": "Ploreau"
-  },
-  {
-    "id": 10441,
-    "label": "Pluchets"
-  },
-  {
-    "id": 9974,
-    "label": "Poincaré"
-  },
-  {
-    "id": 9946,
-    "label": "Point du Jour"
-  },
-  {
-    "id": 9641,
-    "label": "Poitou"
-  },
-  {
-    "id": 10675,
-    "label": "Poitou"
-  },
-  {
-    "id": 10628,
-    "label": "Pôle sud"
-  },
-  {
-    "id": 9965,
-    "label": "Polyclinique"
-  },
-  {
-    "id": 9870,
-    "label": "Polytech"
-  },
-  {
-    "id": 10669,
-    "label": "Pomme de Pin"
-  },
-  {
-    "id": 10079,
-    "label": "Pommeraie"
-  },
-  {
-    "id": 9741,
-    "label": "Pompidou"
-  },
-  {
-    "id": 10318,
-    "label": "Pont Allard"
-  },
-  {
-    "id": 10499,
-    "label": "Pont de Chézine"
-  },
-  {
-    "id": 9958,
-    "label": "Pont de la Métairie"
-  },
-  {
-    "id": 10031,
-    "label": "Pont du Cens"
-  },
-  {
-    "id": 10199,
-    "label": "Pont Marchand"
-  },
-  {
-    "id": 9835,
-    "label": "Pont Pilet"
-  },
-  {
-    "id": 9628,
-    "label": "Pont Rousseau - Martyrs"
-  },
-  {
-    "id": 9971,
-    "label": "Pontecorvo"
-  },
-  {
-    "id": 10462,
-    "label": "Pontereau"
-  },
-  {
-    "id": 9840,
-    "label": "Port aux Cerises"
-  },
-  {
-    "id": 10107,
-    "label": "Port aux Meules"
-  },
-  {
-    "id": 10752,
-    "label": "Port Boyer"
-  },
-  {
-    "id": 10418,
-    "label": "Port la Blanche"
-  },
-  {
-    "id": 10432,
-    "label": "Port launay"
-  },
-  {
-    "id": 9953,
-    "label": "Portail Rouge"
-  },
-  {
-    "id": 9787,
-    "label": "Porte de La Chapelle"
-  },
-  {
-    "id": 10004,
-    "label": "Porte de Rezé"
-  },
-  {
-    "id": 10453,
-    "label": "Porte de Sautron"
-  },
-  {
-    "id": 10455,
-    "label": "Porte de Sautron"
-  },
-  {
-    "id": 9878,
-    "label": "Porte de Vertou"
-  },
-  {
-    "id": 10416,
-    "label": "Porte Douillard"
-  },
-  {
-    "id": 9896,
-    "label": "Portechaise"
-  },
-  {
-    "id": 9902,
-    "label": "Portereau"
-  },
-  {
-    "id": 10093,
-    "label": "Portereau"
-  },
-  {
-    "id": 10671,
-    "label": "Porteurs d'Eau"
-  },
-  {
-    "id": 10519,
-    "label": "Portillon"
-  },
-  {
-    "id": 9805,
-    "label": "Portricq"
-  },
-  {
-    "id": 9843,
-    "label": "Poste"
-  },
-  {
-    "id": 10764,
-    "label": "Poste de Beautour"
-  },
-  {
-    "id": 10414,
-    "label": "Potiron"
-  },
-  {
-    "id": 10383,
-    "label": "Pottier"
-  },
-  {
-    "id": 10183,
-    "label": "Poulbot"
-  },
-  {
-    "id": 10498,
-    "label": "Poulenc"
-  },
-  {
-    "id": 10656,
-    "label": "Pouliguen"
-  },
-  {
-    "id": 10584,
-    "label": "Poyaux"
-  },
-  {
-    "id": 9734,
-    "label": "Prairie au Duc"
-  },
-  {
-    "id": 10026,
-    "label": "Prairie de Mauves"
-  },
-  {
-    "id": 10493,
-    "label": "Praudière"
-  },
-  {
-    "id": 10735,
-    "label": "Pré Hervé"
-  },
-  {
-    "id": 9937,
-    "label": "Pré Poulain"
-  },
-  {
-    "id": 10083,
-    "label": "Pressoir"
-  },
-  {
-    "id": 10489,
-    "label": "Preux"
-  },
-  {
-    "id": 9993,
-    "label": "Prières"
-  },
-  {
-    "id": 10573,
-    "label": "Prieuré"
-  },
-  {
-    "id": 10431,
-    "label": "Primevères"
-  },
-  {
-    "id": 10538,
-    "label": "Printemps"
-  },
-  {
-    "id": 9964,
-    "label": "Procé"
-  },
-  {
-    "id": 9909,
-    "label": "Profondine"
-  },
-  {
-    "id": 10707,
-    "label": "Proutière"
-  },
-  {
-    "id": 10334,
-    "label": "Purfina"
-  },
-  {
-    "id": 9899,
-    "label": "Pyramide"
-  },
-  {
-    "id": 10316,
-    "label": "Quai Brunais"
-  },
-  {
-    "id": 10807,
-    "label": "Quai Ceineray"
-  },
-  {
-    "id": 9755,
-    "label": "Quai des Antilles"
-  },
-  {
-    "id": 10603,
-    "label": "Quai Surcouf"
-  },
-  {
-    "id": 10774,
-    "label": "Quilterie"
-  },
-  {
-    "id": 9894,
-    "label": "Quintaine"
-  },
-  {
-    "id": 10198,
-    "label": "Rabine"
-  },
-  {
-    "id": 10597,
-    "label": "Radigois"
-  },
-  {
-    "id": 9984,
-    "label": "Ragon"
-  },
-  {
-    "id": 9664,
-    "label": "Ranzay"
-  },
-  {
-    "id": 10007,
-    "label": "Raoul Dufy"
-  },
-  {
-    "id": 10372,
-    "label": "Ravardière"
-  },
-  {
-    "id": 10474,
-    "label": "Razée"
-  },
-  {
-    "id": 9654,
-    "label": "Recteur Schmitt"
-  },
-  {
-    "id": 10534,
-    "label": "Rédras"
-  },
-  {
-    "id": 9830,
-    "label": "Réfractaires"
-  },
-  {
-    "id": 10512,
-    "label": "Reigniers"
-  },
-  {
-    "id": 10271,
-    "label": "Reinetière"
-  },
-  {
-    "id": 10487,
-    "label": "Renan"
-  },
-  {
-    "id": 10067,
-    "label": "Renardières"
-  },
-  {
-    "id": 10304,
-    "label": "Renaudières"
-  },
-  {
-    "id": 10403,
-    "label": "Renault"
-  },
-  {
-    "id": 10612,
-    "label": "René Bernier"
-  },
-  {
-    "id": 10731,
-    "label": "René Bouhier"
-  },
-  {
-    "id": 9649,
-    "label": "René Cassin"
-  },
-  {
-    "id": 9783,
-    "label": "Rennes - Longchamp"
-  },
-  {
-    "id": 10661,
-    "label": "Repos de Chasse"
-  },
-  {
-    "id": 9723,
-    "label": "République"
-  },
-  {
-    "id": 9992,
-    "label": "Retas"
-  },
-  {
-    "id": 10491,
-    "label": "Reynière"
-  },
-  {
-    "id": 10088,
-    "label": "Rinière"
-  },
-  {
-    "id": 10550,
-    "label": "Ripossière"
-  },
-  {
-    "id": 10152,
-    "label": "Rivaudière"
-  },
-  {
-    "id": 10763,
-    "label": "Rivaudières"
-  },
-  {
-    "id": 10631,
-    "label": "Robert Scott"
-  },
-  {
-    "id": 10593,
-    "label": "Robinière"
-  },
-  {
-    "id": 10115,
-    "label": "Rocade"
-  },
-  {
-    "id": 10370,
-    "label": "Roche Ballue"
-  },
-  {
-    "id": 10336,
-    "label": "Roche Maurice"
-  },
-  {
-    "id": 10331,
-    "label": "Rocher"
-  },
-  {
-    "id": 9754,
-    "label": "Roches Vertes"
-  },
-  {
-    "id": 10176,
-    "label": "Rochu"
-  },
-  {
-    "id": 9667,
-    "label": "Romain Rolland"
-  },
-  {
-    "id": 9686,
-    "label": "Romanet"
-  },
-  {
-    "id": 9796,
-    "label": "Rond-Point de Paris"
-  },
-  {
-    "id": 9756,
-    "label": "Rond-Point de Rennes"
-  },
-  {
-    "id": 9631,
-    "label": "Rond-Point de Vannes"
-  },
-  {
-    "id": 10149,
-    "label": "Rosenberg"
-  },
-  {
-    "id": 9812,
-    "label": "Roseraie"
-  },
-  {
-    "id": 9817,
-    "label": "Rouaudière"
-  },
-  {
-    "id": 9983,
-    "label": "Rouet"
-  },
-  {
-    "id": 10484,
-    "label": "Rouleaux"
-  },
-  {
-    "id": 10096,
-    "label": "Rousselière"
-  },
-  {
-    "id": 10122,
-    "label": "Roussière"
-  },
-  {
-    "id": 10045,
-    "label": "Route de la Chapelle"
-  },
-  {
-    "id": 10405,
-    "label": "Route de Paris"
-  },
-  {
-    "id": 10182,
-    "label": "Rue d'Indre"
-  },
-  {
-    "id": 9954,
-    "label": "Rue de Mauves"
-  },
-  {
-    "id": 10002,
-    "label": "Rue de Nantes"
-  },
-  {
-    "id": 10267,
-    "label": "Ruette"
-  },
-  {
-    "id": 10396,
-    "label": "Sables d'Or"
-  },
-  {
-    "id": 10446,
-    "label": "Salentine"
-  },
-  {
-    "id": 9757,
-    "label": "Salorges"
-  },
-  {
-    "id": 10013,
-    "label": "San Francisco"
-  },
-  {
-    "id": 9653,
-    "label": "Santos Dumont"
-  },
-  {
-    "id": 10333,
-    "label": "Saphirs"
-  },
-  {
-    "id": 9712,
-    "label": "Sarrail"
-  },
-  {
-    "id": 10426,
-    "label": "Sartre"
-  },
-  {
-    "id": 10635,
-    "label": "Saules"
-  },
-  {
-    "id": 9921,
-    "label": "Saupin"
-  },
-  {
-    "id": 10542,
-    "label": "Saupin"
-  },
-  {
-    "id": 10448,
-    "label": "Sautron"
-  },
-  {
-    "id": 9914,
-    "label": "Savarières"
-  },
-  {
-    "id": 10420,
-    "label": "Savaudière"
-  },
-  {
-    "id": 10322,
-    "label": "Savonnières"
-  },
-  {
-    "id": 9691,
-    "label": "Schoelcher"
-  },
-  {
-    "id": 9864,
-    "label": "Schweitzer"
-  },
-  {
-    "id": 10801,
-    "label": "Sébilleau"
-  },
-  {
-    "id": 9753,
-    "label": "Seil"
-  },
-  {
-    "id": 10298,
-    "label": "Sercel"
-  },
-  {
-    "id": 10551,
-    "label": "Sèvres"
-  },
-  {
-    "id": 9613,
-    "label": "Sillon de Bretagne"
-  },
-  {
-    "id": 10591,
-    "label": "Simone Signoret"
-  },
-  {
-    "id": 10440,
-    "label": "Sinière"
-  },
-  {
-    "id": 10750,
-    "label": "Solidarité"
-  },
-  {
-    "id": 10175,
-    "label": "Solvardière"
-  },
-  {
-    "id": 9729,
-    "label": "Sorin"
-  },
-  {
-    "id": 10313,
-    "label": "Souchais"
-  },
-  {
-    "id": 10303,
-    "label": "Souchais École"
-  },
-  {
-    "id": 9673,
-    "label": "Souillarderie"
-  },
-  {
-    "id": 10148,
-    "label": "Soweto"
-  },
-  {
-    "id": 9775,
-    "label": "Square Daviais"
-  },
-  {
-    "id": 10053,
-    "label": "St-Aignan"
-  },
-  {
-    "id": 10063,
-    "label": "St-Aignan de Grand Lieu"
-  },
-  {
-    "id": 10531,
-    "label": "St-Blaise"
-  },
-  {
-    "id": 9791,
-    "label": "St-Clément"
-  },
-  {
-    "id": 9798,
-    "label": "St-Donatien"
-  },
-  {
-    "id": 10559,
-    "label": "St-Exupéry"
-  },
-  {
-    "id": 9660,
-    "label": "St-Félix"
-  },
-  {
-    "id": 10742,
-    "label": "St-Hermeland"
-  },
-  {
-    "id": 10549,
-    "label": "St-Jacques"
-  },
-  {
-    "id": 10598,
-    "label": "St-Jean"
-  },
-  {
-    "id": 10649,
-    "label": "St-Jean-Baptiste de la Salle"
-  },
-  {
-    "id": 9857,
-    "label": "St-Jean-de-Boiseau"
-  },
-  {
-    "id": 9806,
-    "label": "St-Joseph de Porterie"
-  },
-  {
-    "id": 9962,
-    "label": "St-Laurent"
-  },
-  {
-    "id": 10061,
-    "label": "St-Léger-les-Vignes"
-  },
-  {
-    "id": 10193,
-    "label": "St-Martin"
-  },
-  {
-    "id": 10151,
-    "label": "St-Michel"
-  },
-  {
-    "id": 9662,
-    "label": "St-Mihiel"
-  },
-  {
-    "id": 9930,
-    "label": "St-Nicolas"
-  },
-  {
-    "id": 9998,
-    "label": "St-Paul - Salengro"
-  },
-  {
-    "id": 9797,
-    "label": "St-Pierre"
-  },
-  {
-    "id": 9900,
-    "label": "St-Sébastien"
-  },
-  {
-    "id": 9772,
-    "label": "St-Stanislas"
-  },
-  {
-    "id": 10388,
-    "label": "Stade"
-  },
-  {
-    "id": 10749,
-    "label": "Stade SNUC"
-  },
-  {
-    "id": 9945,
-    "label": "Ste-Luce"
-  },
-  {
-    "id": 10682,
-    "label": "Ste-Philomène"
-  },
-  {
-    "id": 10224,
-    "label": "Stévin"
-  },
-  {
-    "id": 9931,
-    "label": "Sully Prudhomme"
-  },
-  {
-    "id": 10687,
-    "label": "Surcouf"
-  },
-  {
-    "id": 9923,
-    "label": "Suzanne Lenglen"
-  },
-  {
-    "id": 10411,
-    "label": "Syrma"
-  },
-  {
-    "id": 10571,
-    "label": "Tabarly"
-  },
-  {
-    "id": 10744,
-    "label": "Taillandier"
-  },
-  {
-    "id": 9781,
-    "label": "Talensac"
-  },
-  {
-    "id": 10694,
-    "label": "Tarentaise"
-  },
-  {
-    "id": 10380,
-    "label": "Télindière"
-  },
-  {
-    "id": 10137,
-    "label": "Terpsichore"
-  },
-  {
-    "id": 9793,
-    "label": "Terray"
-  },
-  {
-    "id": 10574,
-    "label": "Terres Neuvas"
-  },
-  {
-    "id": 10069,
-    "label": "Terres Quartières"
-  },
-  {
-    "id": 9681,
-    "label": "Tertre"
-  },
-  {
-    "id": 10378,
-    "label": "Tertre"
-  },
-  {
-    "id": 10165,
-    "label": "Théatre"
-  },
-  {
-    "id": 9917,
-    "label": "Thébaudières"
-  },
-  {
-    "id": 10473,
-    "label": "Thébaudières"
-  },
-  {
-    "id": 9975,
-    "label": "Tillay"
-  },
-  {
-    "id": 10652,
-    "label": "Tortière"
-  },
-  {
-    "id": 9848,
-    "label": "Toscane"
-  },
-  {
-    "id": 10332,
-    "label": "Tougas"
-  },
-  {
-    "id": 9856,
-    "label": "Tour Eiffel"
-  },
-  {
-    "id": 9694,
-    "label": "Tourmaline"
-  },
-  {
-    "id": 10268,
-    "label": "Toutes Aides"
-  },
-  {
-    "id": 9927,
-    "label": "Toutes Joies"
-  },
-  {
-    "id": 10482,
-    "label": "Touzelles"
-  },
-  {
-    "id": 9795,
-    "label": "Trébuchet"
-  },
-  {
-    "id": 10349,
-    "label": "Tréca"
-  },
-  {
-    "id": 10356,
-    "label": "Tredégar"
-  },
-  {
-    "id": 10650,
-    "label": "Trémissinière"
-  },
-  {
-    "id": 10112,
-    "label": "Trentemoult"
-  },
-  {
-    "id": 10811,
-    "label": "Trentemoult Roquios"
-  },
-  {
-    "id": 10804,
-    "label": "Trentemoult Sablières"
-  },
-  {
-    "id": 9955,
-    "label": "Trianon"
-  },
-  {
-    "id": 10039,
-    "label": "Tribunes"
-  },
-  {
-    "id": 10558,
-    "label": "Tripode"
-  },
-  {
-    "id": 10676,
-    "label": "Tristan Bernard"
-  },
-  {
-    "id": 9640,
-    "label": "Trocardière"
-  },
-  {
-    "id": 10759,
-    "label": "Trois Cheminées"
-  },
-  {
-    "id": 10261,
-    "label": "Trois Chênes"
-  },
-  {
-    "id": 10613,
-    "label": "Trois Métairies"
-  },
-  {
-    "id": 9994,
-    "label": "Trois Moulins"
-  },
-  {
-    "id": 10757,
-    "label": "Usine à gaz"
-  },
-  {
-    "id": 10335,
-    "label": "Usine à gaz"
-  },
-  {
-    "id": 10329,
-    "label": "Usine Brûlée"
-  },
-  {
-    "id": 9854,
-    "label": "Utrecht"
-  },
-  {
-    "id": 10586,
-    "label": "Utrillo"
-  },
-  {
-    "id": 10458,
-    "label": "Val du Cens"
-  },
-  {
-    "id": 10035,
-    "label": "Vallée"
-  },
-  {
-    "id": 10037,
-    "label": "Vallée"
-  },
-  {
-    "id": 10665,
-    "label": "Vaucanson"
-  },
-  {
-    "id": 10400,
-    "label": "Véga"
-  },
-  {
-    "id": 10677,
-    "label": "Vendée"
-  },
-  {
-    "id": 10326,
-    "label": "Verdure"
-  },
-  {
-    "id": 10136,
-    "label": "Verger"
-  },
-  {
-    "id": 9924,
-    "label": "Verlaine"
-  },
-  {
-    "id": 10754,
-    "label": "Verrière"
-  },
-  {
-    "id": 10587,
-    "label": "Vert Praud"
-  },
-  {
-    "id": 10617,
-    "label": "Vertonne"
-  },
-  {
-    "id": 9876,
-    "label": "Vertou"
-  },
-  {
-    "id": 9943,
-    "label": "Vesprées"
-  },
-  {
-    "id": 9622,
-    "label": "Viarme-Talensac"
-  },
-  {
-    "id": 10263,
-    "label": "Vieux Doulon"
-  },
-  {
-    "id": 10373,
-    "label": "Vieux Four"
-  },
-  {
-    "id": 10705,
-    "label": "Vièvre"
-  },
-  {
-    "id": 10495,
-    "label": "Village Expo"
-  },
-  {
-    "id": 10795,
-    "label": "Ville au Blanc"
-  },
-  {
-    "id": 10242,
-    "label": "Ville au Denis"
-  },
-  {
-    "id": 10783,
-    "label": "Ville Henri"
-  },
-  {
-    "id": 10605,
-    "label": "Villeneuve"
-  },
-  {
-    "id": 9976,
-    "label": "Vincent Auriol"
-  },
-  {
-    "id": 9643,
-    "label": "Vincent Gâche"
-  },
-  {
-    "id": 10280,
-    "label": "Vincent Scotto"
-  },
-  {
-    "id": 10608,
-    "label": "Violettes"
-  },
-  {
-    "id": 10713,
-    "label": "Vison"
-  },
-  {
-    "id": 10787,
-    "label": "Visonnière"
-  },
-  {
-    "id": 9852,
-    "label": "Viv'Erdre"
-  },
-  {
-    "id": 10619,
-    "label": "Viviers"
-  },
-  {
-    "id": 10278,
-    "label": "Vrière"
-  },
-  {
-    "id": 10636,
-    "label": "Walt Disney"
-  },
-  {
-    "id": 9619,
-    "label": "Wattignies"
-  },
-  {
-    "id": 10588,
-    "label": "Willy Brandt"
-  },
-  {
-    "id": 10015,
-    "label": "Zénith"
-  },
-  {
-    "id": 10654,
-    "label": "Zola"
-  }
-]
+{
+  "_notes": "Numerotation des logical_id (l'ID d'arret utilise dans l'URL de l'API plan.naolib.fr/api/stop/logical/{id}) : ce n'est ni alphabetique ni geographique global -- les ID avancent par lots geographiques coherents, dans l'ordre ou chaque zone/ligne a ete integree a la base Naolib. Reperes observes (juillet 2026) : 9613 a ~9662 = quartier Nantes centre/sud (Pirmil, Commerce, Mangin...) ; 9900-9917 = secteur Reze/Vertou ; 9918-9982 = Orvault / Saint-Herblain ; 9983-10004 = Les Sorinieres (commune plus au sud) ; 10056-10090 = Bouaye / secteur aeroport ; 10462-10473 = Le Cellier, Mauves (communes lointaines, peripherie du reseau). Les ID les plus eleves (10700+) correspondent aux ajouts les plus recents au referentiel. Utile pour deviner approximativement ou chercher un arret manquant. Infos trouvées sur https://plan.naolib.fr/map/physical_stops.geojson",
+  "stops": [
+    {
+      "id": 9656,
+      "label": "50 Otages"
+    },
+    {
+      "id": 9618,
+      "label": "8 Mai"
+    },
+    {
+      "id": 10756,
+      "label": "Abbé Chérel"
+    },
+    {
+      "id": 9782,
+      "label": "Abel Durand"
+    },
+    {
+      "id": 10409,
+      "label": "Adrienne Bolland"
+    },
+    {
+      "id": 9815,
+      "label": "Aéroclub"
+    },
+    {
+      "id": 9814,
+      "label": "Aéroport"
+    },
+    {
+      "id": 10567,
+      "label": "Aérospatiale"
+    },
+    {
+      "id": 10270,
+      "label": "Aiguillon"
+    },
+    {
+      "id": 9638,
+      "label": "Aimé Delrue"
+    },
+    {
+      "id": 10569,
+      "label": "Airbus"
+    },
+    {
+      "id": 9621,
+      "label": "Alexandre Vincent - Ste-Thérèse"
+    },
+    {
+      "id": 9715,
+      "label": "Allende"
+    },
+    {
+      "id": 9979,
+      "label": "Ambroise Paré"
+    },
+    {
+      "id": 9770,
+      "label": "Américains"
+    },
+    {
+      "id": 10286,
+      "label": "Ampère"
+    },
+    {
+      "id": 10295,
+      "label": "Ampère"
+    },
+    {
+      "id": 9922,
+      "label": "Anatole France"
+    },
+    {
+      "id": 10097,
+      "label": "Angebardière"
+    },
+    {
+      "id": 9935,
+      "label": "Angevinière"
+    },
+    {
+      "id": 10125,
+      "label": "Angle Chaillou"
+    },
+    {
+      "id": 10407,
+      "label": "Antarès"
+    },
+    {
+      "id": 10203,
+      "label": "Antons"
+    },
+    {
+      "id": 10145,
+      "label": "Apave"
+    },
+    {
+      "id": 10189,
+      "label": "Aquitaine"
+    },
+    {
+      "id": 10301,
+      "label": "Arago"
+    },
+    {
+      "id": 10490,
+      "label": "Arbois"
+    },
+    {
+      "id": 10172,
+      "label": "Arcades"
+    },
+    {
+      "id": 10134,
+      "label": "Argonautes"
+    },
+    {
+      "id": 10305,
+      "label": "Aristide Briand"
+    },
+    {
+      "id": 10024,
+      "label": "Armor"
+    },
+    {
+      "id": 10449,
+      "label": "Armoricaine"
+    },
+    {
+      "id": 10690,
+      "label": "Armorique"
+    },
+    {
+      "id": 9887,
+      "label": "Audubon"
+    },
+    {
+      "id": 10606,
+      "label": "Augé"
+    },
+    {
+      "id": 10353,
+      "label": "Aulne"
+    },
+    {
+      "id": 10494,
+      "label": "Aurore"
+    },
+    {
+      "id": 10501,
+      "label": "Aveneaux"
+    },
+    {
+      "id": 10368,
+      "label": "Avenue des Pins"
+    },
+    {
+      "id": 9692,
+      "label": "Babinière"
+    },
+    {
+      "id": 9707,
+      "label": "Bac d'Indret"
+    },
+    {
+      "id": 10425,
+      "label": "Bac de Couëron"
+    },
+    {
+      "id": 10809,
+      "label": "Bac du Pellerin"
+    },
+    {
+      "id": 10506,
+      "label": "Bagatelle"
+    },
+    {
+      "id": 9623,
+      "label": "Balinière"
+    },
+    {
+      "id": 10532,
+      "label": "Barbinière"
+    },
+    {
+      "id": 10775,
+      "label": "Barigaudais"
+    },
+    {
+      "id": 10358,
+      "label": "Baronnière"
+    },
+    {
+      "id": 10772,
+      "label": "Barriére Noire"
+    },
+    {
+      "id": 9701,
+      "label": "Bas-Chantenay"
+    },
+    {
+      "id": 10789,
+      "label": "Basse Canterie"
+    },
+    {
+      "id": 9959,
+      "label": "Basse Chênaie"
+    },
+    {
+      "id": 10691,
+      "label": "Basse Hillière"
+    },
+    {
+      "id": 9733,
+      "label": "Basse Île"
+    },
+    {
+      "id": 10442,
+      "label": "Basse Orévière"
+    },
+    {
+      "id": 9911,
+      "label": "Basse-Goulaine"
+    },
+    {
+      "id": 10317,
+      "label": "Basse-Indre"
+    },
+    {
+      "id": 10154,
+      "label": "Basses Jouannes"
+    },
+    {
+      "id": 10523,
+      "label": "Bastière"
+    },
+    {
+      "id": 10229,
+      "label": "Bastille"
+    },
+    {
+      "id": 9810,
+      "label": "Batignolles"
+    },
+    {
+      "id": 10780,
+      "label": "Bauche Malo"
+    },
+    {
+      "id": 10805,
+      "label": "Baudelaire"
+    },
+    {
+      "id": 9905,
+      "label": "Baugerie"
+    },
+    {
+      "id": 10027,
+      "label": "Bd Charles Gautier"
+    },
+    {
+      "id": 9684,
+      "label": "Bd de Doulon"
+    },
+    {
+      "id": 9925,
+      "label": "Bd des Anglais"
+    },
+    {
+      "id": 10109,
+      "label": "Bd des Sports"
+    },
+    {
+      "id": 10381,
+      "label": "Beau Soleil"
+    },
+    {
+      "id": 9915,
+      "label": "Beaugency"
+    },
+    {
+      "id": 10653,
+      "label": "Beauger"
+    },
+    {
+      "id": 9693,
+      "label": "Beaujoire"
+    },
+    {
+      "id": 9750,
+      "label": "Beaulieu"
+    },
+    {
+      "id": 10170,
+      "label": "Beauregard"
+    },
+    {
+      "id": 9645,
+      "label": "Beauséjour"
+    },
+    {
+      "id": 10769,
+      "label": "Beautour"
+    },
+    {
+      "id": 10076,
+      "label": "Beauvaiserie"
+    },
+    {
+      "id": 10375,
+      "label": "Beauvoir"
+    },
+    {
+      "id": 10703,
+      "label": "Behinière"
+    },
+    {
+      "id": 10196,
+      "label": "Beillevaire"
+    },
+    {
+      "id": 9777,
+      "label": "Bel Air"
+    },
+    {
+      "id": 10236,
+      "label": "Bel Endroit"
+    },
+    {
+      "id": 10596,
+      "label": "Bel Être"
+    },
+    {
+      "id": 10132,
+      "label": "Bêle"
+    },
+    {
+      "id": 10812,
+      "label": "Bêle"
+    },
+    {
+      "id": 10265,
+      "label": "Belem"
+    },
+    {
+      "id": 9980,
+      "label": "Belges - Montbazon"
+    },
+    {
+      "id": 10390,
+      "label": "Belle Etoile"
+    },
+    {
+      "id": 10184,
+      "label": "Belle Île"
+    },
+    {
+      "id": 10243,
+      "label": "Bellestre"
+    },
+    {
+      "id": 10346,
+      "label": "Bellevue"
+    },
+    {
+      "id": 10040,
+      "label": "Belloc"
+    },
+    {
+      "id": 10565,
+      "label": "Bélouga"
+    },
+    {
+      "id": 10256,
+      "label": "Bénélux"
+    },
+    {
+      "id": 10803,
+      "label": "Bénoni Goullin"
+    },
+    {
+      "id": 10500,
+      "label": "Bergerie"
+    },
+    {
+      "id": 9933,
+      "label": "Bergeronnettes"
+    },
+    {
+      "id": 10187,
+      "label": "Berligout"
+    },
+    {
+      "id": 9738,
+      "label": "Berlin"
+    },
+    {
+      "id": 9784,
+      "label": "Berlioz"
+    },
+    {
+      "id": 10036,
+      "label": "Bernanos"
+    },
+    {
+      "id": 10043,
+      "label": "Bernanos"
+    },
+    {
+      "id": 10048,
+      "label": "Bertrand"
+    },
+    {
+      "id": 10436,
+      "label": "Bessonneau"
+    },
+    {
+      "id": 10212,
+      "label": "Bigeottière"
+    },
+    {
+      "id": 9634,
+      "label": "Bignon"
+    },
+    {
+      "id": 9877,
+      "label": "Bignonnet"
+    },
+    {
+      "id": 10637,
+      "label": "Bignons"
+    },
+    {
+      "id": 10164,
+      "label": "Bio Ouest Laënnec"
+    },
+    {
+      "id": 9985,
+      "label": "Blanchet"
+    },
+    {
+      "id": 9855,
+      "label": "Blanchetière"
+    },
+    {
+      "id": 9890,
+      "label": "Blancho"
+    },
+    {
+      "id": 10099,
+      "label": "Blordière"
+    },
+    {
+      "id": 10624,
+      "label": "BN"
+    },
+    {
+      "id": 10147,
+      "label": "Bobby Sands"
+    },
+    {
+      "id": 10188,
+      "label": "Bodinières"
+    },
+    {
+      "id": 10207,
+      "label": "Bois Cesbron"
+    },
+    {
+      "id": 10232,
+      "label": "Bois de La Noé"
+    },
+    {
+      "id": 9941,
+      "label": "Bois des Anses"
+    },
+    {
+      "id": 10032,
+      "label": "Bois Hardy"
+    },
+    {
+      "id": 10376,
+      "label": "Bois Jaulin"
+    },
+    {
+      "id": 10206,
+      "label": "Bois Raguenet"
+    },
+    {
+      "id": 10739,
+      "label": "Bois Robillard"
+    },
+    {
+      "id": 10140,
+      "label": "Bois St-Lys"
+    },
+    {
+      "id": 9858,
+      "label": "Bois Tillac"
+    },
+    {
+      "id": 10421,
+      "label": "Boisbonne"
+    },
+    {
+      "id": 9647,
+      "label": "Boissière"
+    },
+    {
+      "id": 10773,
+      "label": "Bon Acquet"
+    },
+    {
+      "id": 9788,
+      "label": "Bonde"
+    },
+    {
+      "id": 9751,
+      "label": "Bonne Garde"
+    },
+    {
+      "id": 10663,
+      "label": "Bonneville"
+    },
+    {
+      "id": 10231,
+      "label": "Boris Vian"
+    },
+    {
+      "id": 9884,
+      "label": "Bossis"
+    },
+    {
+      "id": 10732,
+      "label": "Bottière"
+    },
+    {
+      "id": 10235,
+      "label": "Bouaye Coteaux"
+    },
+    {
+      "id": 9695,
+      "label": "Bouffay"
+    },
+    {
+      "id": 9776,
+      "label": "Bougainville"
+    },
+    {
+      "id": 9718,
+      "label": "Bougon"
+    },
+    {
+      "id": 9947,
+      "label": "Bougrière"
+    },
+    {
+      "id": 10747,
+      "label": "Boulay Paty"
+    },
+    {
+      "id": 10394,
+      "label": "Boulodrome"
+    },
+    {
+      "id": 10740,
+      "label": "Bourderies"
+    },
+    {
+      "id": 10055,
+      "label": "Bourdonnais"
+    },
+    {
+      "id": 9727,
+      "label": "Bourdonnières"
+    },
+    {
+      "id": 9650,
+      "label": "Bourgeonnière"
+    },
+    {
+      "id": 10364,
+      "label": "Bourgogne"
+    },
+    {
+      "id": 10319,
+      "label": "Bourgonnière"
+    },
+    {
+      "id": 10679,
+      "label": "Bournière"
+    },
+    {
+      "id": 10528,
+      "label": "Bourrelière"
+    },
+    {
+      "id": 10486,
+      "label": "Bout des Landes"
+    },
+    {
+      "id": 10042,
+      "label": "Bout des Pavés"
+    },
+    {
+      "id": 10717,
+      "label": "Bouteillerie"
+    },
+    {
+      "id": 10782,
+      "label": "Bouteillerie"
+    },
+    {
+      "id": 10535,
+      "label": "Boutière"
+    },
+    {
+      "id": 9928,
+      "label": "Bouvardière"
+    },
+    {
+      "id": 10217,
+      "label": "Bouvernière"
+    },
+    {
+      "id": 9713,
+      "label": "Bouvre"
+    },
+    {
+      "id": 10072,
+      "label": "Brains"
+    },
+    {
+      "id": 9767,
+      "label": "Branchoire"
+    },
+    {
+      "id": 10131,
+      "label": "Bréchetière"
+    },
+    {
+      "id": 9624,
+      "label": "Bretagne"
+    },
+    {
+      "id": 10434,
+      "label": "Bretinais"
+    },
+    {
+      "id": 10095,
+      "label": "Bretonnière"
+    },
+    {
+      "id": 10389,
+      "label": "Briandière"
+    },
+    {
+      "id": 10792,
+      "label": "Brillaudière"
+    },
+    {
+      "id": 10087,
+      "label": "Brindais"
+    },
+    {
+      "id": 10560,
+      "label": "Brossais"
+    },
+    {
+      "id": 10413,
+      "label": "Brouillard"
+    },
+    {
+      "id": 9758,
+      "label": "Bruneau"
+    },
+    {
+      "id": 10219,
+      "label": "Bugallière"
+    },
+    {
+      "id": 10262,
+      "label": "Buisson"
+    },
+    {
+      "id": 10779,
+      "label": "Buronnerie"
+    },
+    {
+      "id": 10770,
+      "label": "Bussaudière"
+    },
+    {
+      "id": 9936,
+      "label": "Bussonnière"
+    },
+    {
+      "id": 10520,
+      "label": "Butte des Landes"
+    },
+    {
+      "id": 10174,
+      "label": "Buzardières"
+    },
+    {
+      "id": 10583,
+      "label": "Caboteurs"
+    },
+    {
+      "id": 9774,
+      "label": "Cabrol"
+    },
+    {
+      "id": 10249,
+      "label": "Cadoire"
+    },
+    {
+      "id": 9828,
+      "label": "Caillou Blanc"
+    },
+    {
+      "id": 10768,
+      "label": "Cale de Beautour"
+    },
+    {
+      "id": 10572,
+      "label": "Californie"
+    },
+    {
+      "id": 9898,
+      "label": "Cambronne"
+    },
+    {
+      "id": 9978,
+      "label": "Camus"
+    },
+    {
+      "id": 9893,
+      "label": "Canal"
+    },
+    {
+      "id": 10022,
+      "label": "Canclaux"
+    },
+    {
+      "id": 10279,
+      "label": "Capellia"
+    },
+    {
+      "id": 10452,
+      "label": "Capitaine Grant"
+    },
+    {
+      "id": 9871,
+      "label": "Carquefou"
+    },
+    {
+      "id": 9764,
+      "label": "Carrière Misery"
+    },
+    {
+      "id": 10190,
+      "label": "Carrières"
+    },
+    {
+      "id": 10422,
+      "label": "Carterons"
+    },
+    {
+      "id": 10255,
+      "label": "Cartier"
+    },
+    {
+      "id": 10646,
+      "label": "Casimir Perier"
+    },
+    {
+      "id": 10547,
+      "label": "Cassegrain"
+    },
+    {
+      "id": 10718,
+      "label": "Casterneau"
+    },
+    {
+      "id": 10395,
+      "label": "Castorama"
+    },
+    {
+      "id": 9820,
+      "label": "Cèdre"
+    },
+    {
+      "id": 10581,
+      "label": "Centaure"
+    },
+    {
+      "id": 10071,
+      "label": "Centre de Bouaye"
+    },
+    {
+      "id": 10579,
+      "label": "Centre de Bouguenais"
+    },
+    {
+      "id": 9869,
+      "label": "Centre de Carquefou"
+    },
+    {
+      "id": 9851,
+      "label": "Centre de La Chapelle"
+    },
+    {
+      "id": 10464,
+      "label": "Centre de Mauves"
+    },
+    {
+      "id": 9956,
+      "label": "Centre de Thouaré"
+    },
+    {
+      "id": 10743,
+      "label": "CES Petite Lande"
+    },
+    {
+      "id": 9882,
+      "label": "Chabossière"
+    },
+    {
+      "id": 10741,
+      "label": "Chai Gallais"
+    },
+    {
+      "id": 9801,
+      "label": "Chalâtres"
+    },
+    {
+      "id": 9966,
+      "label": "Châlet"
+    },
+    {
+      "id": 9904,
+      "label": "Chalonges"
+    },
+    {
+      "id": 10689,
+      "label": "Chalonges"
+    },
+    {
+      "id": 10748,
+      "label": "Chambelles"
+    },
+    {
+      "id": 10034,
+      "label": "Champ de Courses"
+    },
+    {
+      "id": 10062,
+      "label": "Champ de Foire"
+    },
+    {
+      "id": 9822,
+      "label": "Champ de l'Alouette"
+    },
+    {
+      "id": 10130,
+      "label": "Champ de Manoeuvre"
+    },
+    {
+      "id": 9987,
+      "label": "Champ Fleuri"
+    },
+    {
+      "id": 10526,
+      "label": "Champonnière"
+    },
+    {
+      "id": 9670,
+      "label": "Chantiers Navals"
+    },
+    {
+      "id": 9808,
+      "label": "Chantrerie - Grandes Écoles"
+    },
+    {
+      "id": 9790,
+      "label": "Chanzy"
+    },
+    {
+      "id": 9875,
+      "label": "Chapeau Berger"
+    },
+    {
+      "id": 10546,
+      "label": "Chapeau Verni"
+    },
+    {
+      "id": 10089,
+      "label": "Chapelet"
+    },
+    {
+      "id": 10161,
+      "label": "Chapelle Laënnec"
+    },
+    {
+      "id": 10695,
+      "label": "Chapellerie"
+    },
+    {
+      "id": 10595,
+      "label": "Chapelles"
+    },
+    {
+      "id": 9868,
+      "label": "Charbonneau"
+    },
+    {
+      "id": 10211,
+      "label": "Charbonnière"
+    },
+    {
+      "id": 9832,
+      "label": "Charlière"
+    },
+    {
+      "id": 10639,
+      "label": "Charmes"
+    },
+    {
+      "id": 10357,
+      "label": "Charmille"
+    },
+    {
+      "id": 10348,
+      "label": "Chassay"
+    },
+    {
+      "id": 9709,
+      "label": "Chat qui Guette"
+    },
+    {
+      "id": 9862,
+      "label": "Chat qui Guette"
+    },
+    {
+      "id": 9768,
+      "label": "Châtaigniers"
+    },
+    {
+      "id": 9706,
+      "label": "Château d'Aux"
+    },
+    {
+      "id": 9632,
+      "label": "Château de Rezé"
+    },
+    {
+      "id": 9714,
+      "label": "Châtelets"
+    },
+    {
+      "id": 10575,
+      "label": "Châtelier"
+    },
+    {
+      "id": 10272,
+      "label": "Chaupières"
+    },
+    {
+      "id": 10113,
+      "label": "Chaussée"
+    },
+    {
+      "id": 10116,
+      "label": "Chaussée"
+    },
+    {
+      "id": 10064,
+      "label": "Chausserie"
+    },
+    {
+      "id": 10758,
+      "label": "Chaussin Robinet"
+    },
+    {
+      "id": 9834,
+      "label": "Chauvais"
+    },
+    {
+      "id": 10029,
+      "label": "Chauvinière"
+    },
+    {
+      "id": 10101,
+      "label": "Chemin Bleu"
+    },
+    {
+      "id": 10693,
+      "label": "Chemin Nantais"
+    },
+    {
+      "id": 10302,
+      "label": "Chemin Rouge"
+    },
+    {
+      "id": 9746,
+      "label": "Chêne Creux"
+    },
+    {
+      "id": 9658,
+      "label": "Chêne des Anglais"
+    },
+    {
+      "id": 10108,
+      "label": "Chêne Gala"
+    },
+    {
+      "id": 10697,
+      "label": "Chêne Vert"
+    },
+    {
+      "id": 10683,
+      "label": "Chenonceau"
+    },
+    {
+      "id": 10645,
+      "label": "Chevalerie"
+    },
+    {
+      "id": 10210,
+      "label": "Cheverny"
+    },
+    {
+      "id": 10227,
+      "label": "Cheveux Blancs"
+    },
+    {
+      "id": 10788,
+      "label": "Chevrue"
+    },
+    {
+      "id": 10222,
+      "label": "Chézine"
+    },
+    {
+      "id": 10469,
+      "label": "Chinon"
+    },
+    {
+      "id": 10511,
+      "label": "Choblèterie"
+    },
+    {
+      "id": 9794,
+      "label": "Chocolaterie"
+    },
+    {
+      "id": 10251,
+      "label": "Chohonnière"
+    },
+    {
+      "id": 10505,
+      "label": "Cholière"
+    },
+    {
+      "id": 10765,
+      "label": "Cimetière de Beautour"
+    },
+    {
+      "id": 10028,
+      "label": "Cimetière Gaudinière"
+    },
+    {
+      "id": 10382,
+      "label": "Cimetière La Montagne"
+    },
+    {
+      "id": 10666,
+      "label": "Cimetière St-Clair"
+    },
+    {
+      "id": 10419,
+      "label": "Cimetière St-Joseph"
+    },
+    {
+      "id": 10253,
+      "label": "Cimetière Vieux Doulon"
+    },
+    {
+      "id": 10702,
+      "label": "Circuit du Vallon"
+    },
+    {
+      "id": 9766,
+      "label": "Cirque - Marais"
+    },
+    {
+      "id": 10557,
+      "label": "Cité des Congrès"
+    },
+    {
+      "id": 9939,
+      "label": "Clairais"
+    },
+    {
+      "id": 10562,
+      "label": "Claire Roman"
+    },
+    {
+      "id": 10594,
+      "label": "Classerie"
+    },
+    {
+      "id": 10008,
+      "label": "Claude Bernard"
+    },
+    {
+      "id": 9950,
+      "label": "Clémencière"
+    },
+    {
+      "id": 9847,
+      "label": "Clépettre"
+    },
+    {
+      "id": 10293,
+      "label": "Clétras"
+    },
+    {
+      "id": 10195,
+      "label": "Clos Ami"
+    },
+    {
+      "id": 10814,
+      "label": "Clos Bonnet"
+    },
+    {
+      "id": 9991,
+      "label": "Clos du Moulin"
+    },
+    {
+      "id": 10387,
+      "label": "Clos Roux"
+    },
+    {
+      "id": 10171,
+      "label": "Clos Siban"
+    },
+    {
+      "id": 9740,
+      "label": "Clos Toreau"
+    },
+    {
+      "id": 10502,
+      "label": "Closeaux"
+    },
+    {
+      "id": 10369,
+      "label": "Clotais"
+    },
+    {
+      "id": 10533,
+      "label": "Clouet"
+    },
+    {
+      "id": 9879,
+      "label": "Clouzeaux"
+    },
+    {
+      "id": 9972,
+      "label": "Cochard"
+    },
+    {
+      "id": 10155,
+      "label": "Cochardières"
+    },
+    {
+      "id": 10266,
+      "label": "Colinière"
+    },
+    {
+      "id": 10699,
+      "label": "Collège Ste-Anne"
+    },
+    {
+      "id": 9765,
+      "label": "Colonac"
+    },
+    {
+      "id": 9642,
+      "label": "Commerce"
+    },
+    {
+      "id": 10209,
+      "label": "Congo"
+    },
+    {
+      "id": 10197,
+      "label": "Conraie"
+    },
+    {
+      "id": 9736,
+      "label": "Conservatoire"
+    },
+    {
+      "id": 10730,
+      "label": "Convention"
+    },
+    {
+      "id": 10016,
+      "label": "Copernic - Musées"
+    },
+    {
+      "id": 10541,
+      "label": "Coqueluchon"
+    },
+    {
+      "id": 10001,
+      "label": "Corberie"
+    },
+    {
+      "id": 9988,
+      "label": "Corbinerie"
+    },
+    {
+      "id": 9912,
+      "label": "Corbon"
+    },
+    {
+      "id": 10320,
+      "label": "Corlay"
+    },
+    {
+      "id": 10327,
+      "label": "Cormerais"
+    },
+    {
+      "id": 10366,
+      "label": "Corniche"
+    },
+    {
+      "id": 9846,
+      "label": "Cotalard"
+    },
+    {
+      "id": 10386,
+      "label": "Coteaux"
+    },
+    {
+      "id": 9957,
+      "label": "Coty"
+    },
+    {
+      "id": 9804,
+      "label": "Couchant"
+    },
+    {
+      "id": 10672,
+      "label": "Couchant"
+    },
+    {
+      "id": 9973,
+      "label": "Coudray"
+    },
+    {
+      "id": 10192,
+      "label": "Couëron Bougon"
+    },
+    {
+      "id": 9888,
+      "label": "Couëron Océan"
+    },
+    {
+      "id": 10475,
+      "label": "Coupries"
+    },
+    {
+      "id": 10269,
+      "label": "Courocerie"
+    },
+    {
+      "id": 9771,
+      "label": "Courteline"
+    },
+    {
+      "id": 10753,
+      "label": "Cousteau"
+    },
+    {
+      "id": 10127,
+      "label": "Coutancière"
+    },
+    {
+      "id": 10361,
+      "label": "Cravate"
+    },
+    {
+      "id": 10657,
+      "label": "Crémetterie"
+    },
+    {
+      "id": 10276,
+      "label": "Crétinières"
+    },
+    {
+      "id": 10514,
+      "label": "Criport"
+    },
+    {
+      "id": 9803,
+      "label": "Croissant"
+    },
+    {
+      "id": 10457,
+      "label": "Croisy"
+    },
+    {
+      "id": 9676,
+      "label": "Croix Bonneau"
+    },
+    {
+      "id": 9739,
+      "label": "Croix de Rezé"
+    },
+    {
+      "id": 10477,
+      "label": "Croix des Fosses"
+    },
+    {
+      "id": 10245,
+      "label": "Croix Jeannette"
+    },
+    {
+      "id": 9861,
+      "label": "Croix Truin"
+    },
+    {
+      "id": 10630,
+      "label": "Curie"
+    },
+    {
+      "id": 10733,
+      "label": "Cuvier"
+    },
+    {
+      "id": 10086,
+      "label": "D2A - Aéroport"
+    },
+    {
+      "id": 10667,
+      "label": "Dalby"
+    },
+    {
+      "id": 10660,
+      "label": "Danais"
+    },
+    {
+      "id": 10291,
+      "label": "Danemark"
+    },
+    {
+      "id": 10300,
+      "label": "Danube"
+    },
+    {
+      "id": 10406,
+      "label": "Davum"
+    },
+    {
+      "id": 10323,
+      "label": "Dayat"
+    },
+    {
+      "id": 10118,
+      "label": "De Gaulle"
+    },
+    {
+      "id": 10017,
+      "label": "Delacroix"
+    },
+    {
+      "id": 9929,
+      "label": "Delorme"
+    },
+    {
+      "id": 10784,
+      "label": "Denillére"
+    },
+    {
+      "id": 10632,
+      "label": "Déportés"
+    },
+    {
+      "id": 9763,
+      "label": "Dervallières"
+    },
+    {
+      "id": 9802,
+      "label": "Desaix"
+    },
+    {
+      "id": 10306,
+      "label": "Désirade"
+    },
+    {
+      "id": 10738,
+      "label": "Desmoulins"
+    },
+    {
+      "id": 9849,
+      "label": "Desnerie"
+    },
+    {
+      "id": 9773,
+      "label": "Diane"
+    },
+    {
+      "id": 10445,
+      "label": "Dolto"
+    },
+    {
+      "id": 9880,
+      "label": "Domaine"
+    },
+    {
+      "id": 10674,
+      "label": "Doucet"
+    },
+    {
+      "id": 9908,
+      "label": "Douettée"
+    },
+    {
+      "id": 9969,
+      "label": "Doumer"
+    },
+    {
+      "id": 10146,
+      "label": "Drillet"
+    },
+    {
+      "id": 10472,
+      "label": "Droitière"
+    },
+    {
+      "id": 10239,
+      "label": "Drouillard"
+    },
+    {
+      "id": 10776,
+      "label": "Drouillet"
+    },
+    {
+      "id": 10685,
+      "label": "Druides"
+    },
+    {
+      "id": 9675,
+      "label": "Du Chaffault"
+    },
+    {
+      "id": 9687,
+      "label": "Duchesse Anne - Château"
+    },
+    {
+      "id": 9747,
+      "label": "Duchesse Anne-Chateau"
+    },
+    {
+      "id": 10006,
+      "label": "Duguay Trouin"
+    },
+    {
+      "id": 10226,
+      "label": "Dukas"
+    },
+    {
+      "id": 10150,
+      "label": "Dumont d'Urville"
+    },
+    {
+      "id": 10734,
+      "label": "Dunant"
+    },
+    {
+      "id": 10075,
+      "label": "Échoppes"
+    },
+    {
+      "id": 10626,
+      "label": "Écobuts"
+    },
+    {
+      "id": 9659,
+      "label": "École Centrale - Audencia"
+    },
+    {
+      "id": 10412,
+      "label": "École Vétérinaire"
+    },
+    {
+      "id": 9999,
+      "label": "Écoles"
+    },
+    {
+      "id": 10377,
+      "label": "Écoles"
+    },
+    {
+      "id": 10023,
+      "label": "Écosse"
+    },
+    {
+      "id": 10018,
+      "label": "Édit de Nantes"
+    },
+    {
+      "id": 10009,
+      "label": "Edith Piaf"
+    },
+    {
+      "id": 9674,
+      "label": "Égalité"
+    },
+    {
+      "id": 9778,
+      "label": "Eglantine"
+    },
+    {
+      "id": 10078,
+      "label": "Eglise"
+    },
+    {
+      "id": 10504,
+      "label": "Einstein"
+    },
+    {
+      "id": 10328,
+      "label": "Embarcadère"
+    },
+    {
+      "id": 9811,
+      "label": "Embellie"
+    },
+    {
+      "id": 10726,
+      "label": "Enchanterie"
+    },
+    {
+      "id": 10081,
+      "label": "Ennerie Corbon"
+    },
+    {
+      "id": 10077,
+      "label": "Épinais"
+    },
+    {
+      "id": 10314,
+      "label": "Epinay"
+    },
+    {
+      "id": 10767,
+      "label": "Epinette"
+    },
+    {
+      "id": 9919,
+      "label": "Équipement"
+    },
+    {
+      "id": 9963,
+      "label": "Éraudière"
+    },
+    {
+      "id": 9845,
+      "label": "Erdre Active"
+    },
+    {
+      "id": 9865,
+      "label": "Erdreau"
+    },
+    {
+      "id": 10681,
+      "label": "ESAT Vertonne"
+    },
+    {
+      "id": 10641,
+      "label": "Escall"
+    },
+    {
+      "id": 9629,
+      "label": "Espace Diderot"
+    },
+    {
+      "id": 10215,
+      "label": "Eugène Sue"
+    },
+    {
+      "id": 10408,
+      "label": "Europe"
+    },
+    {
+      "id": 10614,
+      "label": "Europe"
+    },
+    {
+      "id": 9829,
+      "label": "Evardière"
+    },
+    {
+      "id": 9867,
+      "label": "Fac de Droit"
+    },
+    {
+      "id": 9872,
+      "label": "Fac de Lettres"
+    },
+    {
+      "id": 9661,
+      "label": "Facultés"
+    },
+    {
+      "id": 9932,
+      "label": "Fallières"
+    },
+    {
+      "id": 10168,
+      "label": "Faneurs"
+    },
+    {
+      "id": 10124,
+      "label": "Fantaisie"
+    },
+    {
+      "id": 9881,
+      "label": "Fardière"
+    },
+    {
+      "id": 10133,
+      "label": "Fauvelière"
+    },
+    {
+      "id": 9636,
+      "label": "Félix Faure"
+    },
+    {
+      "id": 9997,
+      "label": "Félix Tableau"
+    },
+    {
+      "id": 10670,
+      "label": "Fenaison"
+    },
+    {
+      "id": 9615,
+      "label": "Ferrière"
+    },
+    {
+      "id": 10230,
+      "label": "Fief Guérin"
+    },
+    {
+      "id": 9842,
+      "label": "Flandres"
+    },
+    {
+      "id": 9866,
+      "label": "Fleuriaye"
+    },
+    {
+      "id": 10427,
+      "label": "Fleurs"
+    },
+    {
+      "id": 9986,
+      "label": "Flora Tristan"
+    },
+    {
+      "id": 10722,
+      "label": "Floride"
+    },
+    {
+      "id": 9789,
+      "label": "Foch - Cathédrale"
+    },
+    {
+      "id": 10508,
+      "label": "Fonderies"
+    },
+    {
+      "id": 9906,
+      "label": "Fontaine"
+    },
+    {
+      "id": 10796,
+      "label": "Foresterie"
+    },
+    {
+      "id": 10046,
+      "label": "Forêt"
+    },
+    {
+      "id": 10214,
+      "label": "Forum d'Orvault"
+    },
+    {
+      "id": 10275,
+      "label": "Foulquier"
+    },
+    {
+      "id": 10751,
+      "label": "Frachon"
+    },
+    {
+      "id": 10622,
+      "label": "Fraîches"
+    },
+    {
+      "id": 10762,
+      "label": "Framboisiers"
+    },
+    {
+      "id": 10456,
+      "label": "François Baudry"
+    },
+    {
+      "id": 10437,
+      "label": "François II"
+    },
+    {
+      "id": 10810,
+      "label": "François Mitterrand"
+    },
+    {
+      "id": 10005,
+      "label": "Franklin"
+    },
+    {
+      "id": 10360,
+      "label": "Frébaudière"
+    },
+    {
+      "id": 10344,
+      "label": "Frégate"
+    },
+    {
+      "id": 10518,
+      "label": "Frémoire"
+    },
+    {
+      "id": 10627,
+      "label": "Frêne Rond"
+    },
+    {
+      "id": 10345,
+      "label": "Frênes"
+    },
+    {
+      "id": 10082,
+      "label": "Frères Rousseau"
+    },
+    {
+      "id": 9800,
+      "label": "Fresche Blanc"
+    },
+    {
+      "id": 10737,
+      "label": "Fresnel"
+    },
+    {
+      "id": 10642,
+      "label": "Fructidor"
+    },
+    {
+      "id": 9698,
+      "label": "Gachet"
+    },
+    {
+      "id": 10712,
+      "label": "Gagnerie"
+    },
+    {
+      "id": 9743,
+      "label": "Galarne"
+    },
+    {
+      "id": 10563,
+      "label": "Galheur"
+    },
+    {
+      "id": 10716,
+      "label": "Gambetta"
+    },
+    {
+      "id": 9831,
+      "label": "Gandonnière"
+    },
+    {
+      "id": 10166,
+      "label": "Gare d'Indre"
+    },
+    {
+      "id": 10074,
+      "label": "Gare de Bouaye"
+    },
+    {
+      "id": 9889,
+      "label": "Gare de Chantenay"
+    },
+    {
+      "id": 10173,
+      "label": "Gare de Couëron"
+    },
+    {
+      "id": 9722,
+      "label": "Gare de l'État"
+    },
+    {
+      "id": 10120,
+      "label": "Gare de La Chapelle"
+    },
+    {
+      "id": 10470,
+      "label": "Gare de Mauves"
+    },
+    {
+      "id": 9637,
+      "label": "Gare de Pont Rousseau"
+    },
+    {
+      "id": 10539,
+      "label": "Gare de Vertou Nord"
+    },
+    {
+      "id": 10481,
+      "label": "Gare de Vertou Sud"
+    },
+    {
+      "id": 9907,
+      "label": "Gare des Pas Enchantés"
+    },
+    {
+      "id": 9685,
+      "label": "Gare Maritime"
+    },
+    {
+      "id": 9690,
+      "label": "Gare Nord - Jardin des Plantes"
+    },
+    {
+      "id": 9749,
+      "label": "Gare Sud"
+    },
+    {
+      "id": 9816,
+      "label": "Gare Sud"
+    },
+    {
+      "id": 10213,
+      "label": "Garenne"
+    },
+    {
+      "id": 10362,
+      "label": "Garettes - Landreau"
+    },
+    {
+      "id": 10600,
+      "label": "Garillère"
+    },
+    {
+      "id": 10488,
+      "label": "Garotterie"
+    },
+    {
+      "id": 9728,
+      "label": "Gaston Veil"
+    },
+    {
+      "id": 10178,
+      "label": "Gâtine"
+    },
+    {
+      "id": 10585,
+      "label": "Gauguin"
+    },
+    {
+      "id": 10234,
+      "label": "Gautellerie"
+    },
+    {
+      "id": 10080,
+      "label": "Gendronnerie"
+    },
+    {
+      "id": 10589,
+      "label": "George Sand"
+    },
+    {
+      "id": 10121,
+      "label": "Géraudière"
+    },
+    {
+      "id": 9823,
+      "label": "Gergaudière"
+    },
+    {
+      "id": 10135,
+      "label": "Germaine Tillion"
+    },
+    {
+      "id": 10287,
+      "label": "Gesvres"
+    },
+    {
+      "id": 10284,
+      "label": "Gesvrine"
+    },
+    {
+      "id": 9895,
+      "label": "Gibraye"
+    },
+    {
+      "id": 9960,
+      "label": "Gicquelière"
+    },
+    {
+      "id": 9704,
+      "label": "Gilarderie"
+    },
+    {
+      "id": 9818,
+      "label": "Gilière"
+    },
+    {
+      "id": 10347,
+      "label": "Glacisol"
+    },
+    {
+      "id": 10771,
+      "label": "Gobets"
+    },
+    {
+      "id": 10363,
+      "label": "Gobinière"
+    },
+    {
+      "id": 10537,
+      "label": "Goldens"
+    },
+    {
+      "id": 10202,
+      "label": "Golf"
+    },
+    {
+      "id": 10285,
+      "label": "Gournière"
+    },
+    {
+      "id": 10548,
+      "label": "Grammoire"
+    },
+    {
+      "id": 10714,
+      "label": "Grand Blottereau"
+    },
+    {
+      "id": 9761,
+      "label": "Grand Carcouët"
+    },
+    {
+      "id": 10708,
+      "label": "Grand Chemin"
+    },
+    {
+      "id": 10777,
+      "label": "Grand Chemin"
+    },
+    {
+      "id": 10073,
+      "label": "Grand Fief"
+    },
+    {
+      "id": 9901,
+      "label": "Grand Portail"
+    },
+    {
+      "id": 10781,
+      "label": "Grand-Noé"
+    },
+    {
+      "id": 10342,
+      "label": "Grande Censive"
+    },
+    {
+      "id": 10621,
+      "label": "Grande Lande"
+    },
+    {
+      "id": 10522,
+      "label": "Grande Noëlle"
+    },
+    {
+      "id": 10536,
+      "label": "Grande Noëlle"
+    },
+    {
+      "id": 9635,
+      "label": "Grande Ouche"
+    },
+    {
+      "id": 10633,
+      "label": "Grande Pièce"
+    },
+    {
+      "id": 10402,
+      "label": "Grande-Bretagne"
+    },
+    {
+      "id": 10142,
+      "label": "Grange au Loup"
+    },
+    {
+      "id": 9821,
+      "label": "Grasse Noue"
+    },
+    {
+      "id": 10515,
+      "label": "Grassinière"
+    },
+    {
+      "id": 9720,
+      "label": "Greneraie"
+    },
+    {
+      "id": 9916,
+      "label": "Grezillières"
+    },
+    {
+      "id": 9897,
+      "label": "Grignon"
+    },
+    {
+      "id": 10012,
+      "label": "Grillaud"
+    },
+    {
+      "id": 10158,
+      "label": "Grimau"
+    },
+    {
+      "id": 9697,
+      "label": "Grimaudière"
+    },
+    {
+      "id": 10180,
+      "label": "Grimm"
+    },
+    {
+      "id": 10629,
+      "label": "Gripots"
+    },
+    {
+      "id": 10478,
+      "label": "Grolerie"
+    },
+    {
+      "id": 9769,
+      "label": "Grootaers"
+    },
+    {
+      "id": 10476,
+      "label": "Guerivières"
+    },
+    {
+      "id": 10417,
+      "label": "Guiblinière"
+    },
+    {
+      "id": 10592,
+      "label": "Guilloterie"
+    },
+    {
+      "id": 9970,
+      "label": "Guindré"
+    },
+    {
+      "id": 10761,
+      "label": "Guivettes"
+    },
+    {
+      "id": 10802,
+      "label": "Gustave Roch"
+    },
+    {
+      "id": 9786,
+      "label": "Guy Mollet"
+    },
+    {
+      "id": 9942,
+      "label": "Halbarderie"
+    },
+    {
+      "id": 9680,
+      "label": "Haluchère - Batignolles"
+    },
+    {
+      "id": 9689,
+      "label": "Halvêque"
+    },
+    {
+      "id": 10355,
+      "label": "Hameau Fleuri"
+    },
+    {
+      "id": 10766,
+      "label": "Hameçon"
+    },
+    {
+      "id": 9703,
+      "label": "Hangar à Bananes"
+    },
+    {
+      "id": 9934,
+      "label": "Harouys"
+    },
+    {
+      "id": 9745,
+      "label": "Haubans"
+    },
+    {
+      "id": 10513,
+      "label": "Haudrière"
+    },
+    {
+      "id": 10105,
+      "label": "Haute Forêt"
+    },
+    {
+      "id": 9874,
+      "label": "Haute Gournière"
+    },
+    {
+      "id": 10582,
+      "label": "Haute Île"
+    },
+    {
+      "id": 9995,
+      "label": "Haute Lande"
+    },
+    {
+      "id": 10337,
+      "label": "Haute-Indre"
+    },
+    {
+      "id": 10153,
+      "label": "Hauts de Couëron"
+    },
+    {
+      "id": 10527,
+      "label": "Herbray"
+    },
+    {
+      "id": 10778,
+      "label": "Herbray Village"
+    },
+    {
+      "id": 10051,
+      "label": "Hérelle"
+    },
+    {
+      "id": 9977,
+      "label": "Hermeland"
+    },
+    {
+      "id": 10698,
+      "label": "Hillière"
+    },
+    {
+      "id": 10038,
+      "label": "Hippodrome"
+    },
+    {
+      "id": 10014,
+      "label": "Hongrie"
+    },
+    {
+      "id": 9696,
+      "label": "Hôpital Bellier"
+    },
+    {
+      "id": 10157,
+      "label": "Hôpital Laënnec"
+    },
+    {
+      "id": 10648,
+      "label": "Hôtel de Région"
+    },
+    {
+      "id": 9785,
+      "label": "Hôtel de Ville"
+    },
+    {
+      "id": 9627,
+      "label": "Hôtel Dieu"
+    },
+    {
+      "id": 9721,
+      "label": "Houmaille"
+    },
+    {
+      "id": 10128,
+      "label": "Housseau"
+    },
+    {
+      "id": 10138,
+      "label": "ICAM"
+    },
+    {
+      "id": 10156,
+      "label": "ICO"
+    },
+    {
+      "id": 10111,
+      "label": "Île de France"
+    },
+    {
+      "id": 10806,
+      "label": "Île de Nantes"
+    },
+    {
+      "id": 9716,
+      "label": "Île Macé"
+    },
+    {
+      "id": 9708,
+      "label": "Île Pénot"
+    },
+    {
+      "id": 10607,
+      "label": "Îles de Loire"
+    },
+    {
+      "id": 10163,
+      "label": "Imprimeurs"
+    },
+    {
+      "id": 9883,
+      "label": "Indre"
+    },
+    {
+      "id": 10159,
+      "label": "Internat Laënnec"
+    },
+    {
+      "id": 10658,
+      "label": "Iroise"
+    },
+    {
+      "id": 10257,
+      "label": "Islettes"
+    },
+    {
+      "id": 10294,
+      "label": "IUT"
+    },
+    {
+      "id": 10398,
+      "label": "Jacqueline Auriol"
+    },
+    {
+      "id": 10144,
+      "label": "Jacques Cartier"
+    },
+    {
+      "id": 10561,
+      "label": "Jaguère"
+    },
+    {
+      "id": 10059,
+      "label": "Jahardières"
+    },
+    {
+      "id": 10216,
+      "label": "Jalière"
+    },
+    {
+      "id": 9682,
+      "label": "Jamet"
+    },
+    {
+      "id": 10033,
+      "label": "Janvraie"
+    },
+    {
+      "id": 10401,
+      "label": "Japy"
+    },
+    {
+      "id": 10237,
+      "label": "Jardins de Gaïa"
+    },
+    {
+      "id": 9885,
+      "label": "Jarriais"
+    },
+    {
+      "id": 10185,
+      "label": "Jaunaie"
+    },
+    {
+      "id": 9730,
+      "label": "Jaunais"
+    },
+    {
+      "id": 10696,
+      "label": "Jauneau"
+    },
+    {
+      "id": 10755,
+      "label": "Jean Bart"
+    },
+    {
+      "id": 10092,
+      "label": "Jean Fraix"
+    },
+    {
+      "id": 10021,
+      "label": "Jean Ingres"
+    },
+    {
+      "id": 9617,
+      "label": "Jean Jaurès"
+    },
+    {
+      "id": 9836,
+      "label": "Jean Jaurès"
+    },
+    {
+      "id": 9779,
+      "label": "Jean Macé"
+    },
+    {
+      "id": 10103,
+      "label": "Jean Monnet"
+    },
+    {
+      "id": 9668,
+      "label": "Jean Moulin"
+    },
+    {
+      "id": 9725,
+      "label": "Jean Perrin"
+    },
+    {
+      "id": 9616,
+      "label": "Jean Rostand"
+    },
+    {
+      "id": 10220,
+      "label": "Jeanne Bernard"
+    },
+    {
+      "id": 9742,
+      "label": "Joliverie"
+    },
+    {
+      "id": 10746,
+      "label": "Joncours"
+    },
+    {
+      "id": 10643,
+      "label": "Jonelière"
+    },
+    {
+      "id": 10813,
+      "label": "Jonelière"
+    },
+    {
+      "id": 10056,
+      "label": "Jouetterie"
+    },
+    {
+      "id": 10181,
+      "label": "Juiverie"
+    },
+    {
+      "id": 10339,
+      "label": "Jules Ferry"
+    },
+    {
+      "id": 10564,
+      "label": "Jules Vallès"
+    },
+    {
+      "id": 10720,
+      "label": "Jules Verne"
+    },
+    {
+      "id": 10308,
+      "label": "Jumelière"
+    },
+    {
+      "id": 10397,
+      "label": "Jupiter"
+    },
+    {
+      "id": 10194,
+      "label": "Justice"
+    },
+    {
+      "id": 9967,
+      "label": "Keren"
+    },
+    {
+      "id": 10554,
+      "label": "Koenig"
+    },
+    {
+      "id": 9982,
+      "label": "Koufra"
+    },
+    {
+      "id": 10530,
+      "label": "L'Angebert"
+    },
+    {
+      "id": 10186,
+      "label": "L'Arche"
+    },
+    {
+      "id": 10590,
+      "label": "L'Aufrère"
+    },
+    {
+      "id": 10091,
+      "label": "L'Ébaupin"
+    },
+    {
+      "id": 10700,
+      "label": "L'Ebaupin"
+    },
+    {
+      "id": 10274,
+      "label": "L'Hôpitau"
+    },
+    {
+      "id": 10465,
+      "label": "La Barre"
+    },
+    {
+      "id": 9833,
+      "label": "La Brosse"
+    },
+    {
+      "id": 9737,
+      "label": "La Carrée"
+    },
+    {
+      "id": 9838,
+      "label": "La Chapelle Aulnay"
+    },
+    {
+      "id": 10797,
+      "label": "La Chapelle-sur-Erdre"
+    },
+    {
+      "id": 9853,
+      "label": "La Chesnaie"
+    },
+    {
+      "id": 10047,
+      "label": "La Close"
+    },
+    {
+      "id": 9860,
+      "label": "La Cochère"
+    },
+    {
+      "id": 9844,
+      "label": "La Cogne"
+    },
+    {
+      "id": 10123,
+      "label": "La Côte"
+    },
+    {
+      "id": 10044,
+      "label": "La Coulée"
+    },
+    {
+      "id": 10104,
+      "label": "La Croix"
+    },
+    {
+      "id": 10460,
+      "label": "La Ferme"
+    },
+    {
+      "id": 10233,
+      "label": "La Forêt"
+    },
+    {
+      "id": 10351,
+      "label": "La Garde"
+    },
+    {
+      "id": 9940,
+      "label": "La Grille"
+    },
+    {
+      "id": 10399,
+      "label": "La Hache"
+    },
+    {
+      "id": 9850,
+      "label": "La Haie"
+    },
+    {
+      "id": 10260,
+      "label": "La Haie"
+    },
+    {
+      "id": 10638,
+      "label": "La Herdrie"
+    },
+    {
+      "id": 9752,
+      "label": "La Houssais"
+    },
+    {
+      "id": 10160,
+      "label": "La Lorie"
+    },
+    {
+      "id": 10793,
+      "label": "La Louée"
+    },
+    {
+      "id": 10384,
+      "label": "La Marche"
+    },
+    {
+      "id": 10709,
+      "label": "La Martinière"
+    },
+    {
+      "id": 9705,
+      "label": "La Montagne"
+    },
+    {
+      "id": 10065,
+      "label": "La Noue"
+    },
+    {
+      "id": 10479,
+      "label": "La Plée"
+    },
+    {
+      "id": 10620,
+      "label": "La Plume"
+    },
+    {
+      "id": 10011,
+      "label": "La Roche"
+    },
+    {
+      "id": 9886,
+      "label": "La Salle"
+    },
+    {
+      "id": 10277,
+      "label": "La Source"
+    },
+    {
+      "id": 10439,
+      "label": "Lac de Beaulieu"
+    },
+    {
+      "id": 10309,
+      "label": "Ladoumègue"
+    },
+    {
+      "id": 10102,
+      "label": "Lagathu"
+    },
+    {
+      "id": 9968,
+      "label": "Lallié"
+    },
+    {
+      "id": 10020,
+      "label": "Lamartine"
+    },
+    {
+      "id": 9731,
+      "label": "Lambert"
+    },
+    {
+      "id": 10025,
+      "label": "Lamoricière"
+    },
+    {
+      "id": 10529,
+      "label": "Landas"
+    },
+    {
+      "id": 9679,
+      "label": "Landreau"
+    },
+    {
+      "id": 10610,
+      "label": "Largeau"
+    },
+    {
+      "id": 10225,
+      "label": "Launay"
+    },
+    {
+      "id": 10544,
+      "label": "Laurier Fleuri"
+    },
+    {
+      "id": 10640,
+      "label": "Laurier Fleuri"
+    },
+    {
+      "id": 9671,
+      "label": "Lauriers"
+    },
+    {
+      "id": 9646,
+      "label": "Le Cardo"
+    },
+    {
+      "id": 10466,
+      "label": "Le Cellier"
+    },
+    {
+      "id": 10100,
+      "label": "Le Chêne"
+    },
+    {
+      "id": 10058,
+      "label": "Le Clémois"
+    },
+    {
+      "id": 9724,
+      "label": "Le Corbusier"
+    },
+    {
+      "id": 9762,
+      "label": "Le Goffic"
+    },
+    {
+      "id": 9819,
+      "label": "Le Gray 1"
+    },
+    {
+      "id": 9827,
+      "label": "Le Gray 2"
+    },
+    {
+      "id": 10258,
+      "label": "Le Halleray"
+    },
+    {
+      "id": 9759,
+      "label": "Le Nain"
+    },
+    {
+      "id": 9981,
+      "label": "Le Nain"
+    },
+    {
+      "id": 9863,
+      "label": "Le Pellerin"
+    },
+    {
+      "id": 9837,
+      "label": "Le Roty"
+    },
+    {
+      "id": 10247,
+      "label": "Le Tour"
+    },
+    {
+      "id": 10052,
+      "label": "Lechat"
+    },
+    {
+      "id": 10393,
+      "label": "Lefeuvre"
+    },
+    {
+      "id": 10662,
+      "label": "Lemoine"
+    },
+    {
+      "id": 9826,
+      "label": "Léo Lagrange"
+    },
+    {
+      "id": 10644,
+      "label": "Léon Jost"
+    },
+    {
+      "id": 10647,
+      "label": "Léon Say"
+    },
+    {
+      "id": 10570,
+      "label": "Les Ailes"
+    },
+    {
+      "id": 10367,
+      "label": "Les Anges"
+    },
+    {
+      "id": 10447,
+      "label": "Les Bauches"
+    },
+    {
+      "id": 10692,
+      "label": "Les Buissons"
+    },
+    {
+      "id": 9625,
+      "label": "Les Couëts"
+    },
+    {
+      "id": 9989,
+      "label": "Les Faulx"
+    },
+    {
+      "id": 10450,
+      "label": "Les Lions"
+    },
+    {
+      "id": 10461,
+      "label": "Les Lions"
+    },
+    {
+      "id": 10049,
+      "label": "Les Roches"
+    },
+    {
+      "id": 10664,
+      "label": "Les Salles"
+    },
+    {
+      "id": 9990,
+      "label": "Les Sorinières"
+    },
+    {
+      "id": 10609,
+      "label": "Levoyer"
+    },
+    {
+      "id": 10798,
+      "label": "Leygues"
+    },
+    {
+      "id": 9859,
+      "label": "Libération"
+    },
+    {
+      "id": 10808,
+      "label": "Lieu Unique"
+    },
+    {
+      "id": 10516,
+      "label": "Lilas"
+    },
+    {
+      "id": 10066,
+      "label": "Lindbergh"
+    },
+    {
+      "id": 9807,
+      "label": "Linot"
+    },
+    {
+      "id": 10433,
+      "label": "Lionnière"
+    },
+    {
+      "id": 10723,
+      "label": "Lippmann"
+    },
+    {
+      "id": 10010,
+      "label": "Littré"
+    },
+    {
+      "id": 10341,
+      "label": "Loire"
+    },
+    {
+      "id": 10655,
+      "label": "Lombarderie"
+    },
+    {
+      "id": 9633,
+      "label": "Longchamp"
+    },
+    {
+      "id": 10463,
+      "label": "Lonnières"
+    },
+    {
+      "id": 10410,
+      "label": "Louis Breguet"
+    },
+    {
+      "id": 10496,
+      "label": "Louise Michel"
+    },
+    {
+      "id": 9910,
+      "label": "Lourneau"
+    },
+    {
+      "id": 10054,
+      "label": "Lusançay"
+    },
+    {
+      "id": 10200,
+      "label": "Lycée Appert"
+    },
+    {
+      "id": 10244,
+      "label": "Lycée Brottier"
+    },
+    {
+      "id": 10241,
+      "label": "Lycée d'Orbigny"
+    },
+    {
+      "id": 10721,
+      "label": "Lycée Estienne d'Orves"
+    },
+    {
+      "id": 10459,
+      "label": "Lycée Rieffel"
+    },
+    {
+      "id": 10114,
+      "label": "Madame Curie"
+    },
+    {
+      "id": 10292,
+      "label": "Madeleine"
+    },
+    {
+      "id": 10221,
+      "label": "Madoire"
+    },
+    {
+      "id": 10634,
+      "label": "Magellan"
+    },
+    {
+      "id": 10497,
+      "label": "Magnoliers"
+    },
+    {
+      "id": 10110,
+      "label": "Mahaudières"
+    },
+    {
+      "id": 10201,
+      "label": "Mail"
+    },
+    {
+      "id": 10352,
+      "label": "Maillardière"
+    },
+    {
+      "id": 10312,
+      "label": "Mainguais"
+    },
+    {
+      "id": 10191,
+      "label": "Mairie d'Indre"
+    },
+    {
+      "id": 10228,
+      "label": "Mairie d'Orvault"
+    },
+    {
+      "id": 10578,
+      "label": "Mairie de Bouguenais"
+    },
+    {
+      "id": 10143,
+      "label": "Mairie de Carquefou"
+    },
+    {
+      "id": 9780,
+      "label": "Mairie de Chantenay"
+    },
+    {
+      "id": 9892,
+      "label": "Mairie de Couëron"
+    },
+    {
+      "id": 9672,
+      "label": "Mairie de Doulon"
+    },
+    {
+      "id": 9710,
+      "label": "Mairie de Rezé"
+    },
+    {
+      "id": 10167,
+      "label": "Mairie de St-Herblain"
+    },
+    {
+      "id": 10000,
+      "label": "Mairie des Sorinières"
+    },
+    {
+      "id": 10141,
+      "label": "Maison d'Arrêt"
+    },
+    {
+      "id": 10169,
+      "label": "Maison des Arts"
+    },
+    {
+      "id": 10404,
+      "label": "Maison Neuve"
+    },
+    {
+      "id": 10240,
+      "label": "Maison Poitard"
+    },
+    {
+      "id": 9744,
+      "label": "Maison Radieuse"
+    },
+    {
+      "id": 10545,
+      "label": "Maladrie"
+    },
+    {
+      "id": 10019,
+      "label": "Malakoff"
+    },
+    {
+      "id": 10604,
+      "label": "Malnoue"
+    },
+    {
+      "id": 10391,
+      "label": "Malraux"
+    },
+    {
+      "id": 10800,
+      "label": "Mandel"
+    },
+    {
+      "id": 10510,
+      "label": "Mandon"
+    },
+    {
+      "id": 9630,
+      "label": "Mangin"
+    },
+    {
+      "id": 9669,
+      "label": "Manufacture"
+    },
+    {
+      "id": 10556,
+      "label": "Maraîchers"
+    },
+    {
+      "id": 9626,
+      "label": "Marcel Paul"
+    },
+    {
+      "id": 10299,
+      "label": "Marché Commun"
+    },
+    {
+      "id": 10315,
+      "label": "Marché Commun"
+    },
+    {
+      "id": 10673,
+      "label": "Margelle"
+    },
+    {
+      "id": 9711,
+      "label": "Marguyonnes"
+    },
+    {
+      "id": 10254,
+      "label": "Marie Galante"
+    },
+    {
+      "id": 10289,
+      "label": "Marquis de Dion"
+    },
+    {
+      "id": 10729,
+      "label": "Marrière"
+    },
+    {
+      "id": 10736,
+      "label": "Marseillaise"
+    },
+    {
+      "id": 10616,
+      "label": "Martellière"
+    },
+    {
+      "id": 9732,
+      "label": "Marterie"
+    },
+    {
+      "id": 10485,
+      "label": "Marzilles"
+    },
+    {
+      "id": 9825,
+      "label": "Massigné"
+    },
+    {
+      "id": 10785,
+      "label": "Massonnière"
+    },
+    {
+      "id": 10392,
+      "label": "Matière"
+    },
+    {
+      "id": 9938,
+      "label": "Maurienne"
+    },
+    {
+      "id": 10555,
+      "label": "Mauvoisins"
+    },
+    {
+      "id": 10468,
+      "label": "Mazères"
+    },
+    {
+      "id": 10678,
+      "label": "Mazure"
+    },
+    {
+      "id": 9688,
+      "label": "Médiathèque"
+    },
+    {
+      "id": 10311,
+      "label": "Méditerranée"
+    },
+    {
+      "id": 10566,
+      "label": "Méliès"
+    },
+    {
+      "id": 10050,
+      "label": "Mellinet"
+    },
+    {
+      "id": 10139,
+      "label": "Melpomène"
+    },
+    {
+      "id": 9665,
+      "label": "Mendès France - Bellevue"
+    },
+    {
+      "id": 10727,
+      "label": "Ménétrier"
+    },
+    {
+      "id": 10611,
+      "label": "Mermoz"
+    },
+    {
+      "id": 9891,
+      "label": "Métairie"
+    },
+    {
+      "id": 10659,
+      "label": "Michelet"
+    },
+    {
+      "id": 9655,
+      "label": "Michelet - Sciences"
+    },
+    {
+      "id": 10350,
+      "label": "Mignonnerie"
+    },
+    {
+      "id": 10060,
+      "label": "Millenia"
+    },
+    {
+      "id": 10444,
+      "label": "Millepertuis"
+    },
+    {
+      "id": 10365,
+      "label": "Mimosas"
+    },
+    {
+      "id": 10815,
+      "label": "Mimosas"
+    },
+    {
+      "id": 9949,
+      "label": "Minais"
+    },
+    {
+      "id": 10428,
+      "label": "Minoterie"
+    },
+    {
+      "id": 10204,
+      "label": "Mississipi"
+    },
+    {
+      "id": 10711,
+      "label": "Mitrie"
+    },
+    {
+      "id": 10492,
+      "label": "Mocquelière"
+    },
+    {
+      "id": 10177,
+      "label": "Moinard"
+    },
+    {
+      "id": 10310,
+      "label": "Moinet"
+    },
+    {
+      "id": 9926,
+      "label": "Mondésir"
+    },
+    {
+      "id": 10119,
+      "label": "Monge - Chauvinière"
+    },
+    {
+      "id": 9841,
+      "label": "Mongendrière"
+    },
+    {
+      "id": 9726,
+      "label": "Mont Blanc"
+    },
+    {
+      "id": 9735,
+      "label": "Monteil"
+    },
+    {
+      "id": 10684,
+      "label": "Monteverdi"
+    },
+    {
+      "id": 10688,
+      "label": "Monty"
+    },
+    {
+      "id": 10799,
+      "label": "Monzie"
+    },
+    {
+      "id": 10094,
+      "label": "Morges"
+    },
+    {
+      "id": 10517,
+      "label": "Morlachère"
+    },
+    {
+      "id": 9657,
+      "label": "Morrhonnière - Petit Port"
+    },
+    {
+      "id": 10615,
+      "label": "Mortier Vannerie"
+    },
+    {
+      "id": 10794,
+      "label": "Mortiers Polygone"
+    },
+    {
+      "id": 10068,
+      "label": "Mortrais"
+    },
+    {
+      "id": 9652,
+      "label": "Motte Rouge"
+    },
+    {
+      "id": 10424,
+      "label": "Mouettes"
+    },
+    {
+      "id": 10540,
+      "label": "Moulin"
+    },
+    {
+      "id": 10760,
+      "label": "Moulin"
+    },
+    {
+      "id": 10568,
+      "label": "Moulin à l'Huile"
+    },
+    {
+      "id": 10307,
+      "label": "Moulin Boisseau"
+    },
+    {
+      "id": 10454,
+      "label": "Moulin Brûlé"
+    },
+    {
+      "id": 9944,
+      "label": "Moulin Cassé"
+    },
+    {
+      "id": 10085,
+      "label": "Moulin Cassé"
+    },
+    {
+      "id": 10704,
+      "label": "Moulin Collet"
+    },
+    {
+      "id": 9809,
+      "label": "Moulin de Porterie"
+    },
+    {
+      "id": 10264,
+      "label": "Moulin des Landes"
+    },
+    {
+      "id": 10423,
+      "label": "Moulin Hérel"
+    },
+    {
+      "id": 10250,
+      "label": "Moulin Neuf"
+    },
+    {
+      "id": 10371,
+      "label": "Moulin Rothard"
+    },
+    {
+      "id": 9839,
+      "label": "Mouline"
+    },
+    {
+      "id": 10179,
+      "label": "Moulinets"
+    },
+    {
+      "id": 10070,
+      "label": "Moulinier"
+    },
+    {
+      "id": 9678,
+      "label": "Moutonnerie"
+    },
+    {
+      "id": 10283,
+      "label": "Mulonnière"
+    },
+    {
+      "id": 9748,
+      "label": "Naudières"
+    },
+    {
+      "id": 9683,
+      "label": "Neruda"
+    },
+    {
+      "id": 9639,
+      "label": "Neustrie"
+    },
+    {
+      "id": 9873,
+      "label": "Newton"
+    },
+    {
+      "id": 10297,
+      "label": "Niagara"
+    },
+    {
+      "id": 9918,
+      "label": "Nil"
+    },
+    {
+      "id": 9813,
+      "label": "Nizan"
+    },
+    {
+      "id": 10435,
+      "label": "Noë Allais"
+    },
+    {
+      "id": 10288,
+      "label": "Noé Blanche"
+    },
+    {
+      "id": 9903,
+      "label": "Noé Cottée"
+    },
+    {
+      "id": 10745,
+      "label": "Noë Lambert"
+    },
+    {
+      "id": 10057,
+      "label": "Noë Nozou"
+    },
+    {
+      "id": 10525,
+      "label": "Noë Rocard"
+    },
+    {
+      "id": 10430,
+      "label": "Noë St Jean"
+    },
+    {
+      "id": 9920,
+      "label": "Noëlles"
+    },
+    {
+      "id": 10601,
+      "label": "North House"
+    },
+    {
+      "id": 9824,
+      "label": "Noue Verrière"
+    },
+    {
+      "id": 10129,
+      "label": "Nouveau Bêle"
+    },
+    {
+      "id": 10162,
+      "label": "Océane"
+    },
+    {
+      "id": 10552,
+      "label": "Oliveraie"
+    },
+    {
+      "id": 10429,
+      "label": "Olivier"
+    },
+    {
+      "id": 10282,
+      "label": "Olympe de Gouges"
+    },
+    {
+      "id": 10483,
+      "label": "Onchères"
+    },
+    {
+      "id": 10106,
+      "label": "Ordronneau"
+    },
+    {
+      "id": 10359,
+      "label": "Orvault"
+    },
+    {
+      "id": 9651,
+      "label": "Orvault Grand Val"
+    },
+    {
+      "id": 9644,
+      "label": "Orvault Morlière"
+    },
+    {
+      "id": 10205,
+      "label": "Ouche Cormier"
+    },
+    {
+      "id": 9913,
+      "label": "Ouche des Landes"
+    },
+    {
+      "id": 10623,
+      "label": "Ouche Quinet"
+    },
+    {
+      "id": 10686,
+      "label": "Ouessant"
+    },
+    {
+      "id": 10438,
+      "label": "Pablée"
+    },
+    {
+      "id": 10379,
+      "label": "Pagerie"
+    },
+    {
+      "id": 9717,
+      "label": "Paimboeuf"
+    },
+    {
+      "id": 10580,
+      "label": "Paix"
+    },
+    {
+      "id": 10553,
+      "label": "Palmiers"
+    },
+    {
+      "id": 9996,
+      "label": "Papillons"
+    },
+    {
+      "id": 10259,
+      "label": "Papotière"
+    },
+    {
+      "id": 10296,
+      "label": "Parc"
+    },
+    {
+      "id": 10480,
+      "label": "Parc Bel Air"
+    },
+    {
+      "id": 10415,
+      "label": "Parc Chantrerie"
+    },
+    {
+      "id": 10098,
+      "label": "Parc de la Sèvre"
+    },
+    {
+      "id": 9948,
+      "label": "Parc des Sports"
+    },
+    {
+      "id": 10728,
+      "label": "Parc Potager"
+    },
+    {
+      "id": 10786,
+      "label": "Pas Baril"
+    },
+    {
+      "id": 10543,
+      "label": "Pas d'Ane"
+    },
+    {
+      "id": 10338,
+      "label": "Pasteur"
+    },
+    {
+      "id": 10223,
+      "label": "Patache"
+    },
+    {
+      "id": 10602,
+      "label": "Patis Brûlé"
+    },
+    {
+      "id": 10725,
+      "label": "Patis Rondin"
+    },
+    {
+      "id": 10521,
+      "label": "Patis Viaud"
+    },
+    {
+      "id": 10791,
+      "label": "Pâtis Vinet 1"
+    },
+    {
+      "id": 10790,
+      "label": "Pâtis Vinet 2"
+    },
+    {
+      "id": 10030,
+      "label": "Patouillerie"
+    },
+    {
+      "id": 10117,
+      "label": "Pâtures"
+    },
+    {
+      "id": 10248,
+      "label": "Pavillon"
+    },
+    {
+      "id": 10706,
+      "label": "Pé de Buzay"
+    },
+    {
+      "id": 10524,
+      "label": "Pégers"
+    },
+    {
+      "id": 10321,
+      "label": "Pelousière"
+    },
+    {
+      "id": 10509,
+      "label": "Perdriaux"
+    },
+    {
+      "id": 10710,
+      "label": "Perray"
+    },
+    {
+      "id": 10281,
+      "label": "Perrières"
+    },
+    {
+      "id": 10252,
+      "label": "Perrines"
+    },
+    {
+      "id": 9961,
+      "label": "Perron"
+    },
+    {
+      "id": 10599,
+      "label": "Petit Anjou"
+    },
+    {
+      "id": 10374,
+      "label": "Petit Bois"
+    },
+    {
+      "id": 10724,
+      "label": "Petit Breton"
+    },
+    {
+      "id": 10354,
+      "label": "Petit Chantilly"
+    },
+    {
+      "id": 10467,
+      "label": "Petit Plessis"
+    },
+    {
+      "id": 10041,
+      "label": "Petit Port"
+    },
+    {
+      "id": 9699,
+      "label": "Petit Port - Facultés"
+    },
+    {
+      "id": 10343,
+      "label": "Petit Rocher"
+    },
+    {
+      "id": 10443,
+      "label": "Petit Village"
+    },
+    {
+      "id": 10503,
+      "label": "Petite Censive"
+    },
+    {
+      "id": 10701,
+      "label": "Petits Champs Blancs"
+    },
+    {
+      "id": 10340,
+      "label": "Pétrels"
+    },
+    {
+      "id": 10246,
+      "label": "Piano'cktail"
+    },
+    {
+      "id": 10290,
+      "label": "Picaudière"
+    },
+    {
+      "id": 9719,
+      "label": "Pierre"
+    },
+    {
+      "id": 10577,
+      "label": "Pierre Blanche"
+    },
+    {
+      "id": 9666,
+      "label": "Pin Sec"
+    },
+    {
+      "id": 10003,
+      "label": "Pinier"
+    },
+    {
+      "id": 10680,
+      "label": "Pinier"
+    },
+    {
+      "id": 10715,
+      "label": "Pipay"
+    },
+    {
+      "id": 9620,
+      "label": "Pirmil"
+    },
+    {
+      "id": 10084,
+      "label": "Place des Pêcheurs"
+    },
+    {
+      "id": 9648,
+      "label": "Place du Cirque"
+    },
+    {
+      "id": 10471,
+      "label": "Place St-Méen"
+    },
+    {
+      "id": 10618,
+      "label": "Placis"
+    },
+    {
+      "id": 9614,
+      "label": "Plaisance"
+    },
+    {
+      "id": 10238,
+      "label": "Planche Etienne"
+    },
+    {
+      "id": 9951,
+      "label": "Planchonnais"
+    },
+    {
+      "id": 10719,
+      "label": "Plantiveau"
+    },
+    {
+      "id": 10625,
+      "label": "Planty"
+    },
+    {
+      "id": 9799,
+      "label": "Platanes"
+    },
+    {
+      "id": 10576,
+      "label": "Platière"
+    },
+    {
+      "id": 10451,
+      "label": "Plessis"
+    },
+    {
+      "id": 9792,
+      "label": "Plessis Tison"
+    },
+    {
+      "id": 10090,
+      "label": "Plinguetière"
+    },
+    {
+      "id": 10273,
+      "label": "Ploreau"
+    },
+    {
+      "id": 10441,
+      "label": "Pluchets"
+    },
+    {
+      "id": 9974,
+      "label": "Poincaré"
+    },
+    {
+      "id": 9946,
+      "label": "Point du Jour"
+    },
+    {
+      "id": 9641,
+      "label": "Poitou"
+    },
+    {
+      "id": 10675,
+      "label": "Poitou"
+    },
+    {
+      "id": 10628,
+      "label": "Pôle sud"
+    },
+    {
+      "id": 9965,
+      "label": "Polyclinique"
+    },
+    {
+      "id": 9870,
+      "label": "Polytech"
+    },
+    {
+      "id": 10669,
+      "label": "Pomme de Pin"
+    },
+    {
+      "id": 10079,
+      "label": "Pommeraie"
+    },
+    {
+      "id": 9741,
+      "label": "Pompidou"
+    },
+    {
+      "id": 10318,
+      "label": "Pont Allard"
+    },
+    {
+      "id": 10499,
+      "label": "Pont de Chézine"
+    },
+    {
+      "id": 9958,
+      "label": "Pont de la Métairie"
+    },
+    {
+      "id": 10031,
+      "label": "Pont du Cens"
+    },
+    {
+      "id": 10199,
+      "label": "Pont Marchand"
+    },
+    {
+      "id": 9835,
+      "label": "Pont Pilet"
+    },
+    {
+      "id": 9628,
+      "label": "Pont Rousseau - Martyrs"
+    },
+    {
+      "id": 9971,
+      "label": "Pontecorvo"
+    },
+    {
+      "id": 10462,
+      "label": "Pontereau"
+    },
+    {
+      "id": 9840,
+      "label": "Port aux Cerises"
+    },
+    {
+      "id": 10107,
+      "label": "Port aux Meules"
+    },
+    {
+      "id": 10752,
+      "label": "Port Boyer"
+    },
+    {
+      "id": 10418,
+      "label": "Port la Blanche"
+    },
+    {
+      "id": 10432,
+      "label": "Port launay"
+    },
+    {
+      "id": 9953,
+      "label": "Portail Rouge"
+    },
+    {
+      "id": 9787,
+      "label": "Porte de La Chapelle"
+    },
+    {
+      "id": 10004,
+      "label": "Porte de Rezé"
+    },
+    {
+      "id": 10453,
+      "label": "Porte de Sautron"
+    },
+    {
+      "id": 10455,
+      "label": "Porte de Sautron"
+    },
+    {
+      "id": 9878,
+      "label": "Porte de Vertou"
+    },
+    {
+      "id": 10416,
+      "label": "Porte Douillard"
+    },
+    {
+      "id": 9896,
+      "label": "Portechaise"
+    },
+    {
+      "id": 9902,
+      "label": "Portereau"
+    },
+    {
+      "id": 10093,
+      "label": "Portereau"
+    },
+    {
+      "id": 10671,
+      "label": "Porteurs d'Eau"
+    },
+    {
+      "id": 10519,
+      "label": "Portillon"
+    },
+    {
+      "id": 9805,
+      "label": "Portricq"
+    },
+    {
+      "id": 9843,
+      "label": "Poste"
+    },
+    {
+      "id": 10764,
+      "label": "Poste de Beautour"
+    },
+    {
+      "id": 10414,
+      "label": "Potiron"
+    },
+    {
+      "id": 10383,
+      "label": "Pottier"
+    },
+    {
+      "id": 10183,
+      "label": "Poulbot"
+    },
+    {
+      "id": 10498,
+      "label": "Poulenc"
+    },
+    {
+      "id": 10656,
+      "label": "Pouliguen"
+    },
+    {
+      "id": 10584,
+      "label": "Poyaux"
+    },
+    {
+      "id": 9734,
+      "label": "Prairie au Duc"
+    },
+    {
+      "id": 10026,
+      "label": "Prairie de Mauves"
+    },
+    {
+      "id": 10493,
+      "label": "Praudière"
+    },
+    {
+      "id": 10735,
+      "label": "Pré Hervé"
+    },
+    {
+      "id": 9937,
+      "label": "Pré Poulain"
+    },
+    {
+      "id": 10083,
+      "label": "Pressoir"
+    },
+    {
+      "id": 10489,
+      "label": "Preux"
+    },
+    {
+      "id": 9993,
+      "label": "Prières"
+    },
+    {
+      "id": 10573,
+      "label": "Prieuré"
+    },
+    {
+      "id": 10431,
+      "label": "Primevères"
+    },
+    {
+      "id": 10538,
+      "label": "Printemps"
+    },
+    {
+      "id": 9964,
+      "label": "Procé"
+    },
+    {
+      "id": 9909,
+      "label": "Profondine"
+    },
+    {
+      "id": 10707,
+      "label": "Proutière"
+    },
+    {
+      "id": 10334,
+      "label": "Purfina"
+    },
+    {
+      "id": 9899,
+      "label": "Pyramide"
+    },
+    {
+      "id": 10316,
+      "label": "Quai Brunais"
+    },
+    {
+      "id": 10807,
+      "label": "Quai Ceineray"
+    },
+    {
+      "id": 9755,
+      "label": "Quai des Antilles"
+    },
+    {
+      "id": 10603,
+      "label": "Quai Surcouf"
+    },
+    {
+      "id": 10774,
+      "label": "Quilterie"
+    },
+    {
+      "id": 9894,
+      "label": "Quintaine"
+    },
+    {
+      "id": 10198,
+      "label": "Rabine"
+    },
+    {
+      "id": 10597,
+      "label": "Radigois"
+    },
+    {
+      "id": 9984,
+      "label": "Ragon"
+    },
+    {
+      "id": 9664,
+      "label": "Ranzay"
+    },
+    {
+      "id": 10007,
+      "label": "Raoul Dufy"
+    },
+    {
+      "id": 10372,
+      "label": "Ravardière"
+    },
+    {
+      "id": 10474,
+      "label": "Razée"
+    },
+    {
+      "id": 9654,
+      "label": "Recteur Schmitt"
+    },
+    {
+      "id": 10534,
+      "label": "Rédras"
+    },
+    {
+      "id": 9830,
+      "label": "Réfractaires"
+    },
+    {
+      "id": 10512,
+      "label": "Reigniers"
+    },
+    {
+      "id": 10271,
+      "label": "Reinetière"
+    },
+    {
+      "id": 10487,
+      "label": "Renan"
+    },
+    {
+      "id": 10067,
+      "label": "Renardières"
+    },
+    {
+      "id": 10304,
+      "label": "Renaudières"
+    },
+    {
+      "id": 10403,
+      "label": "Renault"
+    },
+    {
+      "id": 10612,
+      "label": "René Bernier"
+    },
+    {
+      "id": 10731,
+      "label": "René Bouhier"
+    },
+    {
+      "id": 9649,
+      "label": "René Cassin"
+    },
+    {
+      "id": 9783,
+      "label": "Rennes - Longchamp"
+    },
+    {
+      "id": 10661,
+      "label": "Repos de Chasse"
+    },
+    {
+      "id": 9723,
+      "label": "République"
+    },
+    {
+      "id": 9992,
+      "label": "Retas"
+    },
+    {
+      "id": 10491,
+      "label": "Reynière"
+    },
+    {
+      "id": 10088,
+      "label": "Rinière"
+    },
+    {
+      "id": 10550,
+      "label": "Ripossière"
+    },
+    {
+      "id": 10152,
+      "label": "Rivaudière"
+    },
+    {
+      "id": 10763,
+      "label": "Rivaudières"
+    },
+    {
+      "id": 10631,
+      "label": "Robert Scott"
+    },
+    {
+      "id": 10593,
+      "label": "Robinière"
+    },
+    {
+      "id": 10115,
+      "label": "Rocade"
+    },
+    {
+      "id": 10370,
+      "label": "Roche Ballue"
+    },
+    {
+      "id": 10336,
+      "label": "Roche Maurice"
+    },
+    {
+      "id": 10331,
+      "label": "Rocher"
+    },
+    {
+      "id": 9754,
+      "label": "Roches Vertes"
+    },
+    {
+      "id": 10176,
+      "label": "Rochu"
+    },
+    {
+      "id": 9667,
+      "label": "Romain Rolland"
+    },
+    {
+      "id": 9686,
+      "label": "Romanet"
+    },
+    {
+      "id": 9796,
+      "label": "Rond-Point de Paris"
+    },
+    {
+      "id": 9756,
+      "label": "Rond-Point de Rennes"
+    },
+    {
+      "id": 9631,
+      "label": "Rond-Point de Vannes"
+    },
+    {
+      "id": 10149,
+      "label": "Rosenberg"
+    },
+    {
+      "id": 9812,
+      "label": "Roseraie"
+    },
+    {
+      "id": 9817,
+      "label": "Rouaudière"
+    },
+    {
+      "id": 9983,
+      "label": "Rouet"
+    },
+    {
+      "id": 10484,
+      "label": "Rouleaux"
+    },
+    {
+      "id": 10096,
+      "label": "Rousselière"
+    },
+    {
+      "id": 10122,
+      "label": "Roussière"
+    },
+    {
+      "id": 10045,
+      "label": "Route de la Chapelle"
+    },
+    {
+      "id": 10405,
+      "label": "Route de Paris"
+    },
+    {
+      "id": 10182,
+      "label": "Rue d'Indre"
+    },
+    {
+      "id": 9954,
+      "label": "Rue de Mauves"
+    },
+    {
+      "id": 10002,
+      "label": "Rue de Nantes"
+    },
+    {
+      "id": 10267,
+      "label": "Ruette"
+    },
+    {
+      "id": 10396,
+      "label": "Sables d'Or"
+    },
+    {
+      "id": 10446,
+      "label": "Salentine"
+    },
+    {
+      "id": 9757,
+      "label": "Salorges"
+    },
+    {
+      "id": 10013,
+      "label": "San Francisco"
+    },
+    {
+      "id": 9653,
+      "label": "Santos Dumont"
+    },
+    {
+      "id": 10333,
+      "label": "Saphirs"
+    },
+    {
+      "id": 9712,
+      "label": "Sarrail"
+    },
+    {
+      "id": 10426,
+      "label": "Sartre"
+    },
+    {
+      "id": 10635,
+      "label": "Saules"
+    },
+    {
+      "id": 9921,
+      "label": "Saupin"
+    },
+    {
+      "id": 10542,
+      "label": "Saupin"
+    },
+    {
+      "id": 10448,
+      "label": "Sautron"
+    },
+    {
+      "id": 9914,
+      "label": "Savarières"
+    },
+    {
+      "id": 10420,
+      "label": "Savaudière"
+    },
+    {
+      "id": 10322,
+      "label": "Savonnières"
+    },
+    {
+      "id": 9691,
+      "label": "Schoelcher"
+    },
+    {
+      "id": 9864,
+      "label": "Schweitzer"
+    },
+    {
+      "id": 10801,
+      "label": "Sébilleau"
+    },
+    {
+      "id": 9753,
+      "label": "Seil"
+    },
+    {
+      "id": 10298,
+      "label": "Sercel"
+    },
+    {
+      "id": 10551,
+      "label": "Sèvres"
+    },
+    {
+      "id": 9613,
+      "label": "Sillon de Bretagne"
+    },
+    {
+      "id": 10591,
+      "label": "Simone Signoret"
+    },
+    {
+      "id": 10440,
+      "label": "Sinière"
+    },
+    {
+      "id": 10750,
+      "label": "Solidarité"
+    },
+    {
+      "id": 10175,
+      "label": "Solvardière"
+    },
+    {
+      "id": 9729,
+      "label": "Sorin"
+    },
+    {
+      "id": 10313,
+      "label": "Souchais"
+    },
+    {
+      "id": 10303,
+      "label": "Souchais École"
+    },
+    {
+      "id": 9673,
+      "label": "Souillarderie"
+    },
+    {
+      "id": 10148,
+      "label": "Soweto"
+    },
+    {
+      "id": 9775,
+      "label": "Square Daviais"
+    },
+    {
+      "id": 10053,
+      "label": "St-Aignan"
+    },
+    {
+      "id": 10063,
+      "label": "St-Aignan de Grand Lieu"
+    },
+    {
+      "id": 10531,
+      "label": "St-Blaise"
+    },
+    {
+      "id": 9791,
+      "label": "St-Clément"
+    },
+    {
+      "id": 9798,
+      "label": "St-Donatien"
+    },
+    {
+      "id": 10559,
+      "label": "St-Exupéry"
+    },
+    {
+      "id": 9660,
+      "label": "St-Félix"
+    },
+    {
+      "id": 10742,
+      "label": "St-Hermeland"
+    },
+    {
+      "id": 10549,
+      "label": "St-Jacques"
+    },
+    {
+      "id": 10598,
+      "label": "St-Jean"
+    },
+    {
+      "id": 10649,
+      "label": "St-Jean-Baptiste de la Salle"
+    },
+    {
+      "id": 9857,
+      "label": "St-Jean-de-Boiseau"
+    },
+    {
+      "id": 9806,
+      "label": "St-Joseph de Porterie"
+    },
+    {
+      "id": 9962,
+      "label": "St-Laurent"
+    },
+    {
+      "id": 10061,
+      "label": "St-Léger-les-Vignes"
+    },
+    {
+      "id": 10193,
+      "label": "St-Martin"
+    },
+    {
+      "id": 10151,
+      "label": "St-Michel"
+    },
+    {
+      "id": 9662,
+      "label": "St-Mihiel"
+    },
+    {
+      "id": 9930,
+      "label": "St-Nicolas"
+    },
+    {
+      "id": 9998,
+      "label": "St-Paul - Salengro"
+    },
+    {
+      "id": 9797,
+      "label": "St-Pierre"
+    },
+    {
+      "id": 9900,
+      "label": "St-Sébastien"
+    },
+    {
+      "id": 9772,
+      "label": "St-Stanislas"
+    },
+    {
+      "id": 10388,
+      "label": "Stade"
+    },
+    {
+      "id": 10749,
+      "label": "Stade SNUC"
+    },
+    {
+      "id": 9945,
+      "label": "Ste-Luce"
+    },
+    {
+      "id": 10682,
+      "label": "Ste-Philomène"
+    },
+    {
+      "id": 10224,
+      "label": "Stévin"
+    },
+    {
+      "id": 9931,
+      "label": "Sully Prudhomme"
+    },
+    {
+      "id": 10687,
+      "label": "Surcouf"
+    },
+    {
+      "id": 9923,
+      "label": "Suzanne Lenglen"
+    },
+    {
+      "id": 10411,
+      "label": "Syrma"
+    },
+    {
+      "id": 10571,
+      "label": "Tabarly"
+    },
+    {
+      "id": 10744,
+      "label": "Taillandier"
+    },
+    {
+      "id": 9781,
+      "label": "Talensac"
+    },
+    {
+      "id": 10694,
+      "label": "Tarentaise"
+    },
+    {
+      "id": 10380,
+      "label": "Télindière"
+    },
+    {
+      "id": 10137,
+      "label": "Terpsichore"
+    },
+    {
+      "id": 9793,
+      "label": "Terray"
+    },
+    {
+      "id": 10574,
+      "label": "Terres Neuvas"
+    },
+    {
+      "id": 10069,
+      "label": "Terres Quartières"
+    },
+    {
+      "id": 9681,
+      "label": "Tertre"
+    },
+    {
+      "id": 10378,
+      "label": "Tertre"
+    },
+    {
+      "id": 10165,
+      "label": "Théatre"
+    },
+    {
+      "id": 9917,
+      "label": "Thébaudières"
+    },
+    {
+      "id": 10473,
+      "label": "Thébaudières"
+    },
+    {
+      "id": 9975,
+      "label": "Tillay"
+    },
+    {
+      "id": 10652,
+      "label": "Tortière"
+    },
+    {
+      "id": 9848,
+      "label": "Toscane"
+    },
+    {
+      "id": 10332,
+      "label": "Tougas"
+    },
+    {
+      "id": 9856,
+      "label": "Tour Eiffel"
+    },
+    {
+      "id": 9694,
+      "label": "Tourmaline"
+    },
+    {
+      "id": 10268,
+      "label": "Toutes Aides"
+    },
+    {
+      "id": 9927,
+      "label": "Toutes Joies"
+    },
+    {
+      "id": 10482,
+      "label": "Touzelles"
+    },
+    {
+      "id": 9795,
+      "label": "Trébuchet"
+    },
+    {
+      "id": 10349,
+      "label": "Tréca"
+    },
+    {
+      "id": 10356,
+      "label": "Tredégar"
+    },
+    {
+      "id": 10650,
+      "label": "Trémissinière"
+    },
+    {
+      "id": 10112,
+      "label": "Trentemoult"
+    },
+    {
+      "id": 10811,
+      "label": "Trentemoult Roquios"
+    },
+    {
+      "id": 10804,
+      "label": "Trentemoult Sablières"
+    },
+    {
+      "id": 9955,
+      "label": "Trianon"
+    },
+    {
+      "id": 10039,
+      "label": "Tribunes"
+    },
+    {
+      "id": 10558,
+      "label": "Tripode"
+    },
+    {
+      "id": 10676,
+      "label": "Tristan Bernard"
+    },
+    {
+      "id": 9640,
+      "label": "Trocardière"
+    },
+    {
+      "id": 10759,
+      "label": "Trois Cheminées"
+    },
+    {
+      "id": 10261,
+      "label": "Trois Chênes"
+    },
+    {
+      "id": 10613,
+      "label": "Trois Métairies"
+    },
+    {
+      "id": 9994,
+      "label": "Trois Moulins"
+    },
+    {
+      "id": 10757,
+      "label": "Usine à gaz"
+    },
+    {
+      "id": 10335,
+      "label": "Usine à gaz"
+    },
+    {
+      "id": 10329,
+      "label": "Usine Brûlée"
+    },
+    {
+      "id": 9854,
+      "label": "Utrecht"
+    },
+    {
+      "id": 10586,
+      "label": "Utrillo"
+    },
+    {
+      "id": 10458,
+      "label": "Val du Cens"
+    },
+    {
+      "id": 10035,
+      "label": "Vallée"
+    },
+    {
+      "id": 10037,
+      "label": "Vallée"
+    },
+    {
+      "id": 10665,
+      "label": "Vaucanson"
+    },
+    {
+      "id": 10400,
+      "label": "Véga"
+    },
+    {
+      "id": 10677,
+      "label": "Vendée"
+    },
+    {
+      "id": 10326,
+      "label": "Verdure"
+    },
+    {
+      "id": 10136,
+      "label": "Verger"
+    },
+    {
+      "id": 9924,
+      "label": "Verlaine"
+    },
+    {
+      "id": 10754,
+      "label": "Verrière"
+    },
+    {
+      "id": 10587,
+      "label": "Vert Praud"
+    },
+    {
+      "id": 10617,
+      "label": "Vertonne"
+    },
+    {
+      "id": 9876,
+      "label": "Vertou"
+    },
+    {
+      "id": 9943,
+      "label": "Vesprées"
+    },
+    {
+      "id": 9622,
+      "label": "Viarme-Talensac"
+    },
+    {
+      "id": 10263,
+      "label": "Vieux Doulon"
+    },
+    {
+      "id": 10373,
+      "label": "Vieux Four"
+    },
+    {
+      "id": 10705,
+      "label": "Vièvre"
+    },
+    {
+      "id": 10495,
+      "label": "Village Expo"
+    },
+    {
+      "id": 10795,
+      "label": "Ville au Blanc"
+    },
+    {
+      "id": 10242,
+      "label": "Ville au Denis"
+    },
+    {
+      "id": 10783,
+      "label": "Ville Henri"
+    },
+    {
+      "id": 10605,
+      "label": "Villeneuve"
+    },
+    {
+      "id": 9976,
+      "label": "Vincent Auriol"
+    },
+    {
+      "id": 9643,
+      "label": "Vincent Gâche"
+    },
+    {
+      "id": 10280,
+      "label": "Vincent Scotto"
+    },
+    {
+      "id": 10608,
+      "label": "Violettes"
+    },
+    {
+      "id": 10713,
+      "label": "Vison"
+    },
+    {
+      "id": 10787,
+      "label": "Visonnière"
+    },
+    {
+      "id": 9852,
+      "label": "Viv'Erdre"
+    },
+    {
+      "id": 10619,
+      "label": "Viviers"
+    },
+    {
+      "id": 10278,
+      "label": "Vrière"
+    },
+    {
+      "id": 10636,
+      "label": "Walt Disney"
+    },
+    {
+      "id": 9619,
+      "label": "Wattignies"
+    },
+    {
+      "id": 10588,
+      "label": "Willy Brandt"
+    },
+    {
+      "id": 10015,
+      "label": "Zénith"
+    },
+    {
+      "id": 10654,
+      "label": "Zola"
+    }
+  ]
+}

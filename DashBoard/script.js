@@ -154,6 +154,20 @@ navigator.geolocation.watchPosition(
 const STOPS_JSON_URL   = "stops.json";
 const NAOLIB_API_BASE  = "https://plan.naolib.fr/api/stop/logical/";
 
+// Note sur la numérotation des logical_id (l'ID d'arrêt utilisé dans l'URL de l'API) :
+// ce n'est ni alphabétique ni géographique global — les ID avancent par lots
+// géographiques cohérents, dans l'ordre où chaque zone/ligne a été intégrée à la
+// base Naolib. Quelques repères observés (juillet 2026) :
+//   9613 à ~9662  : quartier Nantes centre/sud (Pirmil, Commerce, Mangin...)
+//   9900-9917     : secteur Rezé/Vertou
+//   9918-9982     : Orvault / Saint-Herblain
+//   9983-10004    : Les Sorinières (commune plus au sud)
+//   10056-10090   : Bouaye / secteur aéroport
+//   10462-10473   : Le Cellier, Mauves (communes lointaines, périphérie du réseau)
+// Les ID les plus élevés (10700+) correspondent aux ajouts les plus récents au
+// référentiel (nouvelles communes desservies, petites lignes périurbaines).
+// Utile pour deviner approximativement où chercher un arrêt manquant dans stops.json.
+
 let knownStops = [];          // contenu de stops.json : [{id, label}, ...]
 const stopDataCache = {};     // stopId -> dernière réponse de l'API (cache mémoire)
 
@@ -169,7 +183,10 @@ async function loadKnownStops() {
     try {
         const res = await fetch(STOPS_JSON_URL, { cache: "no-store" });
         if (!res.ok) throw new Error("HTTP " + res.status);
-        knownStops = await res.json();
+        const data = await res.json();
+        // Le fichier peut être soit un simple tableau [{id, label}, ...] (ancien format),
+        // soit un objet { _notes, stops: [...] } (nouveau format, avec annotations).
+        knownStops = Array.isArray(data) ? data : (data.stops || []);
     } catch (err) {
         console.error("Impossible de charger stops.json :", err);
         knownStops = [];
