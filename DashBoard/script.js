@@ -30,8 +30,7 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeWidgetModal();
 });
 
-function getWeatherIcon(code) {
-    const hour = new Date().getHours();
+function getWeatherIcon(code, hour = new Date().getHours()) {
     const isNight = hour < 7 || hour >= 21;
 
     if ([0].includes(code))                         return isNight ? "🌕" : "☀️";
@@ -52,7 +51,7 @@ async function getWeather(lat, lon) {
 
     try {
         const response = await fetch(
-            `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code&hourly=temperature_2m`
+            `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code&hourly=temperature_2m,weather_code`
         );
         const data = await response.json();
 
@@ -75,11 +74,15 @@ async function getWeather(lat, lon) {
         for (let i = 1; currentHour + i < totalHours; i++) {
             const hour = (currentHour + i) % 24;
             const temp = Math.round(data.hourly.temperature_2m[currentHour + i]);
+            const hCode = data.hourly.weather_code[currentHour + i];
+            const hIcon = getWeatherIcon(hCode, hour);
+            const hBg   = getWeatherImage(hCode, hour);
             const dayMark = hour === 0 ? `<div class="forecast-day">demain</div>` : "";
             forecastContainer.innerHTML += `
-                <div class="forecast-item">
+                <div class="forecast-item" style="background-image:url('${hBg}')">
                     ${dayMark}
                     <div class="forecast-hour">${hour}h</div>
+                    <div class="forecast-icon">${hIcon}</div>
                     <div class="forecast-temp">${temp}°</div>
                 </div>`;
         }
@@ -1525,8 +1528,7 @@ const WEATHER_IMAGES = {
     "storm":        "weather-images/storm.jpg",
 };
 
-function getWeatherImage(code) {
-    const hour = new Date().getHours();
+function getWeatherImage(code, hour = new Date().getHours()) {
     const isNight = hour < 7 || hour >= 21;
     const t = isNight ? "night" : "day";
 

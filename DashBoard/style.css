@@ -127,11 +127,34 @@ body {
 .forecast-item {
     flex: 0 0 auto;
     width: 120px;
-    background: #374151;
     border-radius: 15px;
     padding: 15px;
     text-align: center;
     scroll-snap-align: start;
+    background-color: #374151;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.forecast-item::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.45));
+    z-index: 0;
+}
+
+.forecast-item > * {
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+}
+
+.forecast-icon {
+    font-size: 1.8rem;
+    margin: 6px 0;
 }
 
 .forecast-day {
