@@ -311,7 +311,72 @@ body {
     transform: scale(1.02);
 }
 
-/* ── Mode Miroir ── */
+/* ── Réorganisation des widgets (appui long) ── */
+.reorder-widget {
+    touch-action: none;
+}
+
+.top-row.reorder-mode .reorder-widget {
+    animation: widget-jiggle 0.25s infinite ease-in-out;
+    cursor: grab;
+}
+
+.top-row.reorder-mode .reorder-widget.dragging {
+    animation: none;
+    opacity: 0.7;
+    transform: scale(1.05);
+    z-index: 50;
+    cursor: grabbing;
+}
+
+/* Empêche les boutons internes (Spotify/Chromecast) de réagir pendant la réorganisation */
+.top-row.reorder-mode .reorder-widget button,
+.top-row.reorder-mode .reorder-widget a {
+    pointer-events: none;
+}
+
+@keyframes widget-jiggle {
+    0%   { transform: rotate(-1deg); }
+    50%  { transform: rotate(1deg); }
+    100% { transform: rotate(-1deg); }
+}
+
+.reorder-banner {
+    display: none;
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1f2937;
+    border: 1px solid #374151;
+    border-radius: 20px;
+    padding: 14px 20px;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    z-index: 999;
+    font-size: 0.95rem;
+    color: #e5e7eb;
+}
+
+.reorder-banner.visible {
+    display: flex;
+}
+
+.reorder-banner button {
+    background: #22c55e;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.reorder-banner button:hover {
+    background: #16a34a;
+}
 .mirror-card {
     background: #1f2937;
     border-radius: 25px;

@@ -1635,3 +1635,163 @@ function refreshFavoriteList() {
         container.appendChild(item);
     });
 }
+
+// ─── Réorganisation des widgets (appui long 10s) ────────────────────────────
+
+const WIDGET_ORDER_KEY = "widgetOrder";
+const LONG_PRESS_DURATION = 10000; // 10 secondes
+const MOVE_CANCEL_THRESHOLD = 10;  // px de tolérance avant d'annuler l'appui long
+
+let reorderMode = false;
+
+function applySavedWidgetOrder() {
+    const container = document.querySelector(".top-row");
+    if (!container) return;
+    const saved = JSON.parse(localStorage.getItem(WIDGET_ORDER_KEY) || "null");
+    if (!saved) return;
+
+    saved.forEach(key => {
+        const el = container.querySelector(`[data-widget="${key}"]`);
+        if (el) container.appendChild(el);
+    });
+}
+
+function saveWidgetOrder() {
+    const container = document.querySelector(".top-row");
+    const order = [...container.children].map(el => el.dataset.widget);
+    localStorage.setItem(WIDGET_ORDER_KEY, JSON.stringify(order));
+}
+
+function getReorderBanner() {
+    let banner = document.getElementById("reorderBanner");
+    if (!banner) {
+        banner = document.createElement("div");
+        banner.id = "reorderBanner";
+        banner.className = "reorder-banner";
+        banner.innerHTML = `
+            <span>📐 Déplacez les widgets pour les réorganiser</span>
+            <button onclick="exitReorderMode()">✓ Terminé</button>
+        `;
+        document.body.appendChild(banner);
+    }
+    return banner;
+}
+
+function enterReorderMode() {
+    if (reorderMode) return;
+    reorderMode = true;
+    document.querySelector(".top-row").classList.add("reorder-mode");
+    getReorderBanner().classList.add("visible");
+    if (navigator.vibrate) navigator.vibrate(60);
+}
+
+function exitReorderMode() {
+    reorderMode = false;
+    document.querySelector(".top-row").classList.remove("reorder-mode");
+    const banner = document.getElementById("reorderBanner");
+    if (banner) banner.classList.remove("visible");
+    saveWidgetOrder();
+}
+
+function getDragAfterElement(container, x, y, dragged) {
+    const els = [...container.querySelectorAll(".reorder-widget")].filter(el => el !== dragged);
+
+    return els.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const dx = x - (box.left + box.width / 2);
+        const dy = y - (box.top + box.height / 2);
+        const distance = Math.hypot(dx, dy);
+
+        if (distance < closest.distance) {
+            return { distance, element: child };
+        }
+        return closest;
+    }, { distance: Infinity, element: null }).element;
+}
+
+function startWidgetDrag(widget, pointerId) {
+    const container = document.querySelector(".top-row");
+    widget.classList.add("dragging");
+
+    try { widget.setPointerCapture(pointerId); } catch (e) {}
+
+    const onMove = (ev) => {
+        if (ev.pointerId !== pointerId) return;
+        const afterEl = getDragAfterElement(container, ev.clientX, ev.clientY, widget);
+        if (afterEl == null) {
+            container.appendChild(widget);
+        } else if (afterEl !== widget) {
+            container.insertBefore(widget, afterEl);
+        }
+    };
+
+    const onUp = (ev) => {
+        if (ev.pointerId !== pointerId) return;
+        widget.classList.remove("dragging");
+        try { widget.releasePointerCapture(pointerId); } catch (e) {}
+        widget.removeEventListener("pointermove", onMove);
+        widget.removeEventListener("pointerup", onUp);
+        widget.removeEventListener("pointercancel", onUp);
+        saveWidgetOrder();
+    };
+
+    widget.addEventListener("pointermove", onMove);
+    widget.addEventListener("pointerup", onUp);
+    widget.addEventListener("pointercancel", onUp);
+}
+
+function initWidgetReorder() {
+    applySavedWidgetOrder();
+
+    document.querySelectorAll(".reorder-widget").forEach(widget => {
+        let longPressTimer = null;
+        let startX = 0, startY = 0;
+
+        const clearTimer = () => {
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+        };
+
+        widget.addEventListener("pointerdown", (e) => {
+            if (reorderMode) {
+                startWidgetDrag(widget, e.pointerId);
+                return;
+            }
+
+            startX = e.clientX;
+            startY = e.clientY;
+
+            longPressTimer = setTimeout(() => {
+                longPressTimer = null;
+                enterReorderMode();
+                startWidgetDrag(widget, e.pointerId);
+            }, LONG_PRESS_DURATION);
+        });
+
+        widget.addEventListener("pointermove", (e) => {
+            if (longPressTimer && Math.hypot(e.clientX - startX, e.clientY - startY) > MOVE_CANCEL_THRESHOLD) {
+                clearTimer();
+            }
+        });
+
+        widget.addEventListener("pointerup", clearTimer);
+        widget.addEventListener("pointercancel", clearTimer);
+    });
+}
+
+// Empêche l'ouverture des widgets (météo/transport/miroir) pendant le mode réorganisation
+const _openWidgetModal = openWidgetModal;
+openWidgetModal = function (section) {
+    if (reorderMode) return;
+    _openWidgetModal(section);
+};
+
+const _startMirror = startMirror;
+startMirror = function () {
+    if (reorderMode) return;
+    _startMirror();
+};
+
+initWidgetReorder();

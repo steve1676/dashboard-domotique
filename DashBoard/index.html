@@ -25,7 +25,7 @@
     <div class="top-row">
 
         <!-- Météo -->
-        <div id="widget-meteo" class="weather-card" onclick="openWidgetModal('meteo')">
+        <div id="widget-meteo" class="weather-card reorder-widget" data-widget="meteo" onclick="openWidgetModal('meteo')">
 
             <div id="weather-loader" class="weather-loader-wrap">
                 <span class="loader"></span>
@@ -44,7 +44,7 @@
         </div>
 
         <!-- Transports -->
-        <div id="widget-transport" class="transport-card" onclick="openWidgetModal('transport')">
+        <div id="widget-transport" class="transport-card reorder-widget" data-widget="transport" onclick="openWidgetModal('transport')">
             <div id="transport-title" class="transport-title">🚌 Transport <span id="transport-alert-badge" class="transport-alert-badge" style="display:none;">⚠️</span></div>
             <div id="transport-list">
                 <div class="transport-loading">Chargement...</div>
@@ -52,12 +52,12 @@
         </div>
 
         <!-- Mode Miroir -->
-        <div id="widget-miroir" class="mirror-card" onclick="startMirror()">
+        <div id="widget-miroir" class="mirror-card reorder-widget" data-widget="miroir" onclick="startMirror()">
             <span style="font-size: 35px; font-weight: bold;">🪞 Miroir</span>
         </div>
 
         <!-- Spotify -->
-        <div class="spotify-card" id="spotifyCard">
+        <div class="spotify-card reorder-widget" id="spotifyCard" data-widget="spotify">
 
             <div id="spotifyAlbumArt" class="spotify-bg"></div>
 
@@ -87,7 +87,7 @@
         </div>
 
         <!-- Chromecast -->
-        <div class="spotify-card chromecast-card" id="chromecastCard">
+        <div class="spotify-card chromecast-card reorder-widget" id="chromecastCard" data-widget="chromecast">
 
             <div id="chromecastBg" class="spotify-bg"></div>
 
