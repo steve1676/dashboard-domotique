@@ -71,11 +71,14 @@ async function getWeather(lat, lon) {
         forecastContainer.innerHTML = "";
         const currentHour = new Date().getHours();
 
-        for (let i = 1; i <= 3; i++) {
+        const totalHours = data.hourly.temperature_2m.length;
+        for (let i = 1; currentHour + i < totalHours; i++) {
             const hour = (currentHour + i) % 24;
             const temp = Math.round(data.hourly.temperature_2m[currentHour + i]);
+            const dayMark = hour === 0 ? `<div class="forecast-day">demain</div>` : "";
             forecastContainer.innerHTML += `
                 <div class="forecast-item">
+                    ${dayMark}
                     <div class="forecast-hour">${hour}h</div>
                     <div class="forecast-temp">${temp}°</div>
                 </div>`;

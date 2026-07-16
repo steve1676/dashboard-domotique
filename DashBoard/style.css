@@ -106,17 +106,39 @@ body {
 
 .forecast {
     display: flex;
-    justify-content: space-between;
-    gap: 15px;
+    gap: 12px;
     margin-top: 30px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x proximity;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.forecast::-webkit-scrollbar {
+    height: 6px;
+}
+
+.forecast::-webkit-scrollbar-thumb {
+    background: #4b5563;
+    border-radius: 10px;
 }
 
 .forecast-item {
-    flex: 1;
+    flex: 0 0 auto;
+    width: 120px;
     background: #374151;
     border-radius: 15px;
     padding: 15px;
     text-align: center;
+    scroll-snap-align: start;
+}
+
+.forecast-day {
+    font-size: 0.7rem;
+    color: #f59e0b;
+    text-transform: uppercase;
+    margin-bottom: 4px;
 }
 
 .forecast-hour {
