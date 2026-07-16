@@ -106,6 +106,7 @@ body {
 
 .forecast {
     display: flex;
+    align-items: flex-start;
     gap: 12px;
     margin-top: 30px;
     overflow-x: auto;
@@ -140,7 +141,7 @@ body {
     overflow: hidden;
     contain: layout style paint;
     content-visibility: auto;
-    contain-intrinsic-size: 120px 150px;
+    contain-intrinsic-size: 120px 110px;
 }
 
 .forecast-item::before {
