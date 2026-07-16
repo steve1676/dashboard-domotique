@@ -71,7 +71,7 @@ async function getWeather(lat, lon) {
         const currentHour = new Date().getHours();
 
         const totalHours = data.hourly.temperature_2m.length;
-        const maxHours = Math.min(totalHours, currentHour + 48);
+        const maxHours = Math.min(totalHours, currentHour + 24);
         for (let i = 1; currentHour + i < maxHours; i++) {
             const hour = (currentHour + i) % 24;
             const temp = Math.round(data.hourly.temperature_2m[currentHour + i]);
