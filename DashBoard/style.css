@@ -113,6 +113,8 @@ body {
     scroll-snap-type: x proximity;
     padding-bottom: 8px;
     -webkit-overflow-scrolling: touch;
+    contain: layout style paint;
+    will-change: scroll-position;
 }
 
 .forecast::-webkit-scrollbar {
@@ -136,6 +138,9 @@ body {
     background-position: center;
     position: relative;
     overflow: hidden;
+    contain: layout style paint;
+    content-visibility: auto;
+    contain-intrinsic-size: 120px 150px;
 }
 
 .forecast-item::before {
