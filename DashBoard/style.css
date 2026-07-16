@@ -918,6 +918,27 @@ body {
     z-index: 1;
 }
 
+/* Même fond dynamique dans la popup météo */
+#modal-meteo {
+    margin: -35px;
+    padding: 35px;
+    border-radius: 25px;
+    background-size: cover;
+    background-position: center;
+    transition: background-image 0.8s ease;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Texte lisible sur photo dans la popup */
+#modal-meteo .main-weather,
+#modal-meteo .city,
+#modal-meteo .details {
+    position: relative;
+    z-index: 1;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.7);
+}
+
 /* -- Favorits -- */
 .device-info{
     display:flex;

@@ -1548,19 +1548,24 @@ function getWeatherImage(code) {
 }
 
 function applyWeatherBackground(code) {
-    const card = document.getElementById("widget-meteo");
-    const url  = getWeatherImage(code);
+    const card  = document.getElementById("widget-meteo");
+    const modal = document.getElementById("modal-meteo");
+    const url   = getWeatherImage(code);
 
     const img = new Image();
     img.onload = () => {
-        card.style.backgroundImage    = "url('" + url + "')";
-        card.style.backgroundSize     = "cover";
-        card.style.backgroundPosition = "center";
-        card.style.animation          = "none";
+        [card, modal].forEach(el => {
+            el.style.backgroundImage    = "url('" + url + "')";
+            el.style.backgroundSize     = "cover";
+            el.style.backgroundPosition = "center";
+            el.style.animation          = "none";
+        });
     };
     img.onerror = () => {
-        card.style.backgroundImage = "none";
-        card.style.background      = "#1f2937";
+        [card, modal].forEach(el => {
+            el.style.backgroundImage = "none";
+            el.style.background      = "#1f2937";
+        });
     };
     img.src = url;
 }
