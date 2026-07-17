@@ -160,6 +160,8 @@ navigator.geolocation.watchPosition(
 
 const STOPS_JSON_URL   = "stops.json";
 const NAOLIB_API_BASE  = "https://plan.naolib.fr/api/stop/logical/";
+const LINES_CACHE_KEY      = "transport_lines_index_cache";
+const LINES_CACHE_MAX_AGE  = 30 * 24 * 60 * 60 * 1000; // 30 jours avant rescan auto
 
 // Note sur la numérotation des logical_id (l'ID d'arrêt utilisé dans l'URL de l'API) :
 // ce n'est ni alphabétique ni géographique global — les ID avancent par lots
@@ -210,11 +212,65 @@ async function fetchNaolibStop(stopId) {
     return data;
 }
 
+function loadCachedLinesIndex() {
+    try {
+        const raw = localStorage.getItem(LINES_CACHE_KEY);
+        if (!raw) return null;
+        const cached = JSON.parse(raw);
+        if (!cached || !cached.builtAt || !cached.index) return null;
+        return cached;
+    } catch (err) {
+        return null;
+    }
+}
+
+function saveLinesIndexToCache() {
+    localStorage.setItem(LINES_CACHE_KEY, JSON.stringify({
+        builtAt: Date.now(),
+        index: linesIndex
+    }));
+}
+
+function showLinesCacheInfo(builtAt, scanning, elapsedMs) {
+    const el = document.getElementById("transport-lines-info");
+    if (!el) return;
+
+    if (scanning) {
+        el.innerHTML = `🔄 Analyse des lignes en cours...`;
+        return;
+    }
+    if (!builtAt) {
+        el.innerHTML = "";
+        return;
+    }
+
+    const days = Math.floor((Date.now() - builtAt) / (24 * 60 * 60 * 1000));
+    const ago  = days <= 0 ? "aujourd'hui" : days === 1 ? "il y a 1 jour" : `il y a ${days} jours`;
+    const timing = elapsedMs != null ? ` — analysée en ${(elapsedMs / 1000).toFixed(1)}s` : "";
+    el.innerHTML = `✅ Lignes à jour (dernière analyse : ${ago}${timing}) · <a href="#" onclick="forceLinesRescan(); return false;">rescanner maintenant</a>`;
+}
+
+async function forceLinesRescan() {
+    await loadKnownStops();
+    await buildLinesIndex();
+}
+
 // Interroge chaque arrêt connu pour construire la liste globale des lignes
 // disponibles (une ligne peut desservir plusieurs arrêts connus).
+// Sauvegarde le résultat en local pour éviter de tout réinterroger à chaque
+// ouverture — voir initTransportLines() pour la logique de cache/rescan.
 async function buildLinesIndex() {
-    linesIndex = {};
+    const select = document.getElementById("new-transport-line");
+    if (select) {
+        select.innerHTML = `<option value="">🔄 Analyse des lignes en cours...</option>`;
+        select.disabled = true;
+    }
+    showLinesCacheInfo(null, true);
 
+    const t0 = performance.now();
+    console.time("buildLinesIndex");
+
+    linesIndex = {};
     await Promise.all(knownStops.map(async (stop) => {
         try {
             const data = await fetchNaolibStop(stop.id);
@@ -229,7 +285,32 @@ async function buildLinesIndex() {
         }
     }));
 
+    const elapsedMs = Math.round(performance.now() - t0);
+    console.timeEnd("buildLinesIndex");
+    console.log(`Analyse des lignes terminée en ${elapsedMs} ms (${knownStops.length} arrêts interrogés)`);
+
     populateTransportLineSelect();
+    saveLinesIndexToCache();
+    showLinesCacheInfo(Date.now(), false, elapsedMs);
+}
+
+// Point d'entrée : utilise le cache local s'il existe (affichage instantané),
+// et ne relance une analyse complète que si le cache est absent ou a plus de
+// 30 jours (pour repérer d'éventuelles nouvelles lignes).
+async function initTransportLines() {
+    const cached = loadCachedLinesIndex();
+    const isFresh = cached && (Date.now() - cached.builtAt) < LINES_CACHE_MAX_AGE;
+
+    if (cached) {
+        linesIndex = cached.index;
+        populateTransportLineSelect();
+        showLinesCacheInfo(cached.builtAt, false);
+    }
+
+    if (isFresh) return; // cache récent : rien d'autre à faire
+
+    await loadKnownStops();
+    await buildLinesIndex();
 }
 
 function populateTransportLineSelect() {
@@ -583,7 +664,7 @@ async function updateTransports() {
     }
 }
 
-loadKnownStops().then(buildLinesIndex);
+initTransportLines();
 renderTransportRoutesList();
 updateTransports();
 setInterval(updateTransports, 30000);

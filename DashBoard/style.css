@@ -849,6 +849,22 @@ body {
     margin-top: 15px;
 }
 
+.lines-cache-info {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin-top: 10px;
+    min-height: 1.1em;
+}
+
+.lines-cache-info a {
+    color: #38bdf8;
+    text-decoration: none;
+}
+
+.lines-cache-info a:hover {
+    text-decoration: underline;
+}
+
 .phone-add-row input,
 .phone-add-row select {
     flex: 1;
