@@ -177,6 +177,7 @@ const NAOLIB_API_BASE  = "https://plan.naolib.fr/api/stop/logical/";
 
 let knownStops = [];          // contenu de stops.json : [{id, label}, ...]
 const stopDataCache = {};     // stopId -> dernière réponse de l'API (cache mémoire)
+let linesIndex = {};          // lineId -> { id, number, name, stops: [{stopId, stopLabel}] }
 
 function getTransportRoutes() {
     return JSON.parse(localStorage.getItem("transport_routes_config") || "[]");
@@ -198,14 +199,6 @@ async function loadKnownStops() {
         console.error("Impossible de charger stops.json :", err);
         knownStops = [];
     }
-    populateTransportStopSelect();
-}
-
-function populateTransportStopSelect() {
-    const select = document.getElementById("new-transport-stop");
-    if (!select) return;
-    select.innerHTML = `<option value="">Choisir un arrêt...</option>` +
-        knownStops.map(s => `<option value="${s.id}">${s.label}</option>`).join("");
 }
 
 async function fetchNaolibStop(stopId) {
@@ -217,41 +210,76 @@ async function fetchNaolibStop(stopId) {
     return data;
 }
 
-async function onTransportStopChange() {
-    const stopSelect = document.getElementById("new-transport-stop");
-    const lineSelect = document.getElementById("new-transport-line");
-    const dirSelect  = document.getElementById("new-transport-direction");
+// Interroge chaque arrêt connu pour construire la liste globale des lignes
+// disponibles (une ligne peut desservir plusieurs arrêts connus).
+async function buildLinesIndex() {
+    linesIndex = {};
 
-    lineSelect.innerHTML = `<option value="">— Ligne —</option>`;
-    dirSelect.innerHTML  = `<option value="">— Direction —</option>`;
-    lineSelect.disabled = true;
-    dirSelect.disabled  = true;
+    await Promise.all(knownStops.map(async (stop) => {
+        try {
+            const data = await fetchNaolibStop(stop.id);
+            (data.linked_lines || []).forEach(line => {
+                if (!linesIndex[line.id]) {
+                    linesIndex[line.id] = { id: line.id, number: line.number, name: line.name, stops: [] };
+                }
+                linesIndex[line.id].stops.push({ stopId: stop.id, stopLabel: stop.label });
+            });
+        } catch (err) {
+            console.error("Erreur chargement arrêt " + stop.id + " :", err);
+        }
+    }));
 
-    const stopId = stopSelect.value;
-    if (!stopId) return;
-
-    try {
-        delete stopDataCache[stopId]; // on force un fetch frais quand on configure
-        const data = await fetchNaolibStop(stopId);
-        const lines = data.linked_lines || [];
-        lineSelect.innerHTML = `<option value="">— Ligne —</option>` +
-            lines.map(l => `<option value="${l.id}">${l.number} — ${l.name}</option>`).join("");
-        lineSelect.disabled = false;
-    } catch (err) {
-        console.error("Erreur chargement arrêt :", err);
-        lineSelect.innerHTML = `<option value="">⚠️ Erreur de chargement</option>`;
-    }
+    populateTransportLineSelect();
 }
 
+function populateTransportLineSelect() {
+    const select = document.getElementById("new-transport-line");
+    if (!select) return;
+
+    const lines = Object.values(linesIndex).sort((a, b) =>
+        String(a.number).localeCompare(String(b.number), undefined, { numeric: true })
+    );
+
+    if (lines.length === 0) {
+        select.innerHTML = `<option value="">Aucune ligne disponible</option>`;
+        return;
+    }
+
+    select.innerHTML = `<option value="">Choisir une ligne...</option>` +
+        lines.map(l => `<option value="${l.id}">${l.number} — ${l.name}</option>`).join("");
+    select.disabled = false;
+}
+
+// Ligne choisie → on ne propose que les arrêts connus desservis par cette ligne
 function onTransportLineChange() {
-    const stopId = document.getElementById("new-transport-stop").value;
     const lineId = document.getElementById("new-transport-line").value;
+    const stopSelect = document.getElementById("new-transport-stop");
+    const dirSelect  = document.getElementById("new-transport-direction");
+
+    stopSelect.innerHTML = `<option value="">— Arrêt —</option>`;
+    dirSelect.innerHTML  = `<option value="">— Direction —</option>`;
+    stopSelect.disabled = true;
+    dirSelect.disabled  = true;
+
+    if (!lineId) return;
+    const line = linesIndex[lineId];
+    if (!line) return;
+
+    stopSelect.innerHTML = `<option value="">— Arrêt —</option>` +
+        line.stops.map(s => `<option value="${s.stopId}">${s.stopLabel}</option>`).join("");
+    stopSelect.disabled = false;
+}
+
+// Arrêt choisi (pour la ligne déjà sélectionnée) → on propose ses directions
+function onTransportStopChange() {
+    const lineId = document.getElementById("new-transport-line").value;
+    const stopId = document.getElementById("new-transport-stop").value;
     const dirSelect = document.getElementById("new-transport-direction");
 
     dirSelect.innerHTML = `<option value="">— Direction —</option>`;
     dirSelect.disabled = true;
 
-    if (!stopId || !lineId) return;
+    if (!lineId || !stopId) return;
     const data = stopDataCache[stopId];
     if (!data) return;
 
@@ -417,10 +445,10 @@ function addTransportRoute() {
     renderTransportRoutesList();
     updateTransports();
 
-    // Reset des selects pour un prochain ajout
-    stopSelect.value = "";
-    lineSelect.innerHTML = `<option value="">— Ligne —</option>`;
-    lineSelect.disabled = true;
+    // Reset des selects pour un prochain ajout (on garde la liste des lignes chargée)
+    lineSelect.value = "";
+    stopSelect.innerHTML = `<option value="">— Arrêt —</option>`;
+    stopSelect.disabled = true;
     dirSelect.innerHTML = `<option value="">— Direction —</option>`;
     dirSelect.disabled = true;
 }
@@ -555,7 +583,7 @@ async function updateTransports() {
     }
 }
 
-loadKnownStops();
+loadKnownStops().then(buildLinesIndex);
 renderTransportRoutesList();
 updateTransports();
 setInterval(updateTransports, 30000);
