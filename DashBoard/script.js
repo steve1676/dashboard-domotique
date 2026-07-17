@@ -1693,41 +1693,48 @@ function exitReorderMode() {
     saveWidgetOrder();
 }
 
-function getDragAfterElement(container, x, y, dragged) {
-    const els = [...container.querySelectorAll(".reorder-widget")].filter(el => el !== dragged);
-
-    return els.reduce((closest, child) => {
-        const box = child.getBoundingClientRect();
-        const dx = x - (box.left + box.width / 2);
-        const dy = y - (box.top + box.height / 2);
-        const distance = Math.hypot(dx, dy);
-
-        if (distance < closest.distance) {
-            return { distance, element: child };
-        }
-        return closest;
-    }, { distance: Infinity, element: null }).element;
+function getDragTarget(container, x, y, dragged) {
+    const el = document.elementFromPoint(x, y);
+    if (!el) return null;
+    const widget = el.closest(".reorder-widget");
+    if (!widget || widget === dragged || !container.contains(widget)) return null;
+    return widget;
 }
 
 function startWidgetDrag(widget, pointerId) {
     const container = document.querySelector(".top-row");
     widget.classList.add("dragging");
+    widget.style.pointerEvents = "none"; // pour que elementFromPoint détecte ce qui est en dessous
 
     try { widget.setPointerCapture(pointerId); } catch (e) {}
 
+    let lastTarget = null;
+    let lastSide = null;
+
     const onMove = (ev) => {
         if (ev.pointerId !== pointerId) return;
-        const afterEl = getDragAfterElement(container, ev.clientX, ev.clientY, widget);
-        if (afterEl == null) {
-            container.appendChild(widget);
-        } else if (afterEl !== widget) {
-            container.insertBefore(widget, afterEl);
+
+        const target = getDragTarget(container, ev.clientX, ev.clientY, widget);
+        if (!target) return;
+
+        const rect = target.getBoundingClientRect();
+        const side = ev.clientX < rect.left + rect.width / 2 ? "before" : "after";
+
+        if (target === lastTarget && side === lastSide) return; // évite les recalculs inutiles
+        lastTarget = target;
+        lastSide = side;
+
+        if (side === "before") {
+            container.insertBefore(widget, target);
+        } else {
+            container.insertBefore(widget, target.nextSibling);
         }
     };
 
     const onUp = (ev) => {
         if (ev.pointerId !== pointerId) return;
         widget.classList.remove("dragging");
+        widget.style.pointerEvents = "";
         try { widget.releasePointerCapture(pointerId); } catch (e) {}
         widget.removeEventListener("pointermove", onMove);
         widget.removeEventListener("pointerup", onUp);
