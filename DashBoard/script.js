@@ -1636,13 +1636,14 @@ function refreshFavoriteList() {
     });
 }
 
-// ─── Réorganisation des widgets (appui long 10s) ────────────────────────────
+// ─── Réorganisation des widgets (appui long 5s + tap pour échanger) ─────────
 
 const WIDGET_ORDER_KEY = "widgetOrder";
-const LONG_PRESS_DURATION = 10000; // 10 secondes
+const LONG_PRESS_DURATION = 5000;  // 5 secondes
 const MOVE_CANCEL_THRESHOLD = 10;  // px de tolérance avant d'annuler l'appui long
 
-let reorderMode = false;
+let selectedWidget = null;
+let swapMode = false;
 
 function applySavedWidgetOrder() {
     const container = document.querySelector(".top-row");
@@ -1662,89 +1663,47 @@ function saveWidgetOrder() {
     localStorage.setItem(WIDGET_ORDER_KEY, JSON.stringify(order));
 }
 
-function getReorderBanner() {
+function getSwapBanner() {
     let banner = document.getElementById("reorderBanner");
     if (!banner) {
         banner = document.createElement("div");
         banner.id = "reorderBanner";
         banner.className = "reorder-banner";
         banner.innerHTML = `
-            <span>📐 Déplacez les widgets pour les réorganiser</span>
-            <button onclick="exitReorderMode()">✓ Terminé</button>
+            <span>👆 Touchez le widget avec lequel l'échanger</span>
+            <button onclick="cancelWidgetSelection()">✕ Annuler</button>
         `;
         document.body.appendChild(banner);
     }
     return banner;
 }
 
-function enterReorderMode() {
-    if (reorderMode) return;
-    reorderMode = true;
-    document.querySelector(".top-row").classList.add("reorder-mode");
-    getReorderBanner().classList.add("visible");
+function selectWidgetForSwap(widget) {
+    selectedWidget = widget;
+    swapMode = true;
+    widget.classList.add("selected-for-swap");
+    document.querySelector(".top-row").classList.add("swap-mode");
+    getSwapBanner().classList.add("visible");
     if (navigator.vibrate) navigator.vibrate(60);
 }
 
-function exitReorderMode() {
-    reorderMode = false;
-    document.querySelector(".top-row").classList.remove("reorder-mode");
+function cancelWidgetSelection() {
+    if (selectedWidget) selectedWidget.classList.remove("selected-for-swap");
+    selectedWidget = null;
+    swapMode = false;
+    const container = document.querySelector(".top-row");
+    if (container) container.classList.remove("swap-mode");
     const banner = document.getElementById("reorderBanner");
     if (banner) banner.classList.remove("visible");
-    saveWidgetOrder();
 }
 
-function getDragTarget(container, x, y, dragged) {
-    const el = document.elementFromPoint(x, y);
-    if (!el) return null;
-    const widget = el.closest(".reorder-widget");
-    if (!widget || widget === dragged || !container.contains(widget)) return null;
-    return widget;
-}
-
-function startWidgetDrag(widget, pointerId) {
-    const container = document.querySelector(".top-row");
-    widget.classList.add("dragging");
-    widget.style.pointerEvents = "none"; // pour que elementFromPoint détecte ce qui est en dessous
-
-    try { widget.setPointerCapture(pointerId); } catch (e) {}
-
-    let lastTarget = null;
-    let lastSide = null;
-
-    const onMove = (ev) => {
-        if (ev.pointerId !== pointerId) return;
-
-        const target = getDragTarget(container, ev.clientX, ev.clientY, widget);
-        if (!target) return;
-
-        const rect = target.getBoundingClientRect();
-        const side = ev.clientX < rect.left + rect.width / 2 ? "before" : "after";
-
-        if (target === lastTarget && side === lastSide) return; // évite les recalculs inutiles
-        lastTarget = target;
-        lastSide = side;
-
-        if (side === "before") {
-            container.insertBefore(widget, target);
-        } else {
-            container.insertBefore(widget, target.nextSibling);
-        }
-    };
-
-    const onUp = (ev) => {
-        if (ev.pointerId !== pointerId) return;
-        widget.classList.remove("dragging");
-        widget.style.pointerEvents = "";
-        try { widget.releasePointerCapture(pointerId); } catch (e) {}
-        widget.removeEventListener("pointermove", onMove);
-        widget.removeEventListener("pointerup", onUp);
-        widget.removeEventListener("pointercancel", onUp);
-        saveWidgetOrder();
-    };
-
-    widget.addEventListener("pointermove", onMove);
-    widget.addEventListener("pointerup", onUp);
-    widget.addEventListener("pointercancel", onUp);
+function swapWidgets(a, b) {
+    const parent = a.parentNode;
+    const placeholder = document.createComment("swap-placeholder");
+    parent.insertBefore(placeholder, a);
+    parent.insertBefore(a, b);
+    parent.insertBefore(b, placeholder);
+    parent.removeChild(placeholder);
 }
 
 function initWidgetReorder() {
@@ -1753,6 +1712,7 @@ function initWidgetReorder() {
     document.querySelectorAll(".reorder-widget").forEach(widget => {
         let longPressTimer = null;
         let startX = 0, startY = 0;
+        let suppressClick = false;
 
         const clearTimer = () => {
             if (longPressTimer) {
@@ -1762,18 +1722,15 @@ function initWidgetReorder() {
         };
 
         widget.addEventListener("pointerdown", (e) => {
-            if (reorderMode) {
-                startWidgetDrag(widget, e.pointerId);
-                return;
-            }
+            if (swapMode) return; // en mode échange, on attend un simple tap (voir "click")
 
             startX = e.clientX;
             startY = e.clientY;
 
             longPressTimer = setTimeout(() => {
                 longPressTimer = null;
-                enterReorderMode();
-                startWidgetDrag(widget, e.pointerId);
+                suppressClick = true; // ignore le click qui suivra le relâchement
+                selectWidgetForSwap(widget);
             }, LONG_PRESS_DURATION);
         });
 
@@ -1785,20 +1742,43 @@ function initWidgetReorder() {
 
         widget.addEventListener("pointerup", clearTimer);
         widget.addEventListener("pointercancel", clearTimer);
+
+        widget.addEventListener("click", (e) => {
+            if (suppressClick) {
+                suppressClick = false;
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
+
+            if (!swapMode) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (widget === selectedWidget) {
+                cancelWidgetSelection(); // retap sur le widget sélectionné = annuler
+                return;
+            }
+
+            swapWidgets(selectedWidget, widget);
+            saveWidgetOrder();
+            cancelWidgetSelection();
+        }, true); // capture: s'exécute avant les onclick inline (openWidgetModal, startMirror...)
     });
 }
 
-// Empêche l'ouverture des widgets (météo/transport/miroir) pendant le mode réorganisation
+initWidgetReorder();
+
+// Empêche l'ouverture des widgets (météo/transport/miroir) pendant le mode échange
 const _openWidgetModal = openWidgetModal;
 openWidgetModal = function (section) {
-    if (reorderMode) return;
+    if (swapMode) return;
     _openWidgetModal(section);
 };
 
 const _startMirror = startMirror;
 startMirror = function () {
-    if (reorderMode) return;
+    if (swapMode) return;
     _startMirror();
 };
-
-initWidgetReorder();

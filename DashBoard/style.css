@@ -311,27 +311,21 @@ body {
     transform: scale(1.02);
 }
 
-/* ── Réorganisation des widgets (appui long) ── */
+/* ── Réorganisation des widgets (appui long 5s + tap pour échanger) ── */
 .reorder-widget {
     touch-action: none;
 }
 
-.top-row.reorder-mode .reorder-widget {
+.reorder-widget.selected-for-swap {
     animation: widget-jiggle 0.25s infinite ease-in-out;
-    cursor: grab;
+    outline: 3px solid #22c55e;
+    outline-offset: 3px;
+    z-index: 20;
 }
 
-.top-row.reorder-mode .reorder-widget.dragging {
-    animation: none;
-    opacity: 0.7;
-    transform: scale(1.05);
-    z-index: 50;
-    cursor: grabbing;
-}
-
-/* Empêche les boutons internes (Spotify/Chromecast) de réagir pendant la réorganisation */
-.top-row.reorder-mode .reorder-widget button,
-.top-row.reorder-mode .reorder-widget a {
+/* Empêche les boutons internes (Spotify/Chromecast) de réagir pendant le mode échange */
+.top-row.swap-mode .reorder-widget button,
+.top-row.swap-mode .reorder-widget a {
     pointer-events: none;
 }
 
