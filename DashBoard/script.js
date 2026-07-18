@@ -155,31 +155,20 @@ navigator.geolocation.watchPosition(
 
 
 // ─── Transports — Temps réel Naolib via plan.naolib.fr ──────────────────────
-// Config par l'utilisateur (page Paramètres) : liste d'arrêts connus dans
-// stops.json + choix ligne/direction par arrêt, stockés en localStorage.
+// Le sélecteur ligne/arrêt/direction (page Paramètres) couvre tout le réseau
+// Naolib : un seul fetch de logical_stops.geojson donne tous les arrêts avec
+// leurs lignes (linked_lines) et coordonnées GPS, sans appel API par arrêt.
+// Les arrêts d'une ligne sont ensuite triés par proximité GPS (plus proche
+// voisin en partant des deux points les plus éloignés) pour approximer
+// l'ordre de passage réel — ce fichier ne fournit pas de rang officiel.
 
-const STOPS_JSON_URL   = "stops.json";
-const NAOLIB_API_BASE  = "https://plan.naolib.fr/api/stop/logical/";
+const NAOLIB_GEOJSON_URL  = "https://plan.naolib.fr/map/logical_stops.geojson";
+const NAOLIB_API_BASE     = "https://plan.naolib.fr/api/stop/logical/";
 const LINES_CACHE_KEY      = "transport_lines_index_cache";
 const LINES_CACHE_MAX_AGE  = 30 * 24 * 60 * 60 * 1000; // 30 jours avant rescan auto
 
-// Note sur la numérotation des logical_id (l'ID d'arrêt utilisé dans l'URL de l'API) :
-// ce n'est ni alphabétique ni géographique global — les ID avancent par lots
-// géographiques cohérents, dans l'ordre où chaque zone/ligne a été intégrée à la
-// base Naolib. Quelques repères observés (juillet 2026) :
-//   9613 à ~9662  : quartier Nantes centre/sud (Pirmil, Commerce, Mangin...)
-//   9900-9917     : secteur Rezé/Vertou
-//   9918-9982     : Orvault / Saint-Herblain
-//   9983-10004    : Les Sorinières (commune plus au sud)
-//   10056-10090   : Bouaye / secteur aéroport
-//   10462-10473   : Le Cellier, Mauves (communes lointaines, périphérie du réseau)
-// Les ID les plus élevés (10700+) correspondent aux ajouts les plus récents au
-// référentiel (nouvelles communes desservies, petites lignes périurbaines).
-// Utile pour deviner approximativement où chercher un arrêt manquant dans stops.json.
-
-let knownStops = [];          // contenu de stops.json : [{id, label}, ...]
-const stopDataCache = {};     // stopId -> dernière réponse de l'API (cache mémoire)
-let linesIndex = {};          // lineId -> { id, number, name, stops: [{stopId, stopLabel}] }
+const stopDataCache = {};    // stopId -> dernière réponse de l'API par arrêt (cache mémoire, pour les directions)
+let linesIndex = {};         // number -> { id, number, stops: [{id, name, lat, lng}, ...] (triés par proximité) }
 
 function getTransportRoutes() {
     return JSON.parse(localStorage.getItem("transport_routes_config") || "[]");
@@ -189,20 +178,6 @@ function saveTransportRoutes(routes) {
     localStorage.setItem("transport_routes_config", JSON.stringify(routes));
 }
 
-async function loadKnownStops() {
-    try {
-        const res = await fetch(STOPS_JSON_URL, { cache: "no-store" });
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        const data = await res.json();
-        // Le fichier peut être soit un simple tableau [{id, label}, ...] (ancien format),
-        // soit un objet { _notes, stops: [...] } (nouveau format, avec annotations).
-        knownStops = Array.isArray(data) ? data : (data.stops || []);
-    } catch (err) {
-        console.error("Impossible de charger stops.json :", err);
-        knownStops = [];
-    }
-}
-
 async function fetchNaolibStop(stopId) {
     if (stopDataCache[stopId]) return stopDataCache[stopId];
     const res = await fetch(NAOLIB_API_BASE + stopId);
@@ -210,6 +185,54 @@ async function fetchNaolibStop(stopId) {
     const data = await res.json();
     stopDataCache[stopId] = data;
     return data;
+}
+
+function haversineMeters(a, b) {
+    const R = 6371000;
+    const toRad = deg => (deg * Math.PI) / 180;
+    const dLat = toRad(b.lat - a.lat);
+    const dLng = toRad(b.lng - a.lng);
+    const lat1 = toRad(a.lat), lat2 = toRad(b.lat);
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+// Approxime l'ordre de passage d'une ligne à partir des positions GPS :
+// on part des deux arrêts les plus éloignés (proxy des deux terminus), puis
+// on enchaîne toujours vers l'arrêt non visité le plus proche. Imparfait sur
+// les lignes en boucle ou avec embranchements, mais donne un ordre cohérent
+// pour l'immense majorité des lignes.
+function sortStopsByProximity(stops) {
+    if (stops.length <= 2) return stops;
+
+    let maxDist = -1, startIdx = 0;
+    for (let i = 0; i < stops.length; i++) {
+        for (let j = i + 1; j < stops.length; j++) {
+            const d = haversineMeters(stops[i], stops[j]);
+            if (d > maxDist) {
+                maxDist = d;
+                startIdx = i;
+            }
+        }
+    }
+
+    const remaining = stops.slice();
+    const ordered = [remaining.splice(startIdx, 1)[0]];
+
+    while (remaining.length) {
+        const last = ordered[ordered.length - 1];
+        let nearestIdx = 0, nearestDist = Infinity;
+        remaining.forEach((s, idx) => {
+            const d = haversineMeters(last, s);
+            if (d < nearestDist) {
+                nearestDist = d;
+                nearestIdx = idx;
+            }
+        });
+        ordered.push(remaining.splice(nearestIdx, 1)[0]);
+    }
+
+    return ordered;
 }
 
 function loadCachedLinesIndex() {
@@ -231,34 +254,73 @@ function saveLinesIndexToCache() {
     }));
 }
 
-function showLinesCacheInfo(builtAt, scanning, elapsedMs) {
+function showLinesFetchError(fallbackBuiltAt, restrictedMode) {
     const el = document.getElementById("transport-lines-info");
     if (!el) return;
 
-    if (scanning) {
-        el.innerHTML = `🔄 Analyse des lignes en cours...`;
-        return;
+    let base;
+    if (restrictedMode) {
+        base = `⚠️ Fichier Naolib inaccessible — mode restreint (uniquement tes lignes déjà configurées)`;
+    } else {
+        base = `⚠️ Échec du chargement des lignes (le fichier Naolib a peut-être changé d'adresse)`;
+        if (fallbackBuiltAt) {
+            const days = Math.floor((Date.now() - fallbackBuiltAt) / (24 * 60 * 60 * 1000));
+            const ago  = days <= 0 ? "aujourd'hui" : days === 1 ? "il y a 1 jour" : `il y a ${days} jours`;
+            base += ` — dernières données valides conservées (${ago})`;
+        }
     }
-    if (!builtAt) {
-        el.innerHTML = "";
-        return;
-    }
+    el.innerHTML = `${base} · <a href="#" onclick="forceLinesRescan(); return false;">réessayer</a>`;
+}
 
-    const days = Math.floor((Date.now() - builtAt) / (24 * 60 * 60 * 1000));
-    const ago  = days <= 0 ? "aujourd'hui" : days === 1 ? "il y a 1 jour" : `il y a ${days} jours`;
-    const timing = elapsedMs != null ? ` — analysée en ${(elapsedMs / 1000).toFixed(1)}s` : "";
-    el.innerHTML = `✅ Lignes à jour (dernière analyse : ${ago}${timing}) · <a href="#" onclick="forceLinesRescan(); return false;">rescanner maintenant</a>`;
+// Solution de secours si le geojson est inaccessible ET qu'aucun cache n'existe :
+// reconstruit un index partiel via l'API, mais seulement pour les arrêts déjà
+// utilisés dans les lignes de transport configurées (on connaît déjà leur
+// stopId). Couverture limitée à ces arrêts — pas de tri GPS (peu d'arrêts,
+// pas besoin) — mais évite une page de paramètres totalement vide.
+async function buildLinesIndexFallbackFromRoutes() {
+    const routes = getTransportRoutes();
+    const stopIds = [...new Set(routes.map(r => r.stopId))];
+    if (stopIds.length === 0) return false;
+
+    const fallbackIndex = {};
+
+    await Promise.all(stopIds.map(async (stopId) => {
+        try {
+            const data = await fetchNaolibStop(stopId);
+            const stopLabel = routes.find(r => r.stopId === stopId)?.stopLabel || stopId;
+
+            (data.linked_lines || []).forEach(line => {
+                const number = String(line.number ?? line.id);
+                if (!fallbackIndex[number]) {
+                    fallbackIndex[number] = { id: number, number, stops: [] };
+                }
+                if (!fallbackIndex[number].stops.some(s => s.id === stopId)) {
+                    fallbackIndex[number].stops.push({ id: stopId, name: stopLabel });
+                }
+            });
+        } catch (err) {
+            console.error("Erreur fallback arrêt " + stopId + " :", err);
+        }
+    }));
+
+    if (Object.keys(fallbackIndex).length === 0) return false;
+
+    linesIndex = fallbackIndex;
+    return true;
 }
 
 async function forceLinesRescan() {
-    await loadKnownStops();
     await buildLinesIndex();
 }
 
-// Interroge chaque arrêt connu pour construire la liste globale des lignes
-// disponibles (une ligne peut desservir plusieurs arrêts connus).
-// Sauvegarde le résultat en local pour éviter de tout réinterroger à chaque
+// Construit l'index de toutes les lignes du réseau à partir d'un seul fetch
+// du geojson officiel Naolib (arrêts + linked_lines + GPS, réseau entier).
+// Sauvegarde le résultat en local pour éviter de tout refaire à chaque
 // ouverture — voir initTransportLines() pour la logique de cache/rescan.
+// En cas d'échec (fichier renommé/supprimé côté Naolib, etc.), on NE touche
+// PAS au cache existant : on garde les dernières données valides connues au
+// lieu de les remplacer par du vide, et on ne marque jamais un échec comme
+// "à jour" (sinon plus aucun rescan ne serait retenté avant 30 jours).
 async function buildLinesIndex() {
     const select = document.getElementById("new-transport-line");
     if (select) {
@@ -270,33 +332,72 @@ async function buildLinesIndex() {
     const t0 = performance.now();
     console.time("buildLinesIndex");
 
-    linesIndex = {};
-    await Promise.all(knownStops.map(async (stop) => {
-        try {
-            const data = await fetchNaolibStop(stop.id);
-            (data.linked_lines || []).forEach(line => {
-                if (!linesIndex[line.id]) {
-                    linesIndex[line.id] = { id: line.id, number: line.number, name: line.name, stops: [] };
-                }
-                linesIndex[line.id].stops.push({ stopId: stop.id, stopLabel: stop.label });
-            });
-        } catch (err) {
-            console.error("Erreur chargement arrêt " + stop.id + " :", err);
+    let freshIndex = {};
+    let success = false;
+
+    try {
+        const res = await fetch(NAOLIB_GEOJSON_URL, { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const geo = await res.json();
+        if (!Array.isArray(geo.features) || geo.features.length === 0) {
+            throw new Error("Réponse vide ou format inattendu");
         }
-    }));
+
+        const seenStopIds = {}; // un arrêt logique peut avoir plusieurs points (quais) ; on n'en garde qu'un
+
+        geo.features.forEach(feature => {
+            const p = feature.properties || {};
+            const stopId = p.id;
+            if (seenStopIds[stopId]) return;
+            seenStopIds[stopId] = true;
+
+            const lineNumbers = String(p.linked_lines || "").split(";").map(s => s.trim()).filter(Boolean);
+            lineNumbers.forEach(number => {
+                if (!freshIndex[number]) {
+                    freshIndex[number] = { id: number, number, stops: [] };
+                }
+                freshIndex[number].stops.push({ id: stopId, name: p.name, lat: p.lat, lng: p.lng });
+            });
+        });
+
+        Object.values(freshIndex).forEach(line => {
+            line.stops = sortStopsByProximity(line.stops);
+        });
+
+        success = true;
+    } catch (err) {
+        console.error("Erreur chargement logical_stops.geojson :", err);
+    }
 
     const elapsedMs = Math.round(performance.now() - t0);
     console.timeEnd("buildLinesIndex");
-    console.log(`Analyse des lignes terminée en ${elapsedMs} ms (${knownStops.length} arrêts interrogés)`);
 
-    populateTransportLineSelect();
-    saveLinesIndexToCache();
-    showLinesCacheInfo(Date.now(), false, elapsedMs);
+    if (success) {
+        linesIndex = freshIndex;
+        console.log(`Analyse des lignes terminée en ${elapsedMs} ms (${Object.keys(linesIndex).length} lignes, réseau entier)`);
+        populateTransportLineSelect();
+        saveLinesIndexToCache();
+        showLinesCacheInfo(Date.now(), false, elapsedMs);
+    } else {
+        // On garde le cache existant tel quel s'il y en a un
+        const cached = loadCachedLinesIndex();
+        if (cached) {
+            linesIndex = cached.index;
+            populateTransportLineSelect();
+            showLinesFetchError(cached.builtAt, false);
+        } else {
+            // Pas de cache du tout : dernier recours, mode restreint via l'API
+            // sur les seuls arrêts déjà configurés
+            const restrictedOk = await buildLinesIndexFallbackFromRoutes();
+            populateTransportLineSelect();
+            showLinesFetchError(null, restrictedOk);
+        }
+    }
 }
 
 // Point d'entrée : utilise le cache local s'il existe (affichage instantané),
 // et ne relance une analyse complète que si le cache est absent ou a plus de
-// 30 jours (pour repérer d'éventuelles nouvelles lignes).
+// 30 jours (pour repérer d'éventuelles nouvelles lignes/arrêts).
 async function initTransportLines() {
     const cached = loadCachedLinesIndex();
     const isFresh = cached && (Date.now() - cached.builtAt) < LINES_CACHE_MAX_AGE;
@@ -309,7 +410,6 @@ async function initTransportLines() {
 
     if (isFresh) return; // cache récent : rien d'autre à faire
 
-    await loadKnownStops();
     await buildLinesIndex();
 }
 
@@ -327,11 +427,12 @@ function populateTransportLineSelect() {
     }
 
     select.innerHTML = `<option value="">Choisir une ligne...</option>` +
-        lines.map(l => `<option value="${l.id}">${l.number} — ${l.name}</option>`).join("");
+        lines.map(l => `<option value="${l.id}" style="color:${lineColor(l.number)}">Ligne ${l.number}</option>`).join("");
     select.disabled = false;
 }
 
-// Ligne choisie → on ne propose que les arrêts connus desservis par cette ligne
+// Ligne choisie → propose tous les arrêts du réseau desservis par cette ligne,
+// triés par proximité GPS (approxime l'ordre de passage)
 function onTransportLineChange() {
     const lineId = document.getElementById("new-transport-line").value;
     const stopSelect = document.getElementById("new-transport-stop");
@@ -347,12 +448,13 @@ function onTransportLineChange() {
     if (!line) return;
 
     stopSelect.innerHTML = `<option value="">— Arrêt —</option>` +
-        line.stops.map(s => `<option value="${s.stopId}">${s.stopLabel}</option>`).join("");
+        line.stops.map(s => `<option value="${s.id}">${s.name}</option>`).join("");
     stopSelect.disabled = false;
 }
 
-// Arrêt choisi (pour la ligne déjà sélectionnée) → on propose ses directions
-function onTransportStopChange() {
+// Arrêt choisi (pour la ligne déjà sélectionnée) → interroge l'API pour cet
+// arrêt précis afin de récupérer ses directions (le geojson ne les donne pas)
+async function onTransportStopChange() {
     const lineId = document.getElementById("new-transport-line").value;
     const stopId = document.getElementById("new-transport-stop").value;
     const dirSelect = document.getElementById("new-transport-direction");
@@ -361,15 +463,25 @@ function onTransportStopChange() {
     dirSelect.disabled = true;
 
     if (!lineId || !stopId) return;
-    const data = stopDataCache[stopId];
-    if (!data) return;
 
-    const line = (data.linked_lines || []).find(l => String(l.id) === String(lineId));
-    if (!line) return;
+    dirSelect.innerHTML = `<option value="">Chargement...</option>`;
 
-    dirSelect.innerHTML = `<option value="">— Direction —</option>` +
-        (line.directions || []).map(d => `<option value="${d.direction}">${d.name}</option>`).join("");
-    dirSelect.disabled = false;
+    try {
+        const data = await fetchNaolibStop(stopId);
+        const line = (data.linked_lines || []).find(l => String(l.id) === String(lineId) || String(l.number) === String(lineId));
+
+        if (!line) {
+            dirSelect.innerHTML = `<option value="">— Direction —</option>`;
+            return;
+        }
+
+        dirSelect.innerHTML = `<option value="">— Direction —</option>` +
+            (line.directions || []).map(d => `<option value="${d.direction}">${d.name}</option>`).join("");
+        dirSelect.disabled = false;
+    } catch (err) {
+        console.error("Erreur chargement direction :", err);
+        dirSelect.innerHTML = `<option value="">⚠️ Erreur de chargement</option>`;
+    }
 }
 
 // Palette tournante déterministe (pas les vraies couleurs officielles TAN,
@@ -510,7 +622,7 @@ function addTransportRoute() {
     if (!stopId || !lineId || !direction) return;
 
     const stopLabel  = stopSelect.options[stopSelect.selectedIndex].textContent;
-    const lineNumber = lineSelect.options[lineSelect.selectedIndex].textContent.split(" — ")[0].trim();
+    const lineNumber = lineId; // la valeur du select EST le numéro de ligne (ex: "3", "C8")
     const destLabel  = dirSelect.options[dirSelect.selectedIndex].textContent;
 
     const routes = getTransportRoutes();
