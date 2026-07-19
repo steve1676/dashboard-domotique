@@ -235,12 +235,15 @@ function sortStopsByProximity(stops) {
     return ordered;
 }
 
+const LINES_CACHE_SCHEMA_VERSION = 2; // à incrémenter à chaque changement de forme de linesIndex
+
 function loadCachedLinesIndex() {
     try {
         const raw = localStorage.getItem(LINES_CACHE_KEY);
         if (!raw) return null;
         const cached = JSON.parse(raw);
         if (!cached || !cached.builtAt || !cached.index) return null;
+        if (cached.schemaVersion !== LINES_CACHE_SCHEMA_VERSION) return null; // ancien format : on ignore, force un rescan
         return cached;
     } catch (err) {
         return null;
@@ -249,6 +252,7 @@ function loadCachedLinesIndex() {
 
 function saveLinesIndexToCache() {
     localStorage.setItem(LINES_CACHE_KEY, JSON.stringify({
+        schemaVersion: LINES_CACHE_SCHEMA_VERSION,
         builtAt: Date.now(),
         index: linesIndex
     }));

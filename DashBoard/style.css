@@ -943,13 +943,6 @@ body {
     .forecast {
         gap: 10px;
         margin-top: 20px;
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-    }
-
-    .forecast > * {
-        width: 100%;
-        box-sizing: border-box;
     }
 
     .forecast-item {
