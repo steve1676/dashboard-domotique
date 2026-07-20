@@ -258,6 +258,25 @@ function saveLinesIndexToCache() {
     }));
 }
 
+function showLinesCacheInfo(builtAt, scanning, elapsedMs) {
+    const el = document.getElementById("transport-lines-info");
+    if (!el) return;
+
+    if (scanning) {
+        el.innerHTML = `🔄 Analyse des lignes en cours...`;
+        return;
+    }
+    if (!builtAt) {
+        el.innerHTML = "";
+        return;
+    }
+
+    const days = Math.floor((Date.now() - builtAt) / (24 * 60 * 60 * 1000));
+    const ago  = days <= 0 ? "aujourd'hui" : days === 1 ? "il y a 1 jour" : `il y a ${days} jours`;
+    const timing = elapsedMs != null ? ` — analysée en ${(elapsedMs / 1000).toFixed(1)}s` : "";
+    el.innerHTML = `✅ Lignes à jour (dernière analyse : ${ago}${timing}) · <a href="#" onclick="forceLinesRescan(); return false;">rescanner maintenant</a>`;
+}
+
 function showLinesFetchError(fallbackBuiltAt, restrictedMode) {
     const el = document.getElementById("transport-lines-info");
     if (!el) return;
