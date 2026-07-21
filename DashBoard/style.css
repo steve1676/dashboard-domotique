@@ -311,7 +311,7 @@ body {
     transform: scale(1.02);
 }
 
-/* ── Réorganisation des widgets (appui long 5s + tap pour échanger) ── */
+/* ── appui long 5s + tap pour échanger ── */
 .reorder-widget {
     touch-action: none;
 }
@@ -443,7 +443,7 @@ body {
     display: block;
 }
 
-/* Dans la modale, tout est toujours visible (pas de dépli) */
+/* Dans la modale, tout est toujours visible */
 .widget-modal #transport-list-modal .transport-row {
     display: flex;
 }
@@ -663,7 +663,7 @@ body {
 
 /* ── Transports ── */
 .transport-card {
-    background: #1f2937;
+    background: #002301;
     border-radius: 25px;
     padding: 30px;
     margin-bottom: 30px;
