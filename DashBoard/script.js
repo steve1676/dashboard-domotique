@@ -710,8 +710,10 @@ function updateTransportWidgetTitle() {
         label = uniqueStops.length === 1 ? `🚌 ${uniqueStops[0]}` : "🚌 Transport";
     }
 
-    if (titleEl)      titleEl.textContent = label;
-    if (titleModalEl) titleModalEl.textContent = label;
+    // Tuile : titre dynamique (un seul groupe visible à la fois, pas de redondance)
+    if (titleEl) titleEl.textContent = label;
+    // Popup : titre générique — chaque groupe d'arrêt a déjà son propre en-tête
+    if (titleModalEl) titleModalEl.textContent = "🚌 Transport";
 }
 
 // ─── Transports : icône temps réel (remplace le 🟢/⚪) ───────────────────────
@@ -779,16 +781,15 @@ function buildTransportCards(routes, stopDataById, toMin, nowMin, waitLabel) {
     return order.map(k => byKey[k]);
 }
 
-function updateTransportHeader(headerId, cards, activeIdx) {
-    const header = document.getElementById(headerId);
-    if (!header) return;
+function updateTransportHeaderEl(headerEl, cards, activeIdx) {
+    if (!headerEl) return;
 
     const card = cards[activeIdx];
-    if (!card) { header.textContent = ""; return; }
+    if (!card) { headerEl.textContent = ""; return; }
 
     const dirIdx = transportDirectionIndex[card.key] || 0;
     const dir = card.directions[dirIdx];
-    header.innerHTML = `${card.stopLabel} <span class="arrow">→</span> ${dir ? dir.destLabel : ""}`;
+    headerEl.innerHTML = `${card.stopLabel} <span class="arrow">⟷</span> ${dir ? dir.destLabel : ""}`;
 }
 
 // Met à jour le contenu d'une seule carte (valeur, icône RT, compteur de
@@ -827,7 +828,7 @@ function mirrorCardDirection(cardKey, dirIdx) {
     });
 }
 
-function attachCardVerticalSwipe(el, card, instanceKey, headerId, cards) {
+function attachCardVerticalSwipe(el, card, instanceKey, headerEl, cards) {
     if (card.directions.length <= 1) return; // rien à swiper
 
     let startY = 0, startX = 0, dragging = false, moved = false;
@@ -855,7 +856,7 @@ function attachCardVerticalSwipe(el, card, instanceKey, headerId, cards) {
             mirrorCardDirection(card.key, newIdx);
 
             if (transportActiveCard[instanceKey] != null && cards[transportActiveCard[instanceKey]] === card) {
-                updateTransportHeader(headerId, cards, transportActiveCard[instanceKey]);
+                updateTransportHeaderEl(headerEl, cards, transportActiveCard[instanceKey]);
             }
         }
     });
@@ -877,7 +878,7 @@ function attachCardVerticalSwipe(el, card, instanceKey, headerId, cards) {
     });
 }
 
-function attachCarouselScrollTracking(container, headerId, cards, instanceKey) {
+function attachCarouselScrollTracking(container, headerEl, cards, instanceKey) {
     let ticking = false;
     container.addEventListener("scroll", () => {
         if (ticking) return;
@@ -896,21 +897,20 @@ function attachCarouselScrollTracking(container, headerId, cards, instanceKey) {
 
             if (closestIdx !== transportActiveCard[instanceKey]) {
                 transportActiveCard[instanceKey] = closestIdx;
-                updateTransportHeader(headerId, cards, closestIdx);
+                updateTransportHeaderEl(headerEl, cards, closestIdx);
             }
             ticking = false;
         });
     });
 }
 
-function renderTransportCarousel(containerId, headerId, cards, instanceKey) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-
+// Construit les cartes d'une rangée (horizontale, scroll-snap) dans rowEl, et
+// met à jour headerEl si fourni (null pour la tuile d'accueil, qui n'affiche
+// plus d'en-tête).
+function renderCardsIntoRow(rowEl, headerEl, cards, instanceKey) {
     if (cards.length === 0) {
-        container.innerHTML = `<div class="transport-loading">🕐 Aucun passage immédiat.</div>`;
-        const header = document.getElementById(headerId);
-        if (header) header.textContent = "";
+        rowEl.innerHTML = `<div class="transport-loading">🕐 Aucun passage immédiat.</div>`;
+        if (headerEl) headerEl.textContent = "";
         return;
     }
 
@@ -918,8 +918,8 @@ function renderTransportCarousel(containerId, headerId, cards, instanceKey) {
         transportActiveCard[instanceKey] = 0;
     }
 
-    container.innerHTML = "";
-    container.className = "transport-cards cards-count-" + Math.min(cards.length, 3);
+    rowEl.innerHTML = "";
+    rowEl.className = "transport-cards cards-count-" + Math.min(cards.length, 3);
 
     cards.forEach((card) => {
         const dirIdx = Math.min(transportDirectionIndex[card.key] || 0, card.directions.length - 1);
@@ -947,17 +947,132 @@ function renderTransportCarousel(containerId, headerId, cards, instanceKey) {
             el.appendChild(rtHolder);
         }
 
-        attachCardVerticalSwipe(el, card, instanceKey, headerId, cards);
-        container.appendChild(el);
+        attachCardVerticalSwipe(el, card, instanceKey, headerEl, cards);
+        rowEl.appendChild(el);
     });
 
-    updateTransportHeader(headerId, cards, transportActiveCard[instanceKey]);
-    attachCarouselScrollTracking(container, headerId, cards, instanceKey);
+    updateTransportHeaderEl(headerEl, cards, transportActiveCard[instanceKey]);
+    attachCarouselScrollTracking(rowEl, headerEl, cards, instanceKey);
 
-    const items = container.querySelectorAll(".transport-card-item");
+    const items = rowEl.querySelectorAll(".transport-card-item");
     if (items[transportActiveCard[instanceKey]]) {
-        container.scrollLeft = items[transportActiveCard[instanceKey]].offsetLeft - 4;
+        rowEl.scrollLeft = items[transportActiveCard[instanceKey]].offsetLeft - 4;
     }
+}
+
+// Tuile d'accueil : une seule rangée plate (toutes lignes confondues), sans en-tête
+function renderTransportTile(containerId, cards) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    renderCardsIntoRow(container, null, cards, "home");
+}
+
+// Popup : un groupe par arrêt, chacun avec son propre en-tête (arrêt ⟷ direction)
+// et sa propre rangée de cartes indépendamment défilable/swipeable
+// Regroupe les cartes d'un même arrêt par direction (destLabel) : toutes les
+// lignes allant "dans le même sens" se retrouvent sur la même sous-ligne.
+function buildDirectionRows(cardsForStop) {
+    const rows = [];
+    const byDest = {};
+
+    cardsForStop.forEach(card => {
+        card.directions.forEach(dir => {
+            const rowKey = dir.destLabel || dir.direction;
+            if (!byDest[rowKey]) {
+                byDest[rowKey] = { key: rowKey, destLabel: dir.destLabel, items: [] };
+                rows.push(byDest[rowKey]);
+            }
+            byDest[rowKey].items.push({
+                cardKey: card.key + "__" + dir.direction,
+                lineNumber: card.lineNumber,
+                color: card.color, // la vraie couleur officielle de CETTE ligne
+                entries: dir.entries
+            });
+        });
+    });
+
+    return rows;
+}
+
+// Rend une sous-ligne "direction" : en-tête (flèche + nom) + rangée de cartes,
+// une carte par ligne desservant cette direction à cet arrêt. Pas de swipe
+// vertical ici : toutes les directions sont déjà affichées côte à côte.
+function renderDirectionRow(row) {
+    const rowWrap = document.createElement("div");
+    rowWrap.className = "transport-direction-row";
+
+    const header = document.createElement("div");
+    header.className = "transport-direction-header";
+    header.innerHTML = `<span class="direction-arrow">➜</span> ${row.destLabel || ""}`;
+    rowWrap.appendChild(header);
+
+    const cardsRow = document.createElement("div");
+    cardsRow.className = "transport-cards cards-count-" + Math.min(row.items.length, 3);
+
+    row.items.forEach(item => {
+        const entry = item.entries[0];
+        const { big, unit } = formatCardValue(entry ? entry.label : null);
+
+        const el = document.createElement("div");
+        el.className = "transport-card-item";
+        el.style.background = item.color;
+        el.dataset.cardKey = item.cardKey;
+
+        el.innerHTML = `
+            <span class="transport-card-line">${item.lineNumber}</span>
+            <div class="transport-card-value">${big}</div>
+            <div class="transport-card-unit">${unit}</div>
+        `;
+
+        if (entry && entry.isRt) {
+            const rtHolder = document.createElement("span");
+            rtHolder.className = "transport-card-rt";
+            rtHolder.innerHTML = rtIconSVG("dr-" + item.cardKey.replace(/[^a-zA-Z0-9]/g, ""));
+            el.appendChild(rtHolder);
+        }
+
+        cardsRow.appendChild(el);
+    });
+
+    rowWrap.appendChild(cardsRow);
+    return rowWrap;
+}
+
+function renderTransportModalGrouped(containerId, cards) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (cards.length === 0) {
+        container.innerHTML = `<div class="transport-loading">⚙️ Configure au moins une ligne dans les Paramètres.</div>`;
+        return;
+    }
+
+    const groups = [];
+    const byStop = {};
+    cards.forEach(c => {
+        if (!byStop[c.stopId]) {
+            byStop[c.stopId] = { stopId: c.stopId, stopLabel: c.stopLabel, cards: [] };
+            groups.push(byStop[c.stopId]);
+        }
+        byStop[c.stopId].cards.push(c);
+    });
+
+    container.innerHTML = "";
+    groups.forEach(group => {
+        const groupEl = document.createElement("div");
+        groupEl.className = "transport-stop-group";
+
+        const titleEl = document.createElement("div");
+        titleEl.className = "transport-stop-title";
+        titleEl.textContent = group.stopLabel;
+        groupEl.appendChild(titleEl);
+
+        buildDirectionRows(group.cards).forEach(row => {
+            groupEl.appendChild(renderDirectionRow(row));
+        });
+
+        container.appendChild(groupEl);
+    });
 }
 
 async function updateTransports() {
@@ -969,10 +1084,6 @@ async function updateTransports() {
         const emptyHtml = `<div class="transport-loading">⚙️ Configure au moins une ligne dans les Paramètres.</div>`;
         document.getElementById("transport-list").innerHTML = emptyHtml;
         document.getElementById("transport-list-modal").innerHTML = emptyHtml;
-        const h1 = document.getElementById("transport-header-dynamic");
-        const h2 = document.getElementById("transport-header-dynamic-modal");
-        if (h1) h1.textContent = "";
-        if (h2) h2.textContent = "";
         return;
     }
 
@@ -1006,8 +1117,8 @@ async function updateTransports() {
         transportCardsByKey = {};
         cards.forEach(c => transportCardsByKey[c.key] = c);
 
-        renderTransportCarousel("transport-list", "transport-header-dynamic", cards, "home");
-        renderTransportCarousel("transport-list-modal", "transport-header-dynamic-modal", cards, "modal");
+        renderTransportTile("transport-list", cards);
+        renderTransportModalGrouped("transport-list-modal", cards);
 
     } catch (err) {
         console.error("Erreur transports :", err);
@@ -1042,12 +1153,14 @@ function stripHtmlToText(html) {
 async function updateInfotrafic() {
     const badge = document.getElementById("transport-alert-badge");
     const modalBox = document.getElementById("transport-alerts-modal");
+    const section = document.getElementById("transport-infotrafic-section");
     if (!badge || !modalBox) return;
 
     const routes = getTransportRoutes();
     if (!routes.length) {
         badge.style.display = "none";
         modalBox.innerHTML = "";
+        if (section) section.style.display = "none";
         return;
     }
 
@@ -1068,10 +1181,12 @@ async function updateInfotrafic() {
         if (!relevant.length) {
             badge.style.display = "none";
             modalBox.innerHTML = "";
+            if (section) section.style.display = "none";
             return;
         }
 
         badge.style.display = "inline";
+        if (section) section.style.display = "block";
 
         let html = "";
         relevant.forEach(d => {
