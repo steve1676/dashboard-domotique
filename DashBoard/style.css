@@ -649,6 +649,7 @@ body {
 .top-row .transport-card {
     margin-bottom: 0;
     min-width: 0;
+    padding: 20px 14px;
 }
 
 /* miroir dans la rangée du haut : même taille, même hauteur (grille = stretch par défaut) */
@@ -728,6 +729,159 @@ body {
 .transport-error {
     color: #f87171;
     font-size: 1.1rem;
+}
+
+/* ── Transports : en-tête dynamique (arrêt → direction de la carte active) ── */
+.transport-header-dynamic {
+    font-size: 0.95rem;
+    color: #cbd5e1;
+    margin-bottom: 14px;
+    min-height: 1.2em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.transport-header-dynamic .arrow {
+    color: #64748b;
+}
+
+/* ── Transports : carrousel de cartes (une carte = une ligne à un arrêt) ── */
+.transport-cards {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 6px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.transport-cards::-webkit-scrollbar {
+    height: 6px;
+}
+
+.transport-cards::-webkit-scrollbar-thumb {
+    background: #4b5563;
+    border-radius: 10px;
+}
+
+.transport-card-item {
+    flex: 0 0 auto;
+    width: 130px;
+    height: 150px;
+    border-radius: 22px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    scroll-snap-align: start;
+    touch-action: pan-x;
+    user-select: none;
+    transition: transform 0.15s ease;
+}
+
+.top-row .transport-card-item {
+    width: 108px;
+    height: 118px;
+}
+
+/* Tuile d'accueil : 1 seule carte = centrée, 2 cartes = côte à côte sans scroll */
+.top-row .transport-cards.cards-count-1,
+.top-row .transport-cards.cards-count-2 {
+    overflow-x: visible;
+    justify-content: center;
+}
+
+.top-row .transport-cards.cards-count-2 {
+    gap: 8px;
+}
+
+.top-row .transport-cards.cards-count-2 .transport-card-item {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+    max-width: 100px;
+    height: 100px;
+    padding: 0 2px;
+}
+
+.top-row .transport-cards.cards-count-2 .transport-card-value {
+    font-size: 1.4rem;
+}
+
+.top-row .transport-cards.cards-count-2 .transport-card-line {
+    font-size: 0.7rem;
+    left: 8px;
+    top: 8px;
+}
+
+.top-row .transport-cards.cards-count-2 .transport-card-rt {
+    width: 13px;
+    height: 13px;
+    top: 8px;
+    right: 8px;
+}
+
+.transport-card-item.dragging {
+    transform: scale(0.95);
+}
+
+.transport-card-line {
+    position: absolute;
+    top: 10px;
+    left: 12px;
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.transport-card-rt {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 16px;
+    height: 16px;
+    color: white;
+}
+
+.transport-card-rt svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.transport-card-value {
+    font-size: 2.4rem;
+    font-weight: 800;
+    color: white;
+    line-height: 1;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.25);
+}
+
+.top-row .transport-card-value {
+    font-size: 1.9rem;
+}
+
+.transport-card-unit {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+    margin-top: 4px;
+    text-transform: lowercase;
+}
+
+.transport-card-dircount {
+    position: absolute;
+    bottom: 10px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.75);
 }
 
 /* ── Paramètres – Toggles widgets ── */

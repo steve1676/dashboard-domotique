@@ -46,6 +46,7 @@
         <!-- Transports -->
         <div id="widget-transport" class="transport-card reorder-widget" data-widget="transport" onclick="openWidgetModal('transport')">
             <div id="transport-title" class="transport-title">🚌 Transport <span id="transport-alert-badge" class="transport-alert-badge" style="display:none;">⚠️</span></div>
+            <div id="transport-header-dynamic" class="transport-header-dynamic"></div>
             <div id="transport-list">
                 <div class="transport-loading">Chargement...</div>
             </div>
@@ -282,12 +283,14 @@
 
         <!-- Détail Transport -->
         <div id="modal-transport" class="widget-modal-section">
-            <div id="transport-title-modal" class="transport-title" style="margin-bottom:20px;">🚌 Transport</div>
+            <div id="transport-title-modal" class="transport-title" style="margin-bottom:10px;">🚌 Transport</div>
+            <div id="transport-header-dynamic-modal" class="transport-header-dynamic"></div>
             <div id="transport-list-modal">
                 <div class="transport-loading">Chargement...</div>
             </div>
             <div id="transport-alerts-modal"></div>
         </div>
+
 
     </div>
 </div>

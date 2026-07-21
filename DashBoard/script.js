@@ -714,18 +714,265 @@ function updateTransportWidgetTitle() {
     if (titleModalEl) titleModalEl.textContent = label;
 }
 
-async function updateTransports() {
-    const container      = document.getElementById("transport-list");
-    const modalContainer  = document.getElementById("transport-list-modal");
+// ─── Transports : icône temps réel (remplace le 🟢/⚪) ───────────────────────
+// SVG fourni par Steve (icon_rt.svg) — 2 arcs avec animation d'opacité en
+// cascade façon "signal". Les id/keyframes sont suffixés par instance pour
+// éviter les collisions quand plusieurs cartes affichent l'icône en même temps.
+function rtIconSVG(uid) {
+    return `<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+        <style>
+            #rt-a-${uid} { animation: rt-a-${uid}-op 800ms linear infinite normal forwards; }
+            @keyframes rt-a-${uid}-op { 0% {opacity:1} 50% {opacity:1} 75% {opacity:.3} 100% {opacity:1} }
+            #rt-b-${uid} { animation: rt-b-${uid}-op 800ms linear infinite normal forwards; }
+            @keyframes rt-b-${uid}-op { 0% {opacity:1} 25% {opacity:1} 50% {opacity:.3} 75% {opacity:1} 100% {opacity:1} }
+        </style>
+        <path id="rt-a-${uid}" d="M263.4,282c-10.3,0-18.6-8.3-18.6-18.6c0-114.8-93.4-208.2-208.2-208.2C26.3,55.2,18,46.9,18,36.6s8.3-18.6,18.6-18.6C171.9,18,282,128.1,282,263.4c0,10.3-8.3,18.6-18.6,18.6Z" fill="currentColor"/>
+        <path id="rt-b-${uid}" d="M192.8,282c-10.3,0-18.6-8.3-18.6-18.6c0-75.9-61.7-137.6-137.6-137.6-10.3,0-18.6-8.3-18.6-18.6s8.3-18.6,18.6-18.6c96.4,0,174.8,78.4,174.8,174.8c0,10.3-8.4,18.6-18.6,18.6Z" fill="currentColor"/>
+    </svg>`;
+}
 
+// ─── Transports : carrousel de cartes ────────────────────────────────────────
+// Une carte = une ligne à un arrêt configuré. Swipe horizontal (natif, scroll-
+// snap) = change de carte/ligne. Swipe vertical (custom, par carte) = change
+// de direction pour CETTE ligne, si plusieurs directions ont été configurées.
+// La tuile d'accueil et la popup partagent le même état (direction choisie,
+// carte active) pour rester synchronisées.
+
+let transportCardsByKey = {};        // cardKey -> objet carte (partagé tuile/popup)
+const transportDirectionIndex = {};  // cardKey -> index de direction actif
+const transportActiveCard = { home: 0, modal: 0 }; // index de carte centrée par instance
+
+function formatCardValue(label) {
+    if (!label) return { big: "—", unit: "" };
+    if (label === "À quai") return { big: "À quai", unit: "" };
+    const m = label.match(/^(\d+)\s*min$/);
+    if (m) return { big: m[1], unit: "min" };
+    return { big: label, unit: "" }; // format hh:mm (passage dans plus d'1h)
+}
+
+// Regroupe les routes configurées par (arrêt, ligne) → une carte par groupe,
+// chaque carte pouvant contenir plusieurs directions (une par route ajoutée
+// avec ce même arrêt+ligne mais une direction différente).
+function buildTransportCards(routes, stopDataById, toMin, nowMin, waitLabel) {
+    const order = [];
+    const byKey = {};
+
+    routes.forEach(r => {
+        const key = r.stopId + "__" + r.lineNumber;
+        if (!byKey[key]) {
+            byKey[key] = { key, stopId: r.stopId, stopLabel: r.stopLabel, lineNumber: r.lineNumber, color: r.color, directions: [] };
+            order.push(key);
+        }
+        if (byKey[key].directions.some(d => d.direction === r.direction)) return; // évite les doublons
+
+        const data  = stopDataById[r.stopId];
+        const hours = data?.departures?.[r.lineNumber]?.[r.direction]?.hours || [];
+        const next  = hours.filter(h => toMin(h.time) > nowMin).slice(0, 2);
+
+        byKey[key].directions.push({
+            direction: r.direction,
+            destLabel: r.destLabel,
+            entries: next.map(h => ({ label: waitLabel(h.time), isRt: !!h.is_rt }))
+        });
+    });
+
+    return order.map(k => byKey[k]);
+}
+
+function updateTransportHeader(headerId, cards, activeIdx) {
+    const header = document.getElementById(headerId);
+    if (!header) return;
+
+    const card = cards[activeIdx];
+    if (!card) { header.textContent = ""; return; }
+
+    const dirIdx = transportDirectionIndex[card.key] || 0;
+    const dir = card.directions[dirIdx];
+    header.innerHTML = `${card.stopLabel} <span class="arrow">→</span> ${dir ? dir.destLabel : ""}`;
+}
+
+// Met à jour le contenu d'une seule carte (valeur, icône RT, compteur de
+// directions) sans tout re-render — utilisé après un swipe vertical.
+function updateSingleCard(el, card, dirIdx) {
+    const dir = card.directions[dirIdx];
+    const entry = dir.entries[0];
+    const { big, unit } = formatCardValue(entry ? entry.label : null);
+
+    el.querySelector(".transport-card-value").textContent = big;
+    el.querySelector(".transport-card-unit").textContent = unit;
+
+    let rtHolder = el.querySelector(".transport-card-rt");
+    if (entry && entry.isRt) {
+        if (!rtHolder) {
+            rtHolder = document.createElement("span");
+            rtHolder.className = "transport-card-rt";
+            el.appendChild(rtHolder);
+        }
+        rtHolder.innerHTML = rtIconSVG("m" + Math.random().toString(36).slice(2));
+    } else if (rtHolder) {
+        rtHolder.remove();
+    }
+
+    const countEl = el.querySelector(".transport-card-dircount");
+    if (countEl) countEl.textContent = `${dirIdx + 1}/${card.directions.length}`;
+}
+
+// Répercute un changement de direction (fait sur la tuile OU la popup) sur
+// l'autre instance de la même carte, pour rester synchronisées.
+function mirrorCardDirection(cardKey, dirIdx) {
+    const card = transportCardsByKey[cardKey];
+    if (!card) return;
+    document.querySelectorAll(`.transport-card-item[data-card-key="${cardKey}"]`).forEach(el => {
+        updateSingleCard(el, card, dirIdx);
+    });
+}
+
+function attachCardVerticalSwipe(el, card, instanceKey, headerId, cards) {
+    if (card.directions.length <= 1) return; // rien à swiper
+
+    let startY = 0, startX = 0, dragging = false, moved = false;
+
+    el.addEventListener("pointerdown", (e) => {
+        startY = e.clientY;
+        startX = e.clientX;
+        dragging = true;
+        moved = false;
+        el.classList.add("dragging");
+        try { el.setPointerCapture(e.pointerId); } catch (err) {}
+    });
+
+    el.addEventListener("pointermove", (e) => {
+        if (!dragging || moved) return;
+        const dy = e.clientY - startY;
+        const dx = e.clientX - startX;
+        if (Math.abs(dy) > 28 && Math.abs(dy) > Math.abs(dx)) {
+            moved = true;
+            const step = dy < 0 ? 1 : -1; // vers le haut = direction suivante
+            const newIdx = (transportDirectionIndex[card.key] + step + card.directions.length) % card.directions.length;
+            transportDirectionIndex[card.key] = newIdx;
+
+            updateSingleCard(el, card, newIdx);
+            mirrorCardDirection(card.key, newIdx);
+
+            if (transportActiveCard[instanceKey] != null && cards[transportActiveCard[instanceKey]] === card) {
+                updateTransportHeader(headerId, cards, transportActiveCard[instanceKey]);
+            }
+        }
+    });
+
+    const end = (e) => {
+        dragging = false;
+        el.classList.remove("dragging");
+        try { el.releasePointerCapture(e.pointerId); } catch (err) {}
+    };
+    el.addEventListener("pointerup", end);
+    el.addEventListener("pointercancel", end);
+
+    // Empêche l'ouverture de la popup (tuile d'accueil) si le tap était en fait un swipe
+    el.addEventListener("click", (e) => {
+        if (moved) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    });
+}
+
+function attachCarouselScrollTracking(container, headerId, cards, instanceKey) {
+    let ticking = false;
+    container.addEventListener("scroll", () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+            const items = [...container.querySelectorAll(".transport-card-item")];
+            const containerRect = container.getBoundingClientRect();
+            const centerX = containerRect.left + containerRect.width / 2;
+
+            let closestIdx = 0, closestDist = Infinity;
+            items.forEach((it, idx) => {
+                const r = it.getBoundingClientRect();
+                const d = Math.abs((r.left + r.width / 2) - centerX);
+                if (d < closestDist) { closestDist = d; closestIdx = idx; }
+            });
+
+            if (closestIdx !== transportActiveCard[instanceKey]) {
+                transportActiveCard[instanceKey] = closestIdx;
+                updateTransportHeader(headerId, cards, closestIdx);
+            }
+            ticking = false;
+        });
+    });
+}
+
+function renderTransportCarousel(containerId, headerId, cards, instanceKey) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (cards.length === 0) {
+        container.innerHTML = `<div class="transport-loading">🕐 Aucun passage immédiat.</div>`;
+        const header = document.getElementById(headerId);
+        if (header) header.textContent = "";
+        return;
+    }
+
+    if (transportActiveCard[instanceKey] == null || transportActiveCard[instanceKey] >= cards.length) {
+        transportActiveCard[instanceKey] = 0;
+    }
+
+    container.innerHTML = "";
+    container.className = "transport-cards cards-count-" + Math.min(cards.length, 3);
+
+    cards.forEach((card) => {
+        const dirIdx = Math.min(transportDirectionIndex[card.key] || 0, card.directions.length - 1);
+        transportDirectionIndex[card.key] = dirIdx;
+        const dir = card.directions[dirIdx];
+        const entry = dir.entries[0];
+        const { big, unit } = formatCardValue(entry ? entry.label : null);
+
+        const el = document.createElement("div");
+        el.className = "transport-card-item";
+        el.style.background = card.color;
+        el.dataset.cardKey = card.key;
+
+        el.innerHTML = `
+            <span class="transport-card-line">${card.lineNumber}</span>
+            <div class="transport-card-value">${big}</div>
+            <div class="transport-card-unit">${unit}</div>
+            ${card.directions.length > 1 ? `<span class="transport-card-dircount">${dirIdx + 1}/${card.directions.length}</span>` : ""}
+        `;
+
+        if (entry && entry.isRt) {
+            const rtHolder = document.createElement("span");
+            rtHolder.className = "transport-card-rt";
+            rtHolder.innerHTML = rtIconSVG(instanceKey + "-" + card.key.replace(/[^a-zA-Z0-9]/g, ""));
+            el.appendChild(rtHolder);
+        }
+
+        attachCardVerticalSwipe(el, card, instanceKey, headerId, cards);
+        container.appendChild(el);
+    });
+
+    updateTransportHeader(headerId, cards, transportActiveCard[instanceKey]);
+    attachCarouselScrollTracking(container, headerId, cards, instanceKey);
+
+    const items = container.querySelectorAll(".transport-card-item");
+    if (items[transportActiveCard[instanceKey]]) {
+        container.scrollLeft = items[transportActiveCard[instanceKey]].offsetLeft - 4;
+    }
+}
+
+async function updateTransports() {
     updateTransportWidgetTitle();
 
     const routes = getTransportRoutes();
 
     if (routes.length === 0) {
         const emptyHtml = `<div class="transport-loading">⚙️ Configure au moins une ligne dans les Paramètres.</div>`;
-        container.innerHTML = emptyHtml;
-        modalContainer.innerHTML = emptyHtml;
+        document.getElementById("transport-list").innerHTML = emptyHtml;
+        document.getElementById("transport-list-modal").innerHTML = emptyHtml;
+        const h1 = document.getElementById("transport-header-dynamic");
+        const h2 = document.getElementById("transport-header-dynamic-modal");
+        if (h1) h1.textContent = "";
+        if (h2) h2.textContent = "";
         return;
     }
 
@@ -755,47 +1002,18 @@ async function updateTransports() {
             stopDataById[id] = await fetchNaolibStop(id);
         }));
 
-        let merged = [];
-        routes.forEach(r => {
-            const data = stopDataById[r.stopId];
-            if (!data) return;
-            const hours = data.departures?.[r.lineNumber]?.[r.direction]?.hours || [];
-            const next = hours.filter(h => toMin(h.time) > nowMin).slice(0, 2);
-            next.forEach(h => merged.push({ ...h, line: r.lineNumber, dest: r.destLabel, color: r.color }));
-        });
+        const cards = buildTransportCards(routes, stopDataById, toMin, nowMin, waitLabel);
+        transportCardsByKey = {};
+        cards.forEach(c => transportCardsByKey[c.key] = c);
 
-        merged.sort((a, b) => toMin(a.time) - toMin(b.time));
-
-        if (!merged.length) {
-            const emptyHtml = `<div class="transport-loading">🕐 Aucun passage immédiat.</div>`;
-            container.innerHTML = emptyHtml;
-            modalContainer.innerHTML = emptyHtml;
-            return;
-        }
-
-        let html = "";
-        merged.forEach(h => {
-            const rt = h.is_rt ? "🟢" : "⚪";
-            html += `<div class="transport-row">
-                <span class="line-badge" style="background:${h.color};color:white">${h.line}</span>
-                <span class="transport-dest">${h.dest}</span>
-                <span class="transport-time">${waitLabel(h.time)} ${rt}</span>
-            </div>`;
-        });
-
-        // Carte : seul le 1er passage visible
-        container.innerHTML = html;
-        const rows = container.querySelectorAll(".transport-row");
-        if (rows.length > 0) rows[0].classList.add("visible");
-
-        // Modale : tous les passages visibles
-        modalContainer.innerHTML = html;
+        renderTransportCarousel("transport-list", "transport-header-dynamic", cards, "home");
+        renderTransportCarousel("transport-list-modal", "transport-header-dynamic-modal", cards, "modal");
 
     } catch (err) {
         console.error("Erreur transports :", err);
         const errorHtml = `<div class="transport-error">⚠️ Impossible de charger les horaires.</div>`;
-        container.innerHTML = errorHtml;
-        modalContainer.innerHTML = errorHtml;
+        document.getElementById("transport-list").innerHTML = errorHtml;
+        document.getElementById("transport-list-modal").innerHTML = errorHtml;
     }
 }
 
