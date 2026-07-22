@@ -769,7 +769,7 @@ function buildTransportCards(routes, stopDataById, toMin, nowMin, waitLabel) {
 
         const data  = stopDataById[r.stopId];
         const hours = data?.departures?.[r.lineNumber]?.[r.direction]?.hours || [];
-        const next  = hours.filter(h => toMin(h.time) > nowMin).slice(0, 2);
+        const next  = hours.filter(h => toMin(h.time) > nowMin);
 
         byKey[key].directions.push({
             direction: r.direction,
@@ -818,8 +818,6 @@ function updateSingleCard(el, card, dirIdx) {
     if (countEl) countEl.textContent = `${dirIdx + 1}/${card.directions.length}`;
 }
 
-// Répercute un changement de direction (fait sur la tuile OU la popup) sur
-// l'autre instance de la même carte, pour rester synchronisées.
 function mirrorCardDirection(cardKey, dirIdx) {
     const card = transportCardsByKey[cardKey];
     if (!card) return;
@@ -878,48 +876,23 @@ function attachCardVerticalSwipe(el, card, instanceKey, headerEl, cards) {
     });
 }
 
-function attachCarouselScrollTracking(container, headerEl, cards, instanceKey) {
-    let ticking = false;
-    container.addEventListener("scroll", () => {
-        if (ticking) return;
-        ticking = true;
-        requestAnimationFrame(() => {
-            const items = [...container.querySelectorAll(".transport-card-item")];
-            const containerRect = container.getBoundingClientRect();
-            const centerX = containerRect.left + containerRect.width / 2;
+// Tuile d'accueil : une carte (grande) par ligne, un seul horaire visible ;
+// swipe vertical pour changer de direction. Pas d'en-tête, pas de groupement.
+function renderTransportTile(containerId, cards) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
 
-            let closestIdx = 0, closestDist = Infinity;
-            items.forEach((it, idx) => {
-                const r = it.getBoundingClientRect();
-                const d = Math.abs((r.left + r.width / 2) - centerX);
-                if (d < closestDist) { closestDist = d; closestIdx = idx; }
-            });
-
-            if (closestIdx !== transportActiveCard[instanceKey]) {
-                transportActiveCard[instanceKey] = closestIdx;
-                updateTransportHeaderEl(headerEl, cards, closestIdx);
-            }
-            ticking = false;
-        });
-    });
-}
-
-// Construit les cartes d'une rangée (horizontale, scroll-snap) dans rowEl, et
-// met à jour headerEl si fourni (null pour la tuile d'accueil, qui n'affiche
-// plus d'en-tête).
-function renderCardsIntoRow(rowEl, headerEl, cards, instanceKey) {
     if (cards.length === 0) {
-        rowEl.innerHTML = `<div class="transport-loading">🕐 Aucun passage immédiat.</div>`;
-        if (headerEl) headerEl.textContent = "";
+        container.innerHTML = `<div class="transport-loading">🕐 Aucun passage immédiat.</div>`;
         return;
     }
 
-    if (transportActiveCard[instanceKey] == null || transportActiveCard[instanceKey] >= cards.length) {
-        transportActiveCard[instanceKey] = 0;
+    if (transportActiveCard.home == null || transportActiveCard.home >= cards.length) {
+        transportActiveCard.home = 0;
     }
 
-    rowEl.innerHTML = "";
-    rowEl.className = "transport-cards cards-count-" + Math.min(cards.length, 3);
+    container.innerHTML = "";
+    container.className = "transport-cards cards-count-" + Math.min(cards.length, 3);
 
     cards.forEach((card) => {
         const dirIdx = Math.min(transportDirectionIndex[card.key] || 0, card.directions.length - 1);
@@ -943,28 +916,18 @@ function renderCardsIntoRow(rowEl, headerEl, cards, instanceKey) {
         if (entry && entry.isRt) {
             const rtHolder = document.createElement("span");
             rtHolder.className = "transport-card-rt";
-            rtHolder.innerHTML = rtIconSVG(instanceKey + "-" + card.key.replace(/[^a-zA-Z0-9]/g, ""));
+            rtHolder.innerHTML = rtIconSVG("home-" + card.key.replace(/[^a-zA-Z0-9]/g, ""));
             el.appendChild(rtHolder);
         }
 
-        attachCardVerticalSwipe(el, card, instanceKey, headerEl, cards);
-        rowEl.appendChild(el);
+        attachCardVerticalSwipe(el, card, "home", null, cards);
+        container.appendChild(el);
     });
 
-    updateTransportHeaderEl(headerEl, cards, transportActiveCard[instanceKey]);
-    attachCarouselScrollTracking(rowEl, headerEl, cards, instanceKey);
-
-    const items = rowEl.querySelectorAll(".transport-card-item");
-    if (items[transportActiveCard[instanceKey]]) {
-        rowEl.scrollLeft = items[transportActiveCard[instanceKey]].offsetLeft - 4;
+    const items = container.querySelectorAll(".transport-card-item");
+    if (items[transportActiveCard.home]) {
+        container.scrollLeft = items[transportActiveCard.home].offsetLeft - 4;
     }
-}
-
-// Tuile d'accueil : une seule rangée plate (toutes lignes confondues), sans en-tête
-function renderTransportTile(containerId, cards) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    renderCardsIntoRow(container, null, cards, "home");
 }
 
 // Popup : un groupe par arrêt, chacun avec son propre en-tête (arrêt ⟷ direction)
@@ -994,9 +957,10 @@ function buildDirectionRows(cardsForStop) {
     return rows;
 }
 
-// Rend une sous-ligne "direction" : en-tête (flèche + nom) + rangée de cartes,
-// une carte par ligne desservant cette direction à cet arrêt. Pas de swipe
-// vertical ici : toutes les directions sont déjà affichées côte à côte.
+// Rend une sous-ligne "direction" : en-tête (flèche + nom) + rangée de
+// groupes-lignes (une mini-carte par horaire à venir), une par ligne
+// desservant cette direction à cet arrêt. Pas de swipe ici : toutes les
+// directions sont déjà affichées côte à côte, donc pas besoin de compteur.
 function renderDirectionRow(row) {
     const rowWrap = document.createElement("div");
     rowWrap.className = "transport-direction-row";
@@ -1010,28 +974,34 @@ function renderDirectionRow(row) {
     cardsRow.className = "transport-cards cards-count-" + Math.min(row.items.length, 3);
 
     row.items.forEach(item => {
-        const entry = item.entries[0];
-        const { big, unit } = formatCardValue(entry ? entry.label : null);
+        const groupEl = document.createElement("div");
+        groupEl.className = "transport-line-group";
 
-        const el = document.createElement("div");
-        el.className = "transport-card-item";
-        el.style.background = item.color;
-        el.dataset.cardKey = item.cardKey;
+        const list = item.entries.length ? item.entries.slice(0, 5) : [{ label: null, isRt: false }];
+        list.forEach((entry, i) => {
+            const { big, unit } = formatCardValue(entry.label);
 
-        el.innerHTML = `
-            <span class="transport-card-line">${item.lineNumber}</span>
-            <div class="transport-card-value">${big}</div>
-            <div class="transport-card-unit">${unit}</div>
-        `;
+            const el = document.createElement("div");
+            el.className = "transport-card-item";
+            el.style.background = item.color;
 
-        if (entry && entry.isRt) {
-            const rtHolder = document.createElement("span");
-            rtHolder.className = "transport-card-rt";
-            rtHolder.innerHTML = rtIconSVG("dr-" + item.cardKey.replace(/[^a-zA-Z0-9]/g, ""));
-            el.appendChild(rtHolder);
-        }
+            el.innerHTML = `
+                ${i === 0 ? `<span class="transport-card-line">${item.lineNumber}</span>` : ""}
+                <div class="transport-card-value">${big}</div>
+                <div class="transport-card-unit">${unit}</div>
+            `;
 
-        cardsRow.appendChild(el);
+            if (entry.isRt) {
+                const rtHolder = document.createElement("span");
+                rtHolder.className = "transport-card-rt";
+                rtHolder.innerHTML = rtIconSVG("dr-" + Math.random().toString(36).slice(2));
+                el.appendChild(rtHolder);
+            }
+
+            groupEl.appendChild(el);
+        });
+
+        cardsRow.appendChild(groupEl);
     });
 
     rowWrap.appendChild(cardsRow);

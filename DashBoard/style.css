@@ -311,7 +311,7 @@ body {
     transform: scale(1.02);
 }
 
-/* ── appui long 5s + tap pour échanger ── */
+/* ── Réorganisation des widgets (appui long 5s + tap pour échanger) ── */
 .reorder-widget {
     touch-action: none;
 }
@@ -439,11 +439,18 @@ body {
     display: none;
 }
 
+#modal-transport.visible {
+    background: url('images/illu-courbes.svg') no-repeat bottom center / cover;
+    border-radius: 20px;
+    margin: -10px;
+    padding: 10px;
+}
+
 .widget-modal-section.visible {
     display: block;
 }
 
-/* Dans la modale, tout est toujours visible */
+/* Dans la modale, tout est toujours visible (pas de dépli) */
 .widget-modal #transport-list-modal .transport-row {
     display: flex;
 }
@@ -663,7 +670,7 @@ body {
 
 /* ── Transports ── */
 .transport-card {
-    background: #002301;
+    background: #1f2937 url('images/illu-courbes.svg') no-repeat bottom center / cover;
     border-radius: 25px;
     padding: 30px;
     margin-bottom: 30px;
@@ -769,11 +776,12 @@ body {
     border-radius: 10px;
 }
 
+/* ── Carte de base : taille unique partout (tuile ET popup) ── */
 .transport-card-item {
     flex: 0 0 auto;
-    width: 150px;
-    height: 165px;
-    border-radius: 26px;
+    width: 100px;
+    min-height: 100px;
+    border-radius: 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -783,11 +791,20 @@ body {
     touch-action: pan-x;
     user-select: none;
     transition: transform 0.15s ease;
+    padding: 0 2px;
 }
 
-.top-row .transport-card-item {
-    width: 108px;
-    height: 118px;
+.transport-card-item.dragging {
+    transform: scale(0.95);
+}
+
+/* Popup : un groupe-ligne = plusieurs cartes (une par horaire) côte à côte */
+.transport-line-group {
+    display: flex;
+    gap: 8px;
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+    position: relative;
 }
 
 /* Tuile d'accueil : 1 seule carte = centrée, 2 cartes = côte à côte sans scroll */
@@ -806,36 +823,13 @@ body {
     width: auto;
     min-width: 0;
     max-width: 100px;
-    height: 100px;
-    padding: 0 2px;
-}
-
-.top-row .transport-cards.cards-count-2 .transport-card-value {
-    font-size: 1.4rem;
-}
-
-.top-row .transport-cards.cards-count-2 .transport-card-line {
-    font-size: 0.7rem;
-    left: 8px;
-    top: 8px;
-}
-
-.top-row .transport-cards.cards-count-2 .transport-card-rt {
-    width: 13px;
-    height: 13px;
-    top: 8px;
-    right: 8px;
-}
-
-.transport-card-item.dragging {
-    transform: scale(0.95);
 }
 
 .transport-card-line {
     position: absolute;
-    top: 10px;
-    left: 12px;
-    font-size: 0.85rem;
+    top: 8px;
+    left: 8px;
+    font-size: 0.7rem;
     font-weight: 800;
     color: rgba(255, 255, 255, 0.9);
     text-shadow: 0 1px 3px rgba(0,0,0,0.3);
@@ -843,10 +837,10 @@ body {
 
 .transport-card-rt {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    width: 16px;
-    height: 16px;
+    top: 8px;
+    right: 8px;
+    width: 13px;
+    height: 13px;
     color: white;
 }
 
@@ -857,22 +851,18 @@ body {
 }
 
 .transport-card-value {
-    font-size: 2.8rem;
+    font-size: 1.4rem;
     font-weight: 800;
     color: white;
     line-height: 1;
     text-shadow: 0 1px 3px rgba(0,0,0,0.25);
 }
 
-.top-row .transport-card-value {
-    font-size: 1.9rem;
-}
-
 .transport-card-unit {
-    font-size: 0.95rem;
+    font-size: 0.72rem;
     font-weight: 700;
     color: rgba(255, 255, 255, 0.9);
-    margin-top: 4px;
+    margin-top: 3px;
     text-transform: lowercase;
 }
 
