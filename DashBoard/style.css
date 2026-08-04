@@ -627,6 +627,14 @@ body {
     width: 60px;
     height: 60px;
     border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-icon {
+    width: 26px;
+    height: 26px;
 }
 
 .active-nav {

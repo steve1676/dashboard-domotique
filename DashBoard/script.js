@@ -263,7 +263,7 @@ function showLinesCacheInfo(builtAt, scanning, elapsedMs) {
     if (!el) return;
 
     if (scanning) {
-        el.innerHTML = `🔄 Analyse des lignes en cours...`;
+        el.innerHTML = `${ICON_REFRESH} Analyse des lignes en cours...`;
         return;
     }
     if (!builtAt) {
@@ -274,7 +274,7 @@ function showLinesCacheInfo(builtAt, scanning, elapsedMs) {
     const days = Math.floor((Date.now() - builtAt) / (24 * 60 * 60 * 1000));
     const ago  = days <= 0 ? "aujourd'hui" : days === 1 ? "il y a 1 jour" : `il y a ${days} jours`;
     const timing = elapsedMs != null ? ` — analysée en ${(elapsedMs / 1000).toFixed(1)}s` : "";
-    el.innerHTML = `✅ Lignes à jour (dernière analyse : ${ago}${timing}) · <a href="#" onclick="forceLinesRescan(); return false;">rescanner maintenant</a>`;
+    el.innerHTML = `${ICON_CHECK} Lignes à jour (dernière analyse : ${ago}${timing}) · <a href="#" onclick="forceLinesRescan(); return false;">rescanner maintenant</a>`;
 }
 
 function showLinesFetchError(fallbackBuiltAt, restrictedMode) {
@@ -283,9 +283,9 @@ function showLinesFetchError(fallbackBuiltAt, restrictedMode) {
 
     let base;
     if (restrictedMode) {
-        base = `⚠️ Fichier Naolib inaccessible — mode restreint (uniquement tes lignes déjà configurées)`;
+        base = `${ICON_ALERT} Fichier Naolib inaccessible — mode restreint (uniquement tes lignes déjà configurées)`;
     } else {
-        base = `⚠️ Échec du chargement des lignes (le fichier Naolib a peut-être changé d'adresse)`;
+        base = `${ICON_ALERT} Échec du chargement des lignes (le fichier Naolib a peut-être changé d'adresse)`;
         if (fallbackBuiltAt) {
             const days = Math.floor((Date.now() - fallbackBuiltAt) / (24 * 60 * 60 * 1000));
             const ago  = days <= 0 ? "aujourd'hui" : days === 1 ? "il y a 1 jour" : `il y a ${days} jours`;
@@ -693,27 +693,56 @@ function renderTransportRoutesList() {
         row.innerHTML = `
             <span class="line-badge" style="background:${r.color};color:white">${r.lineNumber}</span>
             <span class="transport-route-label">${r.destLabel} <span class="transport-route-stop">(${r.stopLabel})</span></span>
-            <button class="phone-remove" onclick="removeTransportRoute('${r.id}')">✕</button>
+            <button class="phone-remove" onclick="removeTransportRoute('${r.id}')">${ICON_X}</button>
         `;
         container.appendChild(row);
     });
 }
+
+// ─── Icônes (style Tabler, traits fins, héritent de la couleur du texte) ────
+const ICON_BUS = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.15em;"><path d="M6 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M18 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M4 17h-2v-11a1 1 0 0 1 1 -1h14a5 7 0 0 1 5 7v5h-2m-4 0h-8" /><path d="M16 5l1.5 7l4.5 0" /><path d="M2 10l15 0" /><path d="M7 5l0 5" /><path d="M12 5l0 5" /></svg>`;
+
+const ICON_MAP_PIN = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:0.85em;height:0.85em;vertical-align:-0.1em;"><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z" /></svg>`;
+
+const ICON_ALERT = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.15em;"><path d="M12 9v4" /><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.535a1.914 1.914 0 0 0 -3.274 0z" /><path d="M12 16h.01" /></svg>`;
+
+const ICON_REFRESH = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.15em;"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" /><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" /></svg>`;
+
+const ICON_CHECK = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.15em;"><path d="M5 12l5 5l10 -10" /></svg>`;
+
+const ICON_X = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg>`;
+
+const ICON_CLOCK = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.15em;"><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M12 7v5l3 3" /></svg>`;
+
+const ICON_SETTINGS = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.15em;"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg>`;
+
+const ICON_STAR = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.15em;"><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z" /></svg>`;
+
+const ICON_STAR_FILLED = `<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.15em;"><path d="M8.243 7.34l-6.38 .925l-.113 .023a1 1 0 0 0 -.44 1.684l4.622 4.499l-1.09 6.355l-.013 .11a1 1 0 0 0 1.464 .944l5.706 -3l5.693 3l.1 .046a1 1 0 0 0 1.352 -1.1l-1.091 -6.355l4.624 -4.5l.078 -.085a1 1 0 0 0 -.633 -1.62l-6.38 -.926l-2.852 -5.78a1 1 0 0 0 -1.794 0l-2.853 5.78z" /></svg>`;
+
+const ICON_BATTERY = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.15em;"><path d="M6 7h11a2 2 0 0 1 2 2v.5a.5 .5 0 0 0 .5 .5a.5 .5 0 0 1 .5 .5v3a.5 .5 0 0 1 -.5 .5a.5 .5 0 0 0 -.5 .5v.5a2 2 0 0 1 -2 2h-11a2 2 0 0 1 -2 -2v-6a2 2 0 0 1 2 -2" /><path d="M7 10l0 4" /></svg>`;
+
+const ICON_DEVICE_TV = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.15em;"><path d="M3 7m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z" /><path d="M16 3l-4 4l-4 -4" /></svg>`;
+
+const ICON_MUSIC = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.15em;"><path d="M3 17a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /><path d="M13 17a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /><path d="M9 17v-13h10v13" /><path d="M9 8h10" /></svg>`;
+
+const ICON_DEVICE_DESKTOP = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.15em;"><path d="M3 4m0 1a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1z" /><path d="M7 20h10" /><path d="M9 16v4" /><path d="M15 16v4" /></svg>`;
 
 function updateTransportWidgetTitle() {
     const routes = getTransportRoutes();
     const titleEl      = document.getElementById("transport-title");
     const titleModalEl = document.getElementById("transport-title-modal");
 
-    let label = "🚌 Transport";
+    let label = "Transport";
     if (routes.length > 0) {
         const uniqueStops = [...new Set(routes.map(r => r.stopLabel))];
-        label = uniqueStops.length === 1 ? `🚌 ${uniqueStops[0]}` : "🚌 Transport";
+        label = uniqueStops.length === 1 ? uniqueStops[0] : "Transport";
     }
 
     // Tuile : titre dynamique (un seul groupe visible à la fois, pas de redondance)
-    if (titleEl) titleEl.textContent = label;
+    if (titleEl) titleEl.innerHTML = `${ICON_BUS} ${label}`;
     // Popup : titre générique — chaque groupe d'arrêt a déjà son propre en-tête
-    if (titleModalEl) titleModalEl.textContent = "🚌 Transport";
+    if (titleModalEl) titleModalEl.innerHTML = `${ICON_BUS} Transport`;
 }
 
 // ─── Transports : icône temps réel (remplace le 🟢/⚪) ───────────────────────
@@ -883,7 +912,7 @@ function renderTransportTile(containerId, cards) {
     if (!container) return;
 
     if (cards.length === 0) {
-        container.innerHTML = `<div class="transport-loading">🕐 Aucun passage immédiat.</div>`;
+        container.innerHTML = `<div class="transport-loading">${ICON_CLOCK} Aucun passage immédiat.</div>`;
         return;
     }
 
@@ -1013,7 +1042,7 @@ function renderTransportModalGrouped(containerId, cards) {
     if (!container) return;
 
     if (cards.length === 0) {
-        container.innerHTML = `<div class="transport-loading">⚙️ Configure au moins une ligne dans les Paramètres.</div>`;
+        container.innerHTML = `<div class="transport-loading">${ICON_SETTINGS} Configure au moins une ligne dans les Paramètres.</div>`;
         return;
     }
 
@@ -1034,7 +1063,7 @@ function renderTransportModalGrouped(containerId, cards) {
 
         const titleEl = document.createElement("div");
         titleEl.className = "transport-stop-title";
-        titleEl.textContent = group.stopLabel;
+        titleEl.innerHTML = `${ICON_MAP_PIN} ${group.stopLabel}`;
         groupEl.appendChild(titleEl);
 
         buildDirectionRows(group.cards).forEach(row => {
@@ -1051,7 +1080,7 @@ async function updateTransports() {
     const routes = getTransportRoutes();
 
     if (routes.length === 0) {
-        const emptyHtml = `<div class="transport-loading">⚙️ Configure au moins une ligne dans les Paramètres.</div>`;
+        const emptyHtml = `<div class="transport-loading">${ICON_SETTINGS} Configure au moins une ligne dans les Paramètres.</div>`;
         document.getElementById("transport-list").innerHTML = emptyHtml;
         document.getElementById("transport-list-modal").innerHTML = emptyHtml;
         return;
@@ -1092,7 +1121,7 @@ async function updateTransports() {
 
     } catch (err) {
         console.error("Erreur transports :", err);
-        const errorHtml = `<div class="transport-error">⚠️ Impossible de charger les horaires.</div>`;
+        const errorHtml = `<div class="transport-error">${ICON_ALERT} Impossible de charger les horaires.</div>`;
         document.getElementById("transport-list").innerHTML = errorHtml;
         document.getElementById("transport-list-modal").innerHTML = errorHtml;
     }
@@ -1168,7 +1197,7 @@ async function updateInfotrafic() {
             const description = stripHtmlToText(d.description || d.name || "");
 
             html += `<div class="transport-alert-item">
-                <span class="alert-icon">⚠️</span>
+                <span class="alert-icon">${ICON_ALERT}</span>
                 <div class="alert-content">
                     <div class="alert-lines">${lineTags}</div>
                     <div class="alert-title">${d.name || ""}</div>
@@ -1264,7 +1293,7 @@ async function haFetchStates() {
 
     } catch (err) {
         console.error("Home Assistant :", err);
-        haShowStatus("⚠️ Impossible de joindre Home Assistant.");
+        haShowStatus(`${ICON_ALERT} Impossible de joindre Home Assistant.`);
     }
 }
 
@@ -1286,7 +1315,7 @@ async function haToggle(entityId) {
 
     } catch (err) {
         console.error("Home Assistant toggle :", err);
-        haShowStatus("⚠️ Action impossible, nouvelle tentative...");
+        haShowStatus(`${ICON_ALERT} Action impossible, nouvelle tentative...`);
     }
 
     // Re-synchronise avec l'état réel peu après
@@ -1318,7 +1347,7 @@ function renderRooms() {
             row.innerHTML = `
                 <div class="device-info">
                     <button class="favorite-btn ${isFav ? "active" : ""}"
-                            onclick="toggleFavorite('${d.entity_id}')">${isFav ? "★" : "☆"}</button>
+                            onclick="toggleFavorite('${d.entity_id}')">${isFav ? ICON_STAR_FILLED : ICON_STAR}</button>
                     <span>${d.label}</span>
                 </div>
                 <button class="toggle ${on ? "active" : ""}"
@@ -1457,7 +1486,7 @@ function renderPhonesList() {
             <input type="text" class="phone-name-input" value="${p.label}"
                    onchange="renamePhone('${p.id}', this.value)">
             <span class="phone-entity">${p.entity_id}</span>
-            <button class="phone-remove" onclick="removePhone('${p.id}')">✕</button>
+            <button class="phone-remove" onclick="removePhone('${p.id}')">${ICON_X}</button>
         `;
         container.appendChild(row);
     });
@@ -1500,10 +1529,9 @@ async function renderBatteryBadges() {
         badge.className = "battery-badge";
 
         if (p.level === null) {
-            badge.textContent = `🔋 ${p.label} --%`;
+            badge.innerHTML = `${ICON_BATTERY} ${p.label} --%`;
         } else {
-            const icon = p.level <= BATTERY_THRESHOLD ? "🪫" : "🔋";
-            badge.textContent = `${icon} ${p.label} ${p.level}%`;
+            badge.innerHTML = `${ICON_BATTERY} ${p.label} ${p.level}%`;
             if (p.level <= BATTERY_THRESHOLD) badge.classList.add("low-battery");
         }
 
@@ -2150,7 +2178,7 @@ function refreshFavoriteList() {
 
     container.innerHTML = `
         <span class="fav-title" style="color:white">
-            ✩ Appareils favoris
+            ${ICON_STAR} Appareils favoris
         </span>
     `;
 
@@ -2218,7 +2246,7 @@ function getSwapBanner() {
         banner.className = "reorder-banner";
         banner.innerHTML = `
             <span>👆 Touchez le widget avec lequel l'échanger</span>
-            <button onclick="cancelWidgetSelection()">✕ Annuler</button>
+            <button onclick="cancelWidgetSelection()">${ICON_X} Annuler</button>
         `;
         document.body.appendChild(banner);
     }
