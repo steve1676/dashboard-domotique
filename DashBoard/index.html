@@ -176,29 +176,6 @@
 
     <div class="weather-card" style="margin-top: 30px;">
 
-        <h2 style="margin-bottom:20px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:0.9em;height:0.9em;vertical-align:-0.12em;"><path d="M6 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M18 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M4 17h-2v-11a1 1 0 0 1 1 -1h14a5 7 0 0 1 5 7v5h-2m-4 0h-8" /><path d="M16 5l1.5 7l4.5 0" /><path d="M2 10l15 0" /><path d="M7 5l0 5" /><path d="M12 5l0 5" /></svg> Lignes de transport (Naolib)</h2>
-
-        <div id="transport-routes-list"></div>
-
-        <div id="transport-lines-info" class="lines-cache-info"></div>
-
-        <div class="phone-add-row">
-            <select id="new-transport-line" onchange="onTransportLineChange()">
-                <option value="">Chargement des lignes...</option>
-            </select>
-            <select id="new-transport-stop" onchange="onTransportStopChange()" disabled>
-                <option value="">— Arrêt —</option>
-            </select>
-            <select id="new-transport-direction" disabled>
-                <option value="">— Direction —</option>
-            </select>
-            <button class="phone-add-btn" onclick="addTransportRoute()">+ Ajouter</button>
-        </div>
-
-    </div>
-
-    <div class="weather-card" style="margin-top: 30px;">
-
         <h2 style="margin-bottom:20px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:0.9em;height:0.9em;vertical-align:-0.12em;"><path d="M3 4m0 1a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1z" /><path d="M7 20h10" /><path d="M9 16v4" /><path d="M15 16v4" /></svg> Wiggets de l'Accueil</h2>
 
         <div class="widget-item">
@@ -257,7 +234,7 @@
 <!-- ── Modale Widgets (météo / transport) ── -->
 <div id="widgetModal" class="widget-modal-overlay" onclick="if(event.target===this) closeWidgetModal()">
     <div class="widget-modal">
-        <button class="widget-modal-close" onclick="closeWidgetModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button>
+        <button id="mainModalClose" class="widget-modal-close" onclick="closeWidgetModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button>
 
         <!-- Détail Météo -->
         <div id="modal-meteo" class="widget-modal-section">
@@ -282,14 +259,77 @@
 
         <!-- Détail Transport -->
         <div id="modal-transport" class="widget-modal-section">
-            <div id="transport-title-modal" class="transport-title" style="margin-bottom:10px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:0.9em;height:0.9em;vertical-align:-0.12em;"><path d="M6 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M18 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M4 17h-2v-11a1 1 0 0 1 1 -1h14a5 7 0 0 1 5 7v5h-2m-4 0h-8" /><path d="M16 5l1.5 7l4.5 0" /><path d="M2 10l15 0" /><path d="M7 5l0 5" /><path d="M12 5l0 5" /></svg> Transport</div>
-            <div id="transport-list-modal">
-                <div class="transport-loading">Chargement...</div>
+
+            <!-- ── Vue Accueil ── -->
+            <div id="transport-view-home" class="transport-view">
+                <div id="transport-title-modal" class="transport-title" style="margin-bottom:14px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:0.9em;height:0.9em;vertical-align:-0.12em;"><path d="M6 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M18 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M4 17h-2v-11a1 1 0 0 1 1 -1h14a5 7 0 0 1 5 7v5h-2m-4 0h-8" /><path d="M16 5l1.5 7l4.5 0" /><path d="M2 10l15 0" /><path d="M7 5l0 5" /><path d="M12 5l0 5" /></svg> Transport</div>
+
+                <div id="transport-favorites-list"></div>
+
+                <div class="transport-nearby-header">
+                    <div class="transport-nearby-title">Lignes à Proximités</div>
+                    <div class="transport-nearby-sub">Arrêts</div>
+                </div>
+                <div id="transport-nearby-grid" class="transport-line-grid">
+                    <div class="transport-loading">Localisation en cours...</div>
+                </div>
+
+                <div class="transport-home-actions">
+                    <button class="transport-action-btn favoris" onclick="showTransportView('favoris')">
+                        <span class="transport-action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.15em;"><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z" /></svg></span> Favoris
+                    </button>
+                    <button class="transport-action-btn infotrafic" onclick="showTransportView('infotrafic')">
+                        <span class="transport-action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;vertical-align:-0.15em;"><path d="M12 9v4" /><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.535a1.914 1.914 0 0 0 -3.274 0z" /><path d="M12 16h.01" /></svg></span> Infos Trafics
+                    </button>
+                </div>
             </div>
-            <div id="transport-infotrafic-section" class="infotrafic-section" style="display:none;">
+
+            <!-- ── Vue Favoris ── -->
+            <div id="transport-view-favoris" class="transport-view" style="display:none;">
+                <div class="transport-subview-header">
+                    <span class="transport-subview-title">Choix Favoris</span>
+                    <button class="widget-modal-close transport-subview-close" onclick="showTransportView('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button>
+                </div>
+
+                <div class="transport-nearby-header">
+                    <div class="transport-nearby-title">Lignes à Proximités</div>
+                    <div class="transport-nearby-sub">Arrêts</div>
+                </div>
+                <div id="transport-favoris-grid" class="transport-line-grid">
+                    <div class="transport-loading">Localisation en cours...</div>
+                </div>
+
+                <div id="transport-routes-list" class="transport-routes-list-in-favoris"></div>
+
+                <div class="transport-search-section">
+                    <div class="transport-search-title">Recherche</div>
+                    <div id="transport-lines-info" class="lines-cache-info"></div>
+                    <div class="phone-add-row">
+                        <select id="new-transport-line" onchange="onTransportLineChange()">
+                            <option value="">Chargement des lignes...</option>
+                        </select>
+                        <select id="new-transport-stop" onchange="onTransportStopChange()" disabled>
+                            <option value="">— Arrêt —</option>
+                        </select>
+                        <select id="new-transport-direction" disabled>
+                            <option value="">— Direction —</option>
+                        </select>
+                        <button class="phone-add-btn" onclick="addTransportRoute()">+ Ajouter</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Vue Info Trafic ── -->
+            <div id="transport-view-infotrafic" class="transport-view" style="display:none;">
+                <div class="transport-subview-header transport-subview-header-corner">
+                    <button class="widget-modal-close transport-subview-close" onclick="showTransportView('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button>
+                </div>
                 <div class="infotrafic-title"><span></span>Info Trafic<span></span></div>
-                <div id="transport-alerts-modal"></div>
+                <div id="transport-alerts-modal">
+                    <div class="transport-loading">info trafic des lignes affichées</div>
+                </div>
             </div>
+
         </div>
 
 

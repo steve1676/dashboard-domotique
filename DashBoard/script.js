@@ -20,6 +20,13 @@ function openWidgetModal(section) {
     document.querySelectorAll('.widget-modal-section').forEach(el => el.classList.remove('visible'));
     document.getElementById('modal-' + section).classList.add('visible');
     document.getElementById('widgetModal').classList.add('visible');
+
+    if (section === 'transport') {
+        showTransportView('home');
+    } else {
+        const mainClose = document.getElementById("mainModalClose");
+        if (mainClose) mainClose.style.display = "";
+    }
 }
 
 function closeWidgetModal() {
@@ -959,132 +966,280 @@ function renderTransportTile(containerId, cards) {
     }
 }
 
-// Popup : un groupe par arrêt, chacun avec son propre en-tête (arrêt ⟷ direction)
-// et sa propre rangée de cartes indépendamment défilable/swipeable
-// Regroupe les cartes d'un même arrêt par direction (destLabel) : toutes les
-// lignes allant "dans le même sens" se retrouvent sur la même sous-ligne.
-function buildDirectionRows(cardsForStop) {
-    const rows = [];
-    const byDest = {};
+// ─── Popup Transport : nouvelle structure (Accueil / Favoris / Info Trafic) ──
 
-    cardsForStop.forEach(card => {
-        card.directions.forEach(dir => {
-            const rowKey = dir.destLabel || dir.direction;
-            if (!byDest[rowKey]) {
-                byDest[rowKey] = { key: rowKey, destLabel: dir.destLabel, items: [] };
-                rows.push(byDest[rowKey]);
+// Assombrit une couleur hex d'un certain pourcentage (pour les mini-cartes
+// des horaires suivants sur l'accueil, plus foncées que la carte principale).
+function darkenColor(hex, amount = 0.35) {
+    hex = String(hex).replace('#', '');
+    if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+    const num = parseInt(hex, 16);
+    if (isNaN(num)) return hex;
+    let r = (num >> 16) & 255, g = (num >> 8) & 255, b = num & 255;
+    r = Math.round(r * (1 - amount));
+    g = Math.round(g * (1 - amount));
+    b = Math.round(b * (1 - amount));
+    return `rgb(${r},${g},${b})`;
+}
+
+// Reconstruit la liste des arrêts (avec leurs lignes) à partir de linesIndex
+// déjà chargé — évite un second fetch du geojson.
+function getAllStopsFromLinesIndex() {
+    const stopsById = {};
+    Object.values(linesIndex).forEach(line => {
+        line.stops.forEach(s => {
+            if (!stopsById[s.id]) {
+                stopsById[s.id] = { id: s.id, name: s.name, lat: s.lat, lng: s.lng, lines: [] };
             }
-            byDest[rowKey].items.push({
-                cardKey: card.key + "__" + dir.direction,
-                lineNumber: card.lineNumber,
-                color: card.color, // la vraie couleur officielle de CETTE ligne
-                entries: dir.entries
-            });
+            stopsById[s.id].lines.push(line.number);
+        });
+    });
+    return Object.values(stopsById);
+}
+
+// ─── Géolocalisation ──────────────────────────────────────────────────────
+let userPosition = null;
+let userPositionRequested = false;
+
+function requestUserPosition() {
+    if (userPositionRequested) return Promise.resolve(userPosition);
+    userPositionRequested = true;
+
+    return new Promise((resolve) => {
+        if (!navigator.geolocation) { resolve(null); return; }
+        navigator.geolocation.getCurrentPosition(
+            pos => {
+                userPosition = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                resolve(userPosition);
+            },
+            err => {
+                console.error("Géolocalisation indisponible :", err);
+                resolve(null);
+            },
+            { enableHighAccuracy: false, timeout: 8000, maximumAge: 5 * 60000 }
+        );
+    });
+}
+
+// Trouve les lignes les plus proches en partant des arrêts les plus proches
+// de la position de l'utilisateur ; chaque ligne est associée à l'arrêt le
+// plus proche où elle a été trouvée (utilisé pour le favoritage rapide).
+function computeNearbyLines(maxLines = 10) {
+    if (!userPosition) return [];
+    const stops = getAllStopsFromLinesIndex();
+    if (!stops.length) return [];
+
+    const withDist = stops
+        .map(s => ({ ...s, dist: haversineMeters(userPosition, { lat: s.lat, lng: s.lng }) }))
+        .sort((a, b) => a.dist - b.dist);
+
+    const seen = {};
+    const result = [];
+
+    withDist.forEach(stop => {
+        stop.lines.forEach(number => {
+            if (seen[number]) return;
+            seen[number] = true;
+            result.push({ lineNumber: number, stopId: stop.id, stopLabel: stop.name, color: lineColor(number) });
         });
     });
 
-    return rows;
+    return result.slice(0, maxLines);
 }
 
-// Rend une sous-ligne "direction" : en-tête (flèche + nom) + rangée de
-// groupes-lignes (une mini-carte par horaire à venir), une par ligne
-// desservant cette direction à cet arrêt. Pas de swipe ici : toutes les
-// directions sont déjà affichées côte à côte, donc pas besoin de compteur.
-function renderDirectionRow(row) {
-    const rowWrap = document.createElement("div");
-    rowWrap.className = "transport-direction-row";
-
-    const header = document.createElement("div");
-    header.className = "transport-direction-header";
-    header.innerHTML = `<span class="direction-arrow">➜</span> ${row.destLabel || ""}`;
-    rowWrap.appendChild(header);
-
-    const cardsRow = document.createElement("div");
-    cardsRow.className = "transport-cards cards-count-" + Math.min(row.items.length, 3);
-
-    row.items.forEach(item => {
-        const groupEl = document.createElement("div");
-        groupEl.className = "transport-line-group";
-
-        const list = item.entries.length ? item.entries.slice(0, 5) : [{ label: null, isRt: false }];
-        list.forEach((entry, i) => {
-            const { big, unit } = formatCardValue(entry.label);
-
-            const el = document.createElement("div");
-            el.className = "transport-card-item";
-            el.style.background = item.color;
-
-            el.innerHTML = `
-                ${i === 0 ? `<span class="transport-card-line">${item.lineNumber}</span>` : ""}
-                <div class="transport-card-value">${big}</div>
-                <div class="transport-card-unit">${unit}</div>
-            `;
-
-            if (entry.isRt) {
-                const rtHolder = document.createElement("span");
-                rtHolder.className = "transport-card-rt";
-                rtHolder.innerHTML = rtIconSVG("dr-" + Math.random().toString(36).slice(2));
-                el.appendChild(rtHolder);
-            }
-
-            groupEl.appendChild(el);
-        });
-
-        cardsRow.appendChild(groupEl);
-    });
-
-    rowWrap.appendChild(cardsRow);
-    return rowWrap;
-}
-
-function renderTransportModalGrouped(containerId, cards) {
+// ─── Grille "Lignes à Proximités" (Accueil : informative / Favoris : cliquable) ──
+function renderNearbyGrid(containerId, opts) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    if (cards.length === 0) {
-        container.innerHTML = `<div class="transport-loading">${ICON_SETTINGS} Configure au moins une ligne dans les Paramètres.</div>`;
+    if (!userPosition) {
+        container.innerHTML = `<div class="transport-loading">Localisation en cours...</div>`;
         return;
     }
 
-    const groups = [];
-    const byStop = {};
-    cards.forEach(c => {
-        if (!byStop[c.stopId]) {
-            byStop[c.stopId] = { stopId: c.stopId, stopLabel: c.stopLabel, cards: [] };
-            groups.push(byStop[c.stopId]);
-        }
-        byStop[c.stopId].cards.push(c);
-    });
+    const nearby = computeNearbyLines();
+    if (nearby.length === 0) {
+        container.innerHTML = `<div class="transport-loading">Aucune ligne trouvée à proximité.</div>`;
+        return;
+    }
+
+    const routes = getTransportRoutes();
+    const favoriteKeys = new Set(routes.map(r => r.lineNumber + "__" + r.stopId));
 
     container.innerHTML = "";
-    groups.forEach(group => {
-        const groupEl = document.createElement("div");
-        groupEl.className = "transport-stop-group";
+    container.classList.toggle("transport-favoris-mode", !!opts.interactive);
 
-        const titleEl = document.createElement("div");
-        titleEl.className = "transport-stop-title";
-        titleEl.innerHTML = `${ICON_MAP_PIN} ${group.stopLabel}`;
-        groupEl.appendChild(titleEl);
+    nearby.forEach(item => {
+        const isFav = favoriteKeys.has(item.lineNumber + "__" + item.stopId);
 
-        buildDirectionRows(group.cards).forEach(row => {
-            groupEl.appendChild(renderDirectionRow(row));
+        const badge = document.createElement("button");
+        badge.className = "transport-line-badge";
+        badge.style.background = item.color;
+        badge.innerHTML = item.lineNumber +
+            (opts.showStars && isFav ? `<span class="transport-line-badge-star">${ICON_STAR_FILLED}</span>` : "");
+
+        if (opts.interactive) {
+            badge.onclick = () => onNearbyLineClick(item, isFav);
+        }
+
+        container.appendChild(badge);
+    });
+}
+
+// ─── Favoritage rapide depuis la grille de proximité ─────────────────────
+async function onNearbyLineClick(item, isFav) {
+    if (isFav) {
+        let routes = getTransportRoutes();
+        routes = routes.filter(r => !(r.lineNumber === item.lineNumber && r.stopId === item.stopId));
+        saveTransportRoutes(routes);
+        renderTransportRoutesList();
+        updateTransports();
+        return;
+    }
+
+    let directions = [];
+    try {
+        const data = await fetchNaolibStop(item.stopId);
+        const line = (data.linked_lines || []).find(l =>
+            String(l.number) === String(item.lineNumber) || String(l.id) === String(item.lineNumber)
+        );
+        directions = line ? (line.directions || []) : [];
+    } catch (err) {
+        console.error("Erreur récupération directions :", err);
+    }
+
+    if (directions.length === 0) {
+        alert("Impossible de récupérer les directions pour cette ligne pour le moment.");
+        return;
+    }
+
+    showDirectionPicker(item, directions);
+}
+
+function showDirectionPicker(item, directions) {
+    const overlay = document.createElement("div");
+    overlay.className = "direction-picker-overlay";
+    overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+    const box = document.createElement("div");
+    box.className = "direction-picker-box";
+    box.innerHTML = `<div class="direction-picker-title">Ligne ${item.lineNumber} — ${item.stopLabel}<br>Choisir la direction</div>`;
+
+    directions.forEach(d => {
+        const btn = document.createElement("button");
+        btn.className = "direction-picker-option";
+        btn.textContent = d.name;
+        btn.onclick = () => {
+            const routes = getTransportRoutes();
+            routes.push({
+                id: Date.now().toString(),
+                stopId: item.stopId,
+                stopLabel: item.stopLabel,
+                lineNumber: item.lineNumber,
+                direction: d.direction,
+                destLabel: d.name,
+                color: item.color
+            });
+            saveTransportRoutes(routes);
+            renderTransportRoutesList();
+            updateTransports();
+            overlay.remove();
+        };
+        box.appendChild(btn);
+    });
+
+    const cancel = document.createElement("button");
+    cancel.className = "direction-picker-cancel";
+    cancel.textContent = "Annuler";
+    cancel.onclick = () => overlay.remove();
+    box.appendChild(cancel);
+
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+}
+
+// ─── Accueil popup : cartes des lignes favorites (grande carte + horaires
+// suivants plus petits et plus foncés) ────────────────────────────────────
+function renderFavoritesHomeList(routes, stopDataById, toMin, nowMin, waitLabel) {
+    const container = document.getElementById("transport-favorites-list");
+    if (!container) return;
+
+    if (routes.length === 0) {
+        container.innerHTML = "";
+        return;
+    }
+
+    container.innerHTML = "";
+    routes.forEach(r => {
+        const data  = stopDataById[r.stopId];
+        const hours = data?.departures?.[r.lineNumber]?.[r.direction]?.hours || [];
+        const next  = hours.filter(h => toMin(h.time) > nowMin);
+        const first = next[0];
+
+        const block = document.createElement("div");
+        block.className = "transport-favorite-block";
+
+        const header = document.createElement("div");
+        header.className = "transport-direction-header";
+        header.innerHTML = `<span class="direction-arrow">➜</span> ${r.destLabel || ""}`;
+        block.appendChild(header);
+
+        const cardsRow = document.createElement("div");
+        cardsRow.className = "transport-favorite-cards";
+
+        const { big, unit } = formatCardValue(first ? waitLabel(first.time) : null);
+        const mainCard = document.createElement("div");
+        mainCard.className = "transport-card-item";
+        mainCard.style.background = r.color;
+        mainCard.innerHTML = `
+            <span class="transport-card-line">${r.lineNumber}</span>
+            <div class="transport-card-value">${big}</div>
+            <div class="transport-card-unit">${unit}</div>
+        `;
+        if (first && first.is_rt) {
+            const rt = document.createElement("span");
+            rt.className = "transport-card-rt";
+            rt.innerHTML = rtIconSVG("fav-" + r.id);
+            mainCard.appendChild(rt);
+        }
+        cardsRow.appendChild(mainCard);
+
+        next.slice(1, 4).forEach(h => {
+            const { big: b2, unit: u2 } = formatCardValue(waitLabel(h.time));
+            const mini = document.createElement("div");
+            mini.className = "transport-next-mini";
+            mini.style.background = darkenColor(r.color, 0.35);
+            mini.innerHTML = `<div class="transport-card-value">${b2}</div><div class="transport-card-unit">${u2}</div>`;
+            cardsRow.appendChild(mini);
         });
 
-        container.appendChild(groupEl);
+        block.appendChild(cardsRow);
+        container.appendChild(block);
     });
+}
+
+// ─── Navigation entre les 3 vues de la popup transport ───────────────────
+function showTransportView(view) {
+    ["home", "favoris", "infotrafic"].forEach(v => {
+        const el = document.getElementById("transport-view-" + v);
+        if (el) el.style.display = (v === view) ? "flex" : "none";
+    });
+
+    const mainClose = document.getElementById("mainModalClose");
+    if (mainClose) mainClose.style.display = (view === "home") ? "" : "none";
+
+    if (view === "infotrafic") {
+        updateInfotrafic();
+    } else {
+        renderNearbyGrid("transport-nearby-grid", { interactive: false, showStars: false });
+        renderNearbyGrid("transport-favoris-grid", { interactive: true, showStars: true });
+    }
 }
 
 async function updateTransports() {
     updateTransportWidgetTitle();
 
     const routes = getTransportRoutes();
-
-    if (routes.length === 0) {
-        const emptyHtml = `<div class="transport-loading">${ICON_SETTINGS} Configure au moins une ligne dans les Paramètres.</div>`;
-        document.getElementById("transport-list").innerHTML = emptyHtml;
-        document.getElementById("transport-list-modal").innerHTML = emptyHtml;
-        return;
-    }
 
     const now    = new Date();
     const nowMin = now.getHours() * 60 + now.getMinutes();
@@ -1103,6 +1258,19 @@ async function updateTransports() {
         return hhmm;
     }
 
+    if (routes.length === 0) {
+        const emptyHtml = `<div class="transport-loading">${ICON_SETTINGS} Ajoute une ligne depuis "Favoris" dans la popup.</div>`;
+        const tileEl = document.getElementById("transport-list");
+        if (tileEl) tileEl.innerHTML = emptyHtml;
+
+        const favEl = document.getElementById("transport-favorites-list");
+        if (favEl) favEl.innerHTML = "";
+
+        renderNearbyGrid("transport-nearby-grid", { interactive: false, showStars: false });
+        renderNearbyGrid("transport-favoris-grid", { interactive: true, showStars: true });
+        return;
+    }
+
     try {
         // Un seul appel API par arrêt, même si plusieurs lignes y sont configurées
         const stopIds = [...new Set(routes.map(r => r.stopId))];
@@ -1117,13 +1285,17 @@ async function updateTransports() {
         cards.forEach(c => transportCardsByKey[c.key] = c);
 
         renderTransportTile("transport-list", cards);
-        renderTransportModalGrouped("transport-list-modal", cards);
+        renderFavoritesHomeList(routes, stopDataById, toMin, nowMin, waitLabel);
+        renderNearbyGrid("transport-nearby-grid", { interactive: false, showStars: false });
+        renderNearbyGrid("transport-favoris-grid", { interactive: true, showStars: true });
 
     } catch (err) {
         console.error("Erreur transports :", err);
         const errorHtml = `<div class="transport-error">${ICON_ALERT} Impossible de charger les horaires.</div>`;
-        document.getElementById("transport-list").innerHTML = errorHtml;
-        document.getElementById("transport-list-modal").innerHTML = errorHtml;
+        const tileEl = document.getElementById("transport-list");
+        if (tileEl) tileEl.innerHTML = errorHtml;
+        const favEl = document.getElementById("transport-favorites-list");
+        if (favEl) favEl.innerHTML = errorHtml;
     }
 }
 
@@ -1131,6 +1303,10 @@ initTransportLines();
 renderTransportRoutesList();
 updateTransports();
 setInterval(updateTransports, 30000);
+requestUserPosition().then(() => {
+    renderNearbyGrid("transport-nearby-grid", { interactive: false, showStars: false });
+    renderNearbyGrid("transport-favoris-grid", { interactive: true, showStars: true });
+});
 
 
 // ─── Transports — Alertes trafic (infotrafic) ────────────────────────────────
@@ -1152,14 +1328,12 @@ function stripHtmlToText(html) {
 async function updateInfotrafic() {
     const badge = document.getElementById("transport-alert-badge");
     const modalBox = document.getElementById("transport-alerts-modal");
-    const section = document.getElementById("transport-infotrafic-section");
     if (!badge || !modalBox) return;
 
     const routes = getTransportRoutes();
     if (!routes.length) {
         badge.style.display = "none";
-        modalBox.innerHTML = "";
-        if (section) section.style.display = "none";
+        modalBox.innerHTML = `<div class="transport-loading">Aucune ligne favorite pour afficher les infos trafic.</div>`;
         return;
     }
 
@@ -1179,13 +1353,11 @@ async function updateInfotrafic() {
 
         if (!relevant.length) {
             badge.style.display = "none";
-            modalBox.innerHTML = "";
-            if (section) section.style.display = "none";
+            modalBox.innerHTML = `<div class="transport-loading">Aucune perturbation sur tes lignes favorites.</div>`;
             return;
         }
 
         badge.style.display = "inline";
-        if (section) section.style.display = "block";
 
         let html = "";
         relevant.forEach(d => {
