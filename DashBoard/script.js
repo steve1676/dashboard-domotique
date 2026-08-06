@@ -1001,6 +1001,11 @@ function getAllStopsFromLinesIndex() {
 let userPosition = null;
 let userPositionRequested = false;
 
+const NEARBY_CACHE_KEY     = "nearby_lines_cache";
+const NEARBY_CACHE_MAX_AGE = 30 * 24 * 60 * 60 * 1000; // 30 jours avant rescan auto
+
+let nearbyLinesCache = null; // résultat mis en cache : [{lineNumber, stopId, stopLabel, color}]
+
 function requestUserPosition() {
     if (userPositionRequested) return Promise.resolve(userPosition);
     userPositionRequested = true;
@@ -1019,6 +1024,71 @@ function requestUserPosition() {
             { enableHighAccuracy: false, timeout: 8000, maximumAge: 5 * 60000 }
         );
     });
+}
+
+function loadCachedNearbyLines() {
+    try {
+        const raw = localStorage.getItem(NEARBY_CACHE_KEY);
+        if (!raw) return null;
+        const cached = JSON.parse(raw);
+        if (!cached || !cached.builtAt || !cached.lines) return null;
+        return cached;
+    } catch (err) {
+        return null;
+    }
+}
+
+function saveNearbyLinesCache(lines) {
+    localStorage.setItem(NEARBY_CACHE_KEY, JSON.stringify({
+        builtAt: Date.now(),
+        lines
+    }));
+}
+
+// Point d'entrée : sert le cache local s'il existe et a moins de 30 jours,
+// sans jamais solliciter la géolocalisation dans ce cas (évite les scans à
+// répétition). Ne relance une vraie localisation + recalcul que si le cache
+// est absent ou périmé.
+async function initNearbyLines() {
+    const cached = loadCachedNearbyLines();
+    const isFresh = cached && (Date.now() - cached.builtAt) < NEARBY_CACHE_MAX_AGE;
+
+    if (cached) {
+        nearbyLinesCache = cached.lines;
+    }
+
+    if (isFresh) return;
+
+    await requestUserPosition();
+    const fresh = computeNearbyLines();
+    if (fresh.length > 0) {
+        nearbyLinesCache = fresh;
+        saveNearbyLinesCache(fresh);
+    }
+}
+
+function showNearbyCacheInfo() {
+    const el = document.getElementById("transport-nearby-info");
+    if (!el) return;
+
+    const cached = loadCachedNearbyLines();
+    if (!cached) { el.innerHTML = ""; return; }
+
+    const days = Math.floor((Date.now() - cached.builtAt) / (24 * 60 * 60 * 1000));
+    const ago  = days <= 0 ? "aujourd'hui" : days === 1 ? "il y a 1 jour" : `il y a ${days} jours`;
+    el.innerHTML = `Position analysée : ${ago} · <a href="#" onclick="forceNearbyRescan(); return false;">rescanner maintenant</a>`;
+}
+
+async function forceNearbyRescan() {
+    userPositionRequested = false; // force une nouvelle lecture GPS
+    await requestUserPosition();
+    const fresh = computeNearbyLines();
+    if (fresh.length > 0) {
+        nearbyLinesCache = fresh;
+        saveNearbyLinesCache(fresh);
+    }
+    renderNearbyGrid("transport-nearby-grid", { interactive: false, showStars: false });
+    renderNearbyGrid("transport-favoris-grid", { interactive: true, showStars: true });
 }
 
 // Trouve les lignes les plus proches en partant des arrêts les plus proches
@@ -1052,12 +1122,12 @@ function renderNearbyGrid(containerId, opts) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    if (!userPosition) {
+    if (!nearbyLinesCache) {
         container.innerHTML = `<div class="transport-loading">Localisation en cours...</div>`;
         return;
     }
 
-    const nearby = computeNearbyLines();
+    const nearby = nearbyLinesCache;
     if (nearby.length === 0) {
         container.innerHTML = `<div class="transport-loading">Aucune ligne trouvée à proximité.</div>`;
         return;
@@ -1084,6 +1154,8 @@ function renderNearbyGrid(containerId, opts) {
 
         container.appendChild(badge);
     });
+
+    if (containerId === "transport-favoris-grid") showNearbyCacheInfo();
 }
 
 // ─── Favoritage rapide depuis la grille de proximité ─────────────────────
@@ -1303,7 +1375,7 @@ initTransportLines();
 renderTransportRoutesList();
 updateTransports();
 setInterval(updateTransports, 30000);
-requestUserPosition().then(() => {
+initNearbyLines().then(() => {
     renderNearbyGrid("transport-nearby-grid", { interactive: false, showStars: false });
     renderNearbyGrid("transport-favoris-grid", { interactive: true, showStars: true });
 });
@@ -1331,13 +1403,8 @@ async function updateInfotrafic() {
     if (!badge || !modalBox) return;
 
     const routes = getTransportRoutes();
-    if (!routes.length) {
-        badge.style.display = "none";
-        modalBox.innerHTML = `<div class="transport-loading">Aucune ligne favorite pour afficher les infos trafic.</div>`;
-        return;
-    }
-
     // Lignes actuellement configurées dans le dashboard (numéros, ex: "2", "C3")
+    // — utilisé uniquement pour le petit badge d'alerte, pas pour le filtrage de l'écran
     const myLines = new Set(routes.map(r => r.lineNumber));
 
     try {
@@ -1346,23 +1413,21 @@ async function updateInfotrafic() {
         const data = await res.json();
         const disruptions = data.disruptions || [];
 
-        // Ne garde que les perturbations touchant au moins une des lignes suivies
+        // Le badge reste un signal rapide, limité aux lignes suivies
         const relevant = disruptions.filter(d =>
             (d.lineIds || []).some(id => myLines.has(String(id)))
         );
+        badge.style.display = relevant.length > 0 ? "inline" : "none";
 
-        if (!relevant.length) {
-            badge.style.display = "none";
-            modalBox.innerHTML = `<div class="transport-loading">Aucune perturbation sur tes lignes favorites.</div>`;
+        // L'écran Infos Trafics, lui, affiche tout le réseau
+        if (!disruptions.length) {
+            modalBox.innerHTML = `<div class="transport-loading">Aucune perturbation sur le réseau actuellement.</div>`;
             return;
         }
 
-        badge.style.display = "inline";
-
         let html = "";
-        relevant.forEach(d => {
+        disruptions.forEach(d => {
             const lineTags = (d.lineIds || [])
-                .filter(id => myLines.has(String(id)))
                 .map(id => `<span class="alert-line-tag" style="background:${lineColor(id)}">${id}</span>`)
                 .join("");
 

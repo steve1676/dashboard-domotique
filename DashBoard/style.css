@@ -440,7 +440,7 @@ body {
 }
 
 #modal-transport.visible {
-    background: #1f2937 url('images/illu-courbes.svg') no-repeat 5% 40% / 260%;
+    background: #1f2937;
     border-radius: 20px;
     margin: -10px;
     padding: 10px;
@@ -678,7 +678,7 @@ body {
 
 /* ── Transports ── */
 .transport-card {
-    background: #1f2937 url('images/illu-courbes.svg') no-repeat 5% 40% / 260%;
+    background: #1f2937;
     border-radius: 25px;
     padding: 30px;
     margin-bottom: 30px;
