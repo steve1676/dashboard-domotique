@@ -1492,6 +1492,7 @@ ROOMS.forEach(room => {
 });
 
 const haStates = {}; // entity_id -> "on" | "off" | "unavailable" ...
+const haStatesFull = {}; // entity_id -> objet complet {state, attributes, ...} — partagé par batterie/Chromecast pour éviter des appels HA en double
 
 function haShowStatus(message) {
     const el = document.getElementById("ha-status");
@@ -1519,6 +1520,7 @@ async function haFetchStates() {
         const data = await response.json();
 
         data.forEach(entity => {
+            haStatesFull[entity.entity_id] = entity; // toutes les entités, pour batterie/Chromecast
             if (HA_DEVICES[entity.entity_id]) {
                 haStates[entity.entity_id] = entity.state;
             }
@@ -1527,6 +1529,8 @@ async function haFetchStates() {
         haShowStatus(null);
         renderRooms();
         refreshFavoriteList();
+        renderBatteryBadges();
+        updateChromecast();
 
     } catch (err) {
         console.error("Home Assistant :", err);
@@ -1729,24 +1733,14 @@ function renderPhonesList() {
     });
 }
 
-async function fetchBatteryLevel(entityId) {
-    try {
-        const response = await fetch(`${HA_CONFIG.url}/api/states/${entityId}`, {
-            headers: {
-                "Content-Type": "application/json"
-            }
-        });
-        if (!response.ok) throw new Error("HTTP " + response.status);
-        const data  = await response.json();
-        const level = parseInt(data.state, 10);
-        return isNaN(level) ? null : level;
-    } catch (err) {
-        console.error("Batterie", entityId, ":", err);
-        return null;
-    }
+function getBatteryLevel(entityId) {
+    const entity = haStatesFull[entityId];
+    if (!entity) return null;
+    const level = parseInt(entity.state, 10);
+    return isNaN(level) ? null : level;
 }
 
-async function renderBatteryBadges() {
+function renderBatteryBadges() {
     const container = document.getElementById("battery-badges");
     if (!container) return;
 
@@ -1756,9 +1750,7 @@ async function renderBatteryBadges() {
         return;
     }
 
-    const results = await Promise.all(
-        phones.map(async p => ({ ...p, level: await fetchBatteryLevel(p.entity_id) }))
-    );
+    const results = phones.map(p => ({ ...p, level: getBatteryLevel(p.entity_id) }));
 
     container.innerHTML = "";
     results.forEach(p => {
@@ -1779,7 +1771,6 @@ async function renderBatteryBadges() {
 renderPhonesList();
 renderBatteryBadges();
 refreshPhoneEntitySelect();
-setInterval(renderBatteryBadges, 5000);
 setInterval(refreshPhoneEntitySelect, 30000); // détecte les nouveaux capteurs périodiquement
 
 
@@ -2213,16 +2204,11 @@ function chromecastShowPlayer() {
     document.getElementById("chromecastPlayer").style.display = "flex";
 }
 
-async function updateChromecast() {
-    try {
-        const response = await fetch(`${HA_CONFIG.url}/api/states/${CHROMECAST_ENTITY_ID}`, {
-            headers: {
-                "Content-Type": "application/json"
-            }
-        });
+function updateChromecast() {
+    const data = haStatesFull[CHROMECAST_ENTITY_ID];
+    if (!data) { chromecastShowIdle(); return; }
 
-        if (!response.ok) throw new Error("HTTP " + response.status);
-        const data  = await response.json();
+    try {
         const attrs = data.attributes || {};
 
         // Rien en cours (éteint, en veille, ou pas de média chargé)
@@ -2309,7 +2295,7 @@ async function chromecastControl(service) {
     } catch (err) {
         console.error("Chromecast contrôle :", err);
     }
-    setTimeout(updateChromecast, 500);
+    setTimeout(haFetchStates, 500);
 }
 
 function chromecastTogglePlay() {
@@ -2317,7 +2303,6 @@ function chromecastTogglePlay() {
 }
 
 updateChromecast();
-setInterval(updateChromecast, 5000);
 
 
 // ─── Fond dynamique météo ────────────────────────────────────────────────────
