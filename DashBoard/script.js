@@ -1,3 +1,50 @@
+// ─── Stockage local versionné ────────────────────────────────────────────────
+// Petit wrapper autour de localStorage : chaque valeur est enregistrée avec un
+// numéro de version de schéma. Si le format d'une donnée change un jour, il
+// suffit d'incrémenter son numéro ici pour que les anciennes valeurs (au
+// format obsolète) soient ignorées automatiquement au lieu de faire planter
+// le code ou d'afficher des données corrompues — exactement le genre de bug
+// qu'on a eu une fois avec le cache des lignes de transport.
+//
+// Les données déjà enregistrées avant ce wrapper (format brut, sans version)
+// sont migrées silencieusement au premier accès : rien n'est perdu.
+
+const DASHBOARD_STORAGE_VERSIONS = {
+    transport_routes_config: 1,
+    phones_config: 1,
+    widgets_visibility: 1,
+    favorites: 1,
+    widgetOrder: 1,
+    chromecast_yt_thumb_cache: 1,
+};
+
+function storageGet(key, fallback) {
+    try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return fallback;
+
+        const parsed = JSON.parse(raw);
+        const expectedVersion = DASHBOARD_STORAGE_VERSIONS[key] ?? 1;
+
+        // Format versionné déjà en place
+        if (parsed && typeof parsed === "object" && "__v" in parsed) {
+            return parsed.__v === expectedVersion ? parsed.value : fallback;
+        }
+
+        // Ancien format brut (avant ce wrapper) : migration silencieuse, rien de perdu
+        storageSet(key, parsed);
+        return parsed;
+    } catch (err) {
+        return fallback;
+    }
+}
+
+function storageSet(key, value) {
+    const version = DASHBOARD_STORAGE_VERSIONS[key] ?? 1;
+    localStorage.setItem(key, JSON.stringify({ __v: version, value }));
+}
+
+
 // ─── Horloge ────────────────────────────────────────────────────────────────
 
 function updateClock() {
@@ -178,11 +225,11 @@ const stopDataCache = {};    // stopId -> dernière réponse de l'API par arrêt
 let linesIndex = {};         // number -> { id, number, stops: [{id, name, lat, lng}, ...] (triés par proximité) }
 
 function getTransportRoutes() {
-    return JSON.parse(localStorage.getItem("transport_routes_config") || "[]");
+    return storageGet("transport_routes_config", []);
 }
 
 function saveTransportRoutes(routes) {
-    localStorage.setItem("transport_routes_config", JSON.stringify(routes));
+    storageSet("transport_routes_config", routes);
 }
 
 async function fetchNaolibStop(stopId) {
@@ -1617,11 +1664,11 @@ setInterval(haFetchStates, 5000);
 const BATTERY_THRESHOLD = 15;
 
 function getPhones() {
-    return JSON.parse(localStorage.getItem("phones_config") || "[]");
+    return storageGet("phones_config", []);
 }
 
 function savePhones(phones) {
-    localStorage.setItem("phones_config", JSON.stringify(phones));
+    storageSet("phones_config", phones);
 }
 
 // Interroge HA et ne garde que les capteurs de batterie (device_class: battery)
@@ -1834,7 +1881,7 @@ const WIDGETS = [
 ];
 
 function initWidgetToggles() {
-    const saved = JSON.parse(localStorage.getItem('widgets_visibility') || '{}');
+    const saved = storageGet('widgets_visibility', {});
     WIDGETS.forEach(({ widgetId, checkId }) => {
         const visible = saved[widgetId] !== false; // true par défaut
         const el  = document.getElementById(widgetId);
@@ -1848,9 +1895,9 @@ function toggleWidget(widgetId, visible) {
     const el = document.getElementById(widgetId);
     if (el) el.style.display = visible ? '' : 'none';
 
-    const saved = JSON.parse(localStorage.getItem('widgets_visibility') || '{}');
+    const saved = storageGet('widgets_visibility', {});
     saved[widgetId] = visible;
-    localStorage.setItem('widgets_visibility', JSON.stringify(saved));
+    storageSet('widgets_visibility', saved);
 }
 
 initWidgetToggles();
@@ -2102,16 +2149,12 @@ let chromecastLastSearchedTitle = null;
 const YOUTUBE_THUMB_CACHE_KEY = "chromecast_yt_thumb_cache";
 
 function chromecastGetThumbCache() {
-    try {
-        return JSON.parse(localStorage.getItem(YOUTUBE_THUMB_CACHE_KEY) || "{}");
-    } catch {
-        return {};
-    }
+    return storageGet(YOUTUBE_THUMB_CACHE_KEY, {});
 }
 
 function chromecastSaveThumbCache(cache) {
     try {
-        localStorage.setItem(YOUTUBE_THUMB_CACHE_KEY, JSON.stringify(cache));
+        storageSet(YOUTUBE_THUMB_CACHE_KEY, cache);
     } catch (err) {
         console.error("Chromecast cache vignette :", err);
     }
@@ -2377,7 +2420,7 @@ function applyWeatherBackground(code) {
 //--------Favorits--------------------------------------------------------------
 
 function getFavorites() {
-    return JSON.parse(localStorage.getItem("favorites") || "[]");
+    return storageGet("favorites", []);
 }
 
 function toggleFavorite(entityId) {
@@ -2389,7 +2432,7 @@ function toggleFavorite(entityId) {
         favorites.push(entityId);
     }
 
-    localStorage.setItem("favorites", JSON.stringify(favorites));
+    storageSet("favorites", favorites);
 
     renderRooms();
     refreshFavoriteList();
@@ -2446,7 +2489,7 @@ let swapMode = false;
 function applySavedWidgetOrder() {
     const container = document.querySelector(".top-row");
     if (!container) return;
-    const saved = JSON.parse(localStorage.getItem(WIDGET_ORDER_KEY) || "null");
+    const saved = storageGet(WIDGET_ORDER_KEY, null);
     if (!saved) return;
 
     saved.forEach(key => {
@@ -2458,7 +2501,7 @@ function applySavedWidgetOrder() {
 function saveWidgetOrder() {
     const container = document.querySelector(".top-row");
     const order = [...container.children].map(el => el.dataset.widget);
-    localStorage.setItem(WIDGET_ORDER_KEY, JSON.stringify(order));
+    storageSet(WIDGET_ORDER_KEY, order);
 }
 
 function getSwapBanner() {
