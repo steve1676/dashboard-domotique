@@ -75,9 +75,9 @@
                     </div>
 
                     <div class="spotify-controls">
-                        <button onclick="spotifyPrev()">⏮</button>
-                        <button id="spotifyPlayPause" onclick="spotifyTogglePlay()">⏸</button>
-                        <button onclick="spotifyNext()">⏭</button>
+                        <button onclick="spotifyPrev()" aria-label="Piste précédente">⏮</button>
+                        <button id="spotifyPlayPause" onclick="spotifyTogglePlay()" aria-label="Lecture / Pause">⏸</button>
+                        <button onclick="spotifyNext()" aria-label="Piste suivante">⏭</button>
                     </div>
 
                 </div>
@@ -105,9 +105,9 @@
                     </div>
 
                     <div class="spotify-controls">
-                        <button onclick="chromecastControl('media_previous_track')">⏮</button>
-                        <button id="chromecastPlayPause" onclick="chromecastTogglePlay()">⏸</button>
-                        <button onclick="chromecastControl('media_next_track')">⏭</button>
+                        <button onclick="chromecastControl('media_previous_track')" aria-label="Précédent">⏮</button>
+                        <button id="chromecastPlayPause" onclick="chromecastTogglePlay()" aria-label="Lecture / Pause">⏸</button>
+                        <button onclick="chromecastControl('media_next_track')" aria-label="Suivant">⏭</button>
                     </div>
 
                 </div>
@@ -224,17 +224,17 @@
 
 <!-- ── NavBar ── -->
 <div class="navbar">
-    <button class="nav-btn active-nav" onclick="showPage('home', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon"><path d="M5 12l-2 0l9 -9l9 9l-2 0" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" /><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" /></svg></button>
-    <button class="nav-btn" onclick="showPage('allDevice', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon"><path d="M13 9a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-6a1 1 0 0 1 -1 -1v-10z" /><path d="M18 8v-3a1 1 0 0 0 -1 -1h-13a1 1 0 0 0 -1 1v12a1 1 0 0 0 1 1h9" /><path d="M16 9h2" /></svg></button>
-    <button class="nav-btn" onclick="showPage('temperature', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon"><path d="M10 13.5a4 4 0 1 0 4 0v-8.5a2 2 0 0 0 -4 0v8.5" /><path d="M10 9l4 0" /></svg></button>
-    <button class="nav-btn" onclick="showPage('camera', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon"><path d="M5 7h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2" /><path d="M12 13m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /></svg></button>
-    <button class="nav-btn" onclick="showPage('settings', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg></button>
+    <button class="nav-btn active-nav" onclick="showPage('home', this)" aria-label="Accueil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon"><path d="M5 12l-2 0l9 -9l9 9l-2 0" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" /><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" /></svg></button>
+    <button class="nav-btn" onclick="showPage('allDevice', this)" aria-label="Tous les appareils"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon"><path d="M13 9a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-6a1 1 0 0 1 -1 -1v-10z" /><path d="M18 8v-3a1 1 0 0 0 -1 -1h-13a1 1 0 0 0 -1 1v12a1 1 0 0 0 1 1h9" /><path d="M16 9h2" /></svg></button>
+    <button class="nav-btn" onclick="showPage('temperature', this)" aria-label="Température"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon"><path d="M10 13.5a4 4 0 1 0 4 0v-8.5a2 2 0 0 0 -4 0v8.5" /><path d="M10 9l4 0" /></svg></button>
+    <button class="nav-btn" onclick="showPage('camera', this)" aria-label="Caméras"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon"><path d="M5 7h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2" /><path d="M12 13m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /></svg></button>
+    <button class="nav-btn" onclick="showPage('settings', this)" aria-label="Paramètres"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg></button>
 </div>
 
 <!-- ── Modale Widgets (météo / transport) ── -->
 <div id="widgetModal" class="widget-modal-overlay" onclick="if(event.target===this) closeWidgetModal()">
     <div class="widget-modal">
-        <button id="mainModalClose" class="widget-modal-close" onclick="closeWidgetModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button>
+        <button id="mainModalClose" class="widget-modal-close" onclick="closeWidgetModal()" aria-label="Fermer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button>
 
         <!-- Détail Météo -->
         <div id="modal-meteo" class="widget-modal-section">
@@ -288,7 +288,7 @@
             <div id="transport-view-favoris" class="transport-view" style="display:none;">
                 <div class="transport-subview-header">
                     <span class="transport-subview-title">Choix Favoris</span>
-                    <button class="widget-modal-close transport-subview-close" onclick="showTransportView('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button>
+                    <button class="widget-modal-close transport-subview-close" onclick="showTransportView('home')" aria-label="Retour à l'accueil transport"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button>
                 </div>
 
                 <div class="transport-nearby-header">
@@ -323,7 +323,7 @@
             <!-- ── Vue Info Trafic ── -->
             <div id="transport-view-infotrafic" class="transport-view" style="display:none;">
                 <div class="transport-subview-header transport-subview-header-corner">
-                    <button class="widget-modal-close transport-subview-close" onclick="showTransportView('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button>
+                    <button class="widget-modal-close transport-subview-close" onclick="showTransportView('home')" aria-label="Retour à l'accueil transport"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button>
                 </div>
                 <div class="infotrafic-title"><span></span>Info Trafic<span></span></div>
                 <div id="transport-alerts-modal">
@@ -340,7 +340,7 @@
 <!-- ── Overlay Mode Miroir ── -->
 <div id="mirrorOverlay" class="mirror-overlay">
     <video id="mirrorVideo" autoplay playsinline></video>
-    <button class="mirror-close" onclick="stopMirror()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button>
+    <button class="mirror-close" onclick="stopMirror()" aria-label="Fermer le mode miroir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:1em;height:1em;"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button>
     <div id="mirrorError" class="mirror-error"></div>
 </div>
 

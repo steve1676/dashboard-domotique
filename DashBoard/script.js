@@ -700,7 +700,7 @@ function renderTransportRoutesList() {
         row.innerHTML = `
             <span class="line-badge" style="background:${r.color};color:white">${r.lineNumber}</span>
             <span class="transport-route-label">${r.destLabel} <span class="transport-route-stop">(${r.stopLabel})</span></span>
-            <button class="phone-remove" onclick="removeTransportRoute('${r.id}')">${ICON_X}</button>
+            <button class="phone-remove" onclick="removeTransportRoute('${r.id}')" aria-label="Supprimer cette ligne des favoris">${ICON_X}</button>
         `;
         container.appendChild(row);
     });
@@ -1145,6 +1145,7 @@ function renderNearbyGrid(containerId, opts) {
         const badge = document.createElement("button");
         badge.className = "transport-line-badge";
         badge.style.background = item.color;
+        badge.setAttribute("aria-label", `Ligne ${item.lineNumber}, arrêt ${item.stopLabel}${isFav ? " (en favoris)" : ""}`);
         badge.innerHTML = item.lineNumber +
             (opts.showStars && isFav ? `<span class="transport-line-badge-star">${ICON_STAR_FILLED}</span>` : "");
 
@@ -1588,7 +1589,7 @@ function renderRooms() {
             row.innerHTML = `
                 <div class="device-info">
                     <button class="favorite-btn ${isFav ? "active" : ""}"
-                            onclick="toggleFavorite('${d.entity_id}')">${isFav ? ICON_STAR_FILLED : ICON_STAR}</button>
+                            onclick="toggleFavorite('${d.entity_id}')" aria-label="${isFav ? "Retirer" : "Ajouter"} ${d.label} des favoris">${isFav ? ICON_STAR_FILLED : ICON_STAR}</button>
                     <span>${d.label}</span>
                 </div>
                 <button class="toggle ${on ? "active" : ""}"
@@ -1727,7 +1728,7 @@ function renderPhonesList() {
             <input type="text" class="phone-name-input" value="${p.label}"
                    onchange="renamePhone('${p.id}', this.value)">
             <span class="phone-entity">${p.entity_id}</span>
-            <button class="phone-remove" onclick="removePhone('${p.id}')">${ICON_X}</button>
+            <button class="phone-remove" onclick="removePhone('${p.id}')" aria-label="Supprimer ce téléphone">${ICON_X}</button>
         `;
         container.appendChild(row);
     });
