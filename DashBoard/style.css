@@ -4,6 +4,18 @@
     padding: 0;
 }
 
+:root {
+    /* Cartes transport (tuile + popup) : taille unique définie ici une seule
+       fois — modifier ces valeurs suffit à retailler toutes les cartes,
+       partout, sans chasser les surcharges dispersées dans le fichier. */
+    --transport-card-size: 100px;
+    --transport-card-radius: 20px;
+    --transport-card-value-size: 1.4rem;
+    --transport-card-unit-size: 0.72rem;
+    --transport-card-line-size: 0.7rem;
+    --transport-card-rt-size: 13px;
+}
+
 body {
     background: #111827;
     color: white;
@@ -697,23 +709,6 @@ body {
     color: #94a3b8;
 }
 
-.transport-row {
-    display: none;
-    align-items: center;
-    gap: 15px;
-    padding: 12px 0;
-    border-bottom: 1px solid #374151;
-    font-size: 1.2rem;
-}
-
-.transport-row.visible {
-    display: flex;
-}
-
-.transport-row:last-child {
-    border-bottom: none;
-}
-
 .line-badge {
     background: #facc15;
     color: #111827;
@@ -725,17 +720,6 @@ body {
     text-align: center;
 }
 
-.transport-dest {
-    flex: 1;
-    color: #cbd5e1;
-}
-
-.transport-time {
-    font-weight: bold;
-    font-size: 1.3rem;
-    color: #22c55e;
-}
-
 .transport-loading {
     color: #94a3b8;
     font-size: 1.1rem;
@@ -744,24 +728,6 @@ body {
 .transport-error {
     color: #f87171;
     font-size: 1.1rem;
-}
-
-/* ── Transports : en-tête dynamique (arrêt → direction de la carte active) ── */
-.transport-header-dynamic {
-    font-size: 0.95rem;
-    color: #cbd5e1;
-    margin-bottom: 14px;
-    min-height: 1.2em;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.transport-header-dynamic .arrow {
-    color: #64748b;
 }
 
 /* ── Transports : carrousel de cartes (une carte = une ligne à un arrêt) ── */
@@ -787,9 +753,9 @@ body {
 /* ── Carte de base : taille unique partout (tuile ET popup) ── */
 .transport-card-item {
     flex: 0 0 auto;
-    width: 100px;
-    min-height: 100px;
-    border-radius: 20px;
+    width: var(--transport-card-size);
+    min-height: var(--transport-card-size);
+    border-radius: var(--transport-card-radius);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -806,15 +772,6 @@ body {
     transform: scale(0.95);
 }
 
-/* Popup : un groupe-ligne = plusieurs cartes (une par horaire) côte à côte */
-.transport-line-group {
-    display: flex;
-    gap: 8px;
-    flex: 0 0 auto;
-    scroll-snap-align: start;
-    position: relative;
-}
-
 /* Tuile d'accueil : 1 seule carte = centrée, 2 cartes = côte à côte sans scroll */
 .top-row .transport-cards.cards-count-1,
 .top-row .transport-cards.cards-count-2 {
@@ -827,17 +784,21 @@ body {
 }
 
 .top-row .transport-cards.cards-count-2 .transport-card-item {
+    /* Seule vraie exception : ces 2 cartes doivent pouvoir rétrécir sous la
+       taille de base pour toujours tenir dans la tuile, quelle que soit sa
+       largeur réelle — mécanisme différent (flexible), pas juste une autre
+       valeur fixe à dupliquer. */
     flex: 1 1 0;
     width: auto;
     min-width: 0;
-    max-width: 100px;
+    max-width: var(--transport-card-size);
 }
 
 .transport-card-line {
     position: absolute;
     top: 8px;
     left: 8px;
-    font-size: 0.7rem;
+    font-size: var(--transport-card-line-size);
     font-weight: 800;
     color: rgba(255, 255, 255, 0.9);
     text-shadow: 0 1px 3px rgba(0,0,0,0.3);
@@ -847,8 +808,8 @@ body {
     position: absolute;
     top: 8px;
     right: 8px;
-    width: 13px;
-    height: 13px;
+    width: var(--transport-card-rt-size);
+    height: var(--transport-card-rt-size);
     color: white;
 }
 
@@ -859,7 +820,7 @@ body {
 }
 
 .transport-card-value {
-    font-size: 1.4rem;
+    font-size: var(--transport-card-value-size);
     font-weight: 800;
     color: white;
     line-height: 1;
@@ -867,7 +828,7 @@ body {
 }
 
 .transport-card-unit {
-    font-size: 0.72rem;
+    font-size: var(--transport-card-unit-size);
     font-weight: 700;
     color: rgba(255, 255, 255, 0.9);
     margin-top: 3px;
@@ -880,31 +841,6 @@ body {
     font-size: 0.7rem;
     font-weight: 600;
     color: rgba(255, 255, 255, 0.75);
-}
-
-/* ── Popup : un groupe par arrêt, chacun avec son propre en-tête + rangée ── */
-.transport-stop-group {
-    margin-bottom: 28px;
-}
-
-.transport-stop-group:last-child {
-    margin-bottom: 0;
-}
-
-.transport-stop-title {
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: white;
-    text-align: center;
-    margin-bottom: 14px;
-}
-
-.transport-direction-row {
-    margin-bottom: 16px;
-}
-
-.transport-direction-row:last-child {
-    margin-bottom: 0;
 }
 
 .transport-direction-header {
