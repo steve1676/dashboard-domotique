@@ -512,6 +512,20 @@ body {
     display: flex;
 }
 
+/* ── Mode Nuit : écran noir plein (vrais pixels éteints sur AMOLED) ── */
+.night-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 2000; /* au-dessus de tout, y compris les popups */
+    cursor: pointer;
+}
+
+.night-overlay.active {
+    display: block;
+}
+
 .mirror-overlay video {
     width: 100%;
     height: 100%;
@@ -849,6 +863,14 @@ body {
     height: 100%;
     display: block;
 }
+
+/* Icône "temps réel" : une seule animation partagée par toutes les cartes,
+   au lieu d'un jeu de @keyframes généré par instance (moins de travail pour
+   le navigateur quand plusieurs cartes RT sont affichées en même temps). */
+@keyframes rt-arc-a-op { 0% {opacity:1} 50% {opacity:1} 75% {opacity:.3} 100% {opacity:1} }
+@keyframes rt-arc-b-op { 0% {opacity:1} 25% {opacity:1} 50% {opacity:.3} 75% {opacity:1} 100% {opacity:1} }
+.rt-arc-a { animation: rt-arc-a-op 800ms linear infinite; }
+.rt-arc-b { animation: rt-arc-b-op 800ms linear infinite; }
 
 .transport-card-value {
     font-size: var(--transport-card-value-size);

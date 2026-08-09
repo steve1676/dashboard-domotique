@@ -220,6 +220,33 @@
 
     </div>
 
+    <div class="weather-card" style="margin-top: 30px;">
+
+        <h2 style="margin-bottom:20px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-inline"><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M12 7v5l3 3" /></svg> Plage d'affichage</h2>
+
+        <div class="widget-item">
+            <span class="widget-label">Activer une plage horaire</span>
+            <label class="switch">
+                <input type="checkbox" id="chk-display-schedule" onchange="onDisplayScheduleToggle(this.checked)">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="phone-add-row" style="margin-top:15px;">
+            <div style="flex:1; min-width:140px;">
+                <label style="font-size:0.85rem; color:#94a3b8; display:block; margin-bottom:6px;">Allumage</label>
+                <input type="time" id="display-schedule-start" onchange="saveDisplaySchedule()">
+            </div>
+            <div style="flex:1; min-width:140px;">
+                <label style="font-size:0.85rem; color:#94a3b8; display:block; margin-bottom:6px;">Extinction</label>
+                <input type="time" id="display-schedule-end" onchange="saveDisplaySchedule()">
+            </div>
+        </div>
+
+        <p style="margin-top:14px; font-size:0.85rem; color:#94a3b8;">En dehors de cette plage, l'écran passe en noir complet et se met en veille (économie réelle sur écran AMOLED). Toucher l'écran le réveille temporairement.</p>
+
+    </div>
+
 </div>
 
 <!-- ── NavBar ── -->
@@ -343,6 +370,9 @@
     <button class="mirror-close" onclick="stopMirror()" aria-label="Fermer le mode miroir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-btn"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button>
     <div id="mirrorError" class="mirror-error"></div>
 </div>
+
+<!-- ── Overlay Mode Nuit (écran noir, tap pour réveiller) ── -->
+<div id="nightOverlay" class="night-overlay" onclick="wakeFromNightMode()"></div>
 
 <script src="script.js"></script>
 

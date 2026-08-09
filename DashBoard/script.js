@@ -16,6 +16,7 @@ const DASHBOARD_STORAGE_VERSIONS = {
     favorites: 1,
     widgetOrder: 1,
     chromecast_yt_thumb_cache: 1,
+    display_schedule: 1,
 };
 
 function storageGet(key, fallback) {
@@ -196,16 +197,123 @@ async function updateLocation(latitude, longitude) {
     weatherInterval = setInterval(() => getWeather(latitude, longitude), 600000);
 }
 
-// watchPosition = mise à jour automatique dès que la position change
-navigator.geolocation.watchPosition(
+// Une seule lecture de position à faible précision : suffisant pour la météo
+// (le dashboard reste toujours au même endroit), et bien moins gourmand
+// qu'un watchPosition en haute précision qui garderait le GPS actif en
+// permanence.
+navigator.geolocation.getCurrentPosition(
     position => updateLocation(position.coords.latitude, position.coords.longitude),
     error => {
         console.error(error);
         getWeather(47.2172, -1.5534);
         document.getElementById("city").textContent = "Nantes";
     },
-    { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+    { enableHighAccuracy: false, maximumAge: 30 * 60000, timeout: 10000 }
 );
+
+// ─── Plage d'affichage (mode nuit programmé) ─────────────────────────────────
+// En dehors des heures choisies dans les Paramètres : écran noir plein (vrais
+// pixels éteints sur AMOLED) + relâchement du Wake Lock pour laisser Android
+// mettre la tablette en veille normalement après son délai système.
+
+let wakeLock = null;
+let nightModeSnoozeUntil = 0; // tap sur l'écran noir = pause temporaire
+
+function getDisplaySchedule() {
+    return storageGet("display_schedule", { enabled: false, start: "07:00", end: "23:00" });
+}
+
+function saveDisplaySchedule() {
+    const schedule = {
+        enabled: document.getElementById("chk-display-schedule").checked,
+        start: document.getElementById("display-schedule-start").value || "07:00",
+        end: document.getElementById("display-schedule-end").value || "23:00"
+    };
+    storageSet("display_schedule", schedule);
+    checkDisplaySchedule();
+}
+
+function onDisplayScheduleToggle(enabled) {
+    saveDisplaySchedule();
+}
+
+function initDisplaySchedule() {
+    const schedule = getDisplaySchedule();
+    document.getElementById("chk-display-schedule").checked = schedule.enabled;
+    document.getElementById("display-schedule-start").value = schedule.start;
+    document.getElementById("display-schedule-end").value = schedule.end;
+    checkDisplaySchedule();
+}
+
+function isWithinSchedule(schedule) {
+    const now = new Date();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+
+    const [sh, sm] = schedule.start.split(":").map(Number);
+    const [eh, em] = schedule.end.split(":").map(Number);
+    const startMin = sh * 60 + sm;
+    const endMin   = eh * 60 + em;
+
+    if (startMin === endMin) return true; // plage nulle : toujours allumé
+    if (startMin < endMin) {
+        // plage classique dans la même journée (ex: 07:00 → 23:00)
+        return nowMin >= startMin && nowMin < endMin;
+    }
+    // plage à cheval sur minuit (ex: 22:00 → 06:00)
+    return nowMin >= startMin || nowMin < endMin;
+}
+
+async function requestWakeLock() {
+    try {
+        if (!("wakeLock" in navigator)) return;
+        wakeLock = await navigator.wakeLock.request("screen");
+    } catch (err) {
+        console.error("Wake Lock indisponible :", err);
+    }
+}
+
+function releaseWakeLock() {
+    if (wakeLock) {
+        wakeLock.release().catch(() => {});
+        wakeLock = null;
+    }
+}
+
+function checkDisplaySchedule() {
+    const schedule = getDisplaySchedule();
+    const overlay = document.getElementById("nightOverlay");
+    if (!overlay) return;
+
+    if (!schedule.enabled) {
+        overlay.classList.remove("active");
+        requestWakeLock();
+        return;
+    }
+
+    const shouldBeOn = isWithinSchedule(schedule) || Date.now() < nightModeSnoozeUntil;
+
+    if (shouldBeOn) {
+        overlay.classList.remove("active");
+        requestWakeLock();
+    } else {
+        overlay.classList.add("active");
+        releaseWakeLock();
+    }
+}
+
+function wakeFromNightMode() {
+    nightModeSnoozeUntil = Date.now() + 60000; // 1 minute d'aperçu
+    checkDisplaySchedule();
+}
+
+// Le Wake Lock se relâche automatiquement si l'onglet passe en arrière-plan ;
+// on le redemande dès qu'il redevient visible, s'il doit être allumé.
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") checkDisplaySchedule();
+});
+
+initDisplaySchedule();
+setInterval(checkDisplaySchedule, 30000); // vérifie la plage toutes les 30s
 
 
 // ─── Transports — Temps réel Naolib via plan.naolib.fr ──────────────────────
@@ -801,18 +909,14 @@ function updateTransportWidgetTitle() {
 
 // ─── Transports : icône temps réel (remplace le 🟢/⚪) ───────────────────────
 // SVG fourni par Steve (icon_rt.svg) — 2 arcs avec animation d'opacité en
-// cascade façon "signal". Les id/keyframes sont suffixés par instance pour
-// éviter les collisions quand plusieurs cartes affichent l'icône en même temps.
-function rtIconSVG(uid) {
+// cascade façon "signal". L'animation elle-même est définie une seule fois
+// dans style.css (.rt-arc-a / .rt-arc-b) et partagée par toutes les cartes,
+// au lieu d'un jeu de @keyframes unique par instance — moins de travail pour
+// le navigateur quand plusieurs cartes temps réel sont affichées à la fois.
+function rtIconSVG() {
     return `<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
-        <style>
-            #rt-a-${uid} { animation: rt-a-${uid}-op 800ms linear infinite normal forwards; }
-            @keyframes rt-a-${uid}-op { 0% {opacity:1} 50% {opacity:1} 75% {opacity:.3} 100% {opacity:1} }
-            #rt-b-${uid} { animation: rt-b-${uid}-op 800ms linear infinite normal forwards; }
-            @keyframes rt-b-${uid}-op { 0% {opacity:1} 25% {opacity:1} 50% {opacity:.3} 75% {opacity:1} 100% {opacity:1} }
-        </style>
-        <path id="rt-a-${uid}" d="M263.4,282c-10.3,0-18.6-8.3-18.6-18.6c0-114.8-93.4-208.2-208.2-208.2C26.3,55.2,18,46.9,18,36.6s8.3-18.6,18.6-18.6C171.9,18,282,128.1,282,263.4c0,10.3-8.3,18.6-18.6,18.6Z" fill="currentColor"/>
-        <path id="rt-b-${uid}" d="M192.8,282c-10.3,0-18.6-8.3-18.6-18.6c0-75.9-61.7-137.6-137.6-137.6-10.3,0-18.6-8.3-18.6-18.6s8.3-18.6,18.6-18.6c96.4,0,174.8,78.4,174.8,174.8c0,10.3-8.4,18.6-18.6,18.6Z" fill="currentColor"/>
+        <path class="rt-arc-a" d="M263.4,282c-10.3,0-18.6-8.3-18.6-18.6c0-114.8-93.4-208.2-208.2-208.2C26.3,55.2,18,46.9,18,36.6s8.3-18.6,18.6-18.6C171.9,18,282,128.1,282,263.4c0,10.3-8.3,18.6-18.6,18.6Z" fill="currentColor"/>
+        <path class="rt-arc-b" d="M192.8,282c-10.3,0-18.6-8.3-18.6-18.6c0-75.9-61.7-137.6-137.6-137.6-10.3,0-18.6-8.3-18.6-18.6s8.3-18.6,18.6-18.6c96.4,0,174.8,78.4,174.8,174.8c0,10.3-8.4,18.6-18.6,18.6Z" fill="currentColor"/>
     </svg>`;
 }
 
@@ -892,7 +996,7 @@ function updateSingleCard(el, card, dirIdx) {
             rtHolder.className = "transport-card-rt";
             el.appendChild(rtHolder);
         }
-        rtHolder.innerHTML = rtIconSVG("m" + Math.random().toString(36).slice(2));
+        rtHolder.innerHTML = rtIconSVG();
     } else if (rtHolder) {
         rtHolder.remove();
     }
@@ -999,7 +1103,7 @@ function renderTransportTile(containerId, cards) {
         if (entry && entry.isRt) {
             const rtHolder = document.createElement("span");
             rtHolder.className = "transport-card-rt";
-            rtHolder.innerHTML = rtIconSVG("home-" + card.key.replace(/[^a-zA-Z0-9]/g, ""));
+            rtHolder.innerHTML = rtIconSVG();
             el.appendChild(rtHolder);
         }
 
@@ -1319,7 +1423,7 @@ function renderFavoritesHomeList(routes, stopDataById, toMin, nowMin, waitLabel)
         if (first && first.is_rt) {
             const rt = document.createElement("span");
             rt.className = "transport-card-rt";
-            rt.innerHTML = rtIconSVG("fav-" + r.id);
+            rt.innerHTML = rtIconSVG();
             mainCard.appendChild(rt);
         }
         cardsRow.appendChild(mainCard);
