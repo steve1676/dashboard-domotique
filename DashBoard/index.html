@@ -245,6 +245,26 @@
 
         <p style="margin-top:14px; font-size:0.85rem; color:#94a3b8;">En dehors de cette plage, l'écran passe en noir complet et se met en veille (économie réelle sur écran AMOLED). Toucher l'écran le réveille temporairement.</p>
 
+        <div class="widget-item" style="margin-top:20px; padding-top:20px; border-top:1px solid #374151;">
+            <span class="widget-label">Toujours éteint (réveil au toucher)</span>
+            <label class="switch">
+                <input type="checkbox" id="chk-always-off" onchange="saveDisplaySchedule()">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="phone-add-row" style="margin-top:15px;">
+            <div style="flex:1; min-width:200px;">
+                <label style="font-size:0.85rem; color:#94a3b8; display:block; margin-bottom:6px;">Durée d'affichage après un toucher</label>
+                <select id="wake-duration-select" onchange="saveDisplaySchedule()">
+                    <option value="30">30 secondes</option>
+                    <option value="60">1 minute</option>
+                    <option value="120">2 minutes</option>
+                    <option value="300">5 minutes</option>
+                </select>
+            </div>
+        </div>
+
     </div>
 
 </div>

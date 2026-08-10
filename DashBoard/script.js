@@ -220,14 +220,22 @@ let wakeLock = null;
 let nightModeSnoozeUntil = 0; // tap sur l'écran noir = pause temporaire
 
 function getDisplaySchedule() {
-    return storageGet("display_schedule", { enabled: false, start: "07:00", end: "23:00" });
+    return storageGet("display_schedule", {
+        enabled: false,
+        start: "07:00",
+        end: "23:00",
+        alwaysOff: false,
+        wakeDuration: 60
+    });
 }
 
 function saveDisplaySchedule() {
     const schedule = {
         enabled: document.getElementById("chk-display-schedule").checked,
         start: document.getElementById("display-schedule-start").value || "07:00",
-        end: document.getElementById("display-schedule-end").value || "23:00"
+        end: document.getElementById("display-schedule-end").value || "23:00",
+        alwaysOff: document.getElementById("chk-always-off").checked,
+        wakeDuration: parseInt(document.getElementById("wake-duration-select").value, 10) || 60
     };
     storageSet("display_schedule", schedule);
     checkDisplaySchedule();
@@ -242,6 +250,8 @@ function initDisplaySchedule() {
     document.getElementById("chk-display-schedule").checked = schedule.enabled;
     document.getElementById("display-schedule-start").value = schedule.start;
     document.getElementById("display-schedule-end").value = schedule.end;
+    document.getElementById("chk-always-off").checked = schedule.alwaysOff;
+    document.getElementById("wake-duration-select").value = String(schedule.wakeDuration);
     checkDisplaySchedule();
 }
 
@@ -284,13 +294,17 @@ function checkDisplaySchedule() {
     const overlay = document.getElementById("nightOverlay");
     if (!overlay) return;
 
-    if (!schedule.enabled) {
-        overlay.classList.remove("active");
-        requestWakeLock();
-        return;
-    }
+    const snoozing = Date.now() < nightModeSnoozeUntil;
 
-    const shouldBeOn = isWithinSchedule(schedule) || Date.now() < nightModeSnoozeUntil;
+    let shouldBeOn;
+    if (schedule.alwaysOff) {
+        // Mode "toujours éteint" : noir en permanence, sauf pendant l'aperçu après un toucher
+        shouldBeOn = snoozing;
+    } else if (schedule.enabled) {
+        shouldBeOn = isWithinSchedule(schedule) || snoozing;
+    } else {
+        shouldBeOn = true;
+    }
 
     if (shouldBeOn) {
         overlay.classList.remove("active");
@@ -302,7 +316,8 @@ function checkDisplaySchedule() {
 }
 
 function wakeFromNightMode() {
-    nightModeSnoozeUntil = Date.now() + 60000; // 1 minute d'aperçu
+    const schedule = getDisplaySchedule();
+    nightModeSnoozeUntil = Date.now() + (schedule.wakeDuration * 1000);
     checkDisplaySchedule();
 }
 
@@ -313,7 +328,7 @@ document.addEventListener("visibilitychange", () => {
 });
 
 initDisplaySchedule();
-setInterval(checkDisplaySchedule, 30000); // vérifie la plage toutes les 30s
+setInterval(checkDisplaySchedule, 5000); // vérifie toutes les 5s (réactif même sur un aperçu de 30s)
 
 
 // ─── Transports — Temps réel Naolib via plan.naolib.fr ──────────────────────
