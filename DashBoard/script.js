@@ -218,6 +218,11 @@ navigator.geolocation.getCurrentPosition(
 
 let wakeLock = null;
 let nightModeSnoozeUntil = 0; // tap sur l'écran noir = pause temporaire
+let backgroundPollingPaused = false;
+
+// Identifiants des boucles mises en pause pendant le mode nuit (déclarés ici,
+// affectés plus loin dans le fichier là où chaque boucle démarre réellement)
+let haInterval, transportInterval, infotraficInterval, phoneSelectInterval, spotifyInterval;
 
 function getDisplaySchedule() {
     return storageGet("display_schedule", {
@@ -289,6 +294,33 @@ function releaseWakeLock() {
     }
 }
 
+function pauseBackgroundPolling() {
+    if (backgroundPollingPaused) return;
+    backgroundPollingPaused = true;
+
+    clearInterval(haInterval);
+    clearInterval(transportInterval);
+    clearInterval(infotraficInterval);
+    clearInterval(phoneSelectInterval);
+    clearInterval(spotifyInterval);
+}
+
+function resumeBackgroundPolling() {
+    if (!backgroundPollingPaused) return;
+    backgroundPollingPaused = false;
+
+    haInterval        = setInterval(haFetchStates, 5000);
+    transportInterval = setInterval(updateTransports, 30000);
+    infotraficInterval = setInterval(updateInfotrafic, 5 * 60 * 1000);
+    phoneSelectInterval = setInterval(refreshPhoneEntitySelect, 30000);
+    if (typeof spotifyUpdatePlayer === "function") spotifyInterval = setInterval(spotifyUpdatePlayer, 5000);
+
+    // Rafraîchit tout de suite au réveil pour ne pas afficher des données périmées
+    haFetchStates();
+    updateTransports();
+    updateInfotrafic();
+}
+
 function checkDisplaySchedule() {
     const schedule = getDisplaySchedule();
     const overlay = document.getElementById("nightOverlay");
@@ -309,9 +341,11 @@ function checkDisplaySchedule() {
     if (shouldBeOn) {
         overlay.classList.remove("active");
         requestWakeLock();
+        resumeBackgroundPolling();
     } else {
         overlay.classList.add("active");
         releaseWakeLock();
+        pauseBackgroundPolling();
     }
 }
 
@@ -1541,7 +1575,7 @@ async function updateTransports() {
 initTransportLines();
 renderTransportRoutesList();
 updateTransports();
-setInterval(updateTransports, 30000);
+transportInterval = setInterval(updateTransports, 30000);
 initNearbyLines().then(() => {
     renderNearbyGrid("transport-nearby-grid", { interactive: false, showStars: false });
     renderNearbyGrid("transport-favoris-grid", { interactive: true, showStars: true });
@@ -1620,7 +1654,7 @@ async function updateInfotrafic() {
 }
 
 updateInfotrafic();
-setInterval(updateInfotrafic, 5 * 60 * 1000); // 5 min, les perturbations changent peu souvent
+infotraficInterval = setInterval(updateInfotrafic, 5 * 60 * 1000); // 5 min, les perturbations changent peu souvent
 
 
 // ─── Appareils — Home Assistant ──────────────────────────────────────────────
@@ -1775,7 +1809,7 @@ function allOff() {
 }
 
 haFetchStates();
-setInterval(haFetchStates, 5000);
+haInterval = setInterval(haFetchStates, 5000);
 
 
 // ─── Batterie téléphones (via Home Assistant / app Companion) ───────────────
@@ -1938,7 +1972,7 @@ function renderBatteryBadges() {
 renderPhonesList();
 renderBatteryBadges();
 refreshPhoneEntitySelect();
-setInterval(refreshPhoneEntitySelect, 30000); // détecte les nouveaux capteurs périodiquement
+phoneSelectInterval = setInterval(refreshPhoneEntitySelect, 30000); // détecte les nouveaux capteurs périodiquement
 
 
 // ─── Navigation ─────────────────────────────────────────────────────────────
@@ -2250,7 +2284,7 @@ async function spotifyPrev() {
 
 spotifyHandleRedirect().then(() => {
     spotifyUpdatePlayer();
-    setInterval(spotifyUpdatePlayer, 5000);
+    spotifyInterval = setInterval(spotifyUpdatePlayer, 5000);
 });
 
 // ─── Chromecast (via Home Assistant) ─────────────────────────────────────────
