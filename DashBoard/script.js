@@ -1649,7 +1649,7 @@ async function updateInfotrafic() {
 
     } catch (err) {
         console.error("Erreur infotrafic :", err);
-        // Silencieux : une alerte trafic indisponible ne doit pas casser le reste du widget
+        modalBox.innerHTML = `<div class="transport-error">${ICON_ALERT} Impossible de charger les infos trafic pour le moment.</div>`;
     }
 }
 
