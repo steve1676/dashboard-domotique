@@ -1602,17 +1602,9 @@ async function updateInfotrafic() {
         if (!res.ok) throw new Error("HTTP " + res.status);
         
         const data = await res.json();
-        
-        // Ouvre F12 > Console pour inspecter la réponse brute si besoin
-        console.log("Réponse API Naolib :", data);
 
-        // Extraction du tableau selon la structure envoyée par l'API
-        let alerts = [];
-        if (Array.isArray(data)) {
-            alerts = data;
-        } else if (typeof data === "object" && data !== null) {
-            alerts = data.alerts || data.infotrafic || data.infotrafics || data.data || data.results || data.items || [];
-        }
+        // Récupération des 34 perturbations dans "disruptions"
+        const alerts = Array.isArray(data) ? data : (data.disruptions || []);
 
         if (!Array.isArray(alerts) || alerts.length === 0) {
             container.innerHTML = `<div class="transport-loading">Aucune perturbation signalée sur le réseau.</div>`;
@@ -1620,8 +1612,8 @@ async function updateInfotrafic() {
         }
 
         container.innerHTML = alerts.map(alert => {
-            const titre = alert.intitule || alert.title || alert.titre || "Information";
-            const contenu = alert.texte || alert.resume || alert.description || alert.detail || "";
+            const titre = alert.title || alert.name || alert.intitule || alert.titre || "Information";
+            const contenu = alert.description || alert.text || alert.texte || alert.summary || alert.detail || "";
 
             return `
                 <div class="infotrafic-item">
