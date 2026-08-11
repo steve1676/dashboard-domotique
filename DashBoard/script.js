@@ -1618,12 +1618,12 @@ async function updateInfotrafic() {
 
         container.innerHTML = alerts.map(alert => {
             const titre = alert.title || alert.name || alert.intitule || "Information";
-            const contenu = alert.description || alert.text || alert.texte || "";
+            const contenuHtml = alert.description || alert.text || alert.texte || alert.detail || "Aucun détail disponible.";
 
             return `
                 <div class="infotrafic-item">
                     <div class="infotrafic-header">${titre}</div>
-                    <div class="infotrafic-body">${stripHtmlToText(contenu)}</div>
+                    <div class="infotrafic-body">${contenuHtml}</div>
                 </div>
             `;
         }).join("");
