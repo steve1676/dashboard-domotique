@@ -1602,27 +1602,38 @@ async function updateInfotrafic() {
         if (!res.ok) throw new Error("HTTP " + res.status);
         
         const data = await res.json();
+        
+        // Ouvre F12 > Console pour inspecter la réponse brute si besoin
+        console.log("Réponse API Naolib :", data);
 
-        // Récupère le tableau, qu'il soit direct ou encapsulé dans un objet
-        const alerts = Array.isArray(data) 
-            ? data 
-            : (data.alerts || data.infotrafic || data.items || []);
+        // Extraction du tableau selon la structure envoyée par l'API
+        let alerts = [];
+        if (Array.isArray(data)) {
+            alerts = data;
+        } else if (typeof data === "object" && data !== null) {
+            alerts = data.alerts || data.infotrafic || data.infotrafics || data.data || data.results || data.items || [];
+        }
 
         if (!Array.isArray(alerts) || alerts.length === 0) {
             container.innerHTML = `<div class="transport-loading">Aucune perturbation signalée sur le réseau.</div>`;
             return;
         }
 
-        container.innerHTML = alerts.map(alert => `
-            <div class="infotrafic-item">
-                <div class="infotrafic-header">
-                    <strong>${alert.title || alert.intitule || "Information"}</strong>
+        container.innerHTML = alerts.map(alert => {
+            const titre = alert.intitule || alert.title || alert.titre || "Information";
+            const contenu = alert.texte || alert.resume || alert.description || alert.detail || "";
+
+            return `
+                <div class="infotrafic-item">
+                    <div class="infotrafic-header">
+                        <strong>${titre}</strong>
+                    </div>
+                    <div class="infotrafic-body">
+                        ${stripHtmlToText(contenu)}
+                    </div>
                 </div>
-                <div class="infotrafic-body">
-                    ${stripHtmlToText(alert.description || alert.detail || alert.texte || "")}
-                </div>
-            </div>
-        `).join("");
+            `;
+        }).join("");
 
     } catch (err) {
         console.error("Erreur info trafic :", err);
