@@ -1586,70 +1586,41 @@ initNearbyLines().then(() => {
 
 const NAOLIB_INFOTRAFIC_URL = "https://plan.naolib.fr/api/infotrafic";
 
-// Rend le texte HTML de la description de l'API en texte simple lisible
 function stripHtmlToText(html) {
+    if (!html) return "";
     const tmp = document.createElement("div");
-    tmp.innerHTML = html
-        .replace(/<br\s*\/?>/gi, "\n")
-        .replace(/<\/p>/gi, "\n")
-        .replace(/<\/?strong>/gi, "")
-        .replace(/<\/?span[^>]*>/gi, "");
-    const text = (tmp.textContent || tmp.innerText || "").trim();
-    return text.replace(/\n{2,}/g, "\n").trim();
+    tmp.innerHTML = html.replace(/<br\s*\/?>/gi, "\n");
+    return tmp.textContent || tmp.innerText || "";
 }
 
 async function updateInfotrafic() {
-    const badge = document.getElementById("transport-alert-badge");
-    const modalBox = document.getElementById("transport-alerts-modal");
-    if (!badge || !modalBox) return;
-
-    const routes = getTransportRoutes();
-    // Lignes actuellement configurées dans le dashboard (numéros, ex: "2", "C3")
-    // — utilisé uniquement pour le petit badge d'alerte, pas pour le filtrage de l'écran
-    const myLines = new Set(routes.map(r => r.lineNumber));
+    const container = document.getElementById("transport-alerts-modal");
+    if (!container) return;
 
     try {
-        const res = await fetch(NAOLIB_INFOTRAFIC_URL, { headers: { Accept: "application/json" } });
+        const res = await fetch(NAOLIB_INFOTRAFIC_URL);
         if (!res.ok) throw new Error("HTTP " + res.status);
-        const data = await res.json();
-        const disruptions = data.disruptions || [];
+        const alerts = await res.json();
 
-        // Le badge reste un signal rapide, limité aux lignes suivies
-        const relevant = disruptions.filter(d =>
-            (d.lineIds || []).some(id => myLines.has(String(id)))
-        );
-        badge.style.display = relevant.length > 0 ? "inline" : "none";
-
-        // L'écran Infos Trafics, lui, affiche tout le réseau
-        if (!disruptions.length) {
-            modalBox.innerHTML = `<div class="transport-loading">Aucune perturbation sur le réseau actuellement.</div>`;
+        if (!alerts || alerts.length === 0) {
+            container.innerHTML = `<div class="transport-loading">Aucune perturbation signalée sur le réseau.</div>`;
             return;
         }
 
-        let html = "";
-        disruptions.forEach(d => {
-            const lineTags = (d.lineIds || [])
-                .map(id => `<span class="alert-line-tag" style="background:${lineColor(id)}">${id}</span>`)
-                .join("");
-
-            const description = stripHtmlToText(d.description || d.name || "");
-
-            html += `<div class="transport-alert-item">
-                <span class="alert-icon">${ICON_ALERT}</span>
-                <div class="alert-content">
-                    <div class="alert-lines">${lineTags}</div>
-                    <div class="alert-title">${d.name || ""}</div>
-                    <div>${description}</div>
-                    <div class="alert-dates">${d.startAt || ""} → ${d.endAt || ""}</div>
+        container.innerHTML = alerts.map(alert => `
+            <div class="infotrafic-item">
+                <div class="infotrafic-header">
+                    <strong>${alert.title || "Information"}</strong>
                 </div>
-            </div>`;
-        });
-
-        modalBox.innerHTML = html;
+                <div class="infotrafic-body">
+                    ${stripHtmlToText(alert.description || alert.detail)}
+                </div>
+            </div>
+        `).join("");
 
     } catch (err) {
-        console.error("Erreur infotrafic :", err);
-        modalBox.innerHTML = `<div class="transport-error">${ICON_ALERT} Impossible de charger les infos trafic pour le moment.</div>`;
+        console.error("Erreur info trafic :", err);
+        container.innerHTML = `<div class="transport-error">Impossible de charger les infos trafic.</div>`;
     }
 }
 
