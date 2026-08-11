@@ -1600,6 +1600,17 @@ function stripHtmlToText(html) {
         .trim();
 }
 
+// Fonction pour formater proprement les dates si fournies sous forme brute
+function formatInfotraficDate(dateStr) {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr; // si la date est déjà une chaîne de texte
+    
+    const dateFormatted = d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
+    const timeFormatted = d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+    return `${dateFormatted} à ${timeFormatted}`;
+}
+
 async function updateInfotrafic() {
     const container = document.getElementById("transport-alerts-modal");
     if (!container) return;
@@ -1616,17 +1627,43 @@ async function updateInfotrafic() {
             return;
         }
 
-        container.innerHTML = alerts.map(alert => {
+        const cardsHtml = alerts.map(alert => {
             const titre = alert.title || alert.name || alert.intitule || "Information";
-            const contenuHtml = alert.description || alert.text || alert.texte || alert.detail || "Aucun détail disponible.";
+            const contenu = alert.description || alert.text || alert.texte || alert.detail || "Aucun détail disponible.";
+            
+            // Formatage de la période / dates
+            let dateText = "";
+            if (alert.startDate && alert.endDate) {
+                dateText = `Du ${formatInfotraficDate(alert.startDate)} au ${formatInfotraficDate(alert.endDate)}`;
+            } else if (alert.period) {
+                dateText = alert.period;
+            }
 
             return `
-                <div class="infotrafic-item">
-                    <div class="infotrafic-header">${titre}</div>
-                    <div class="infotrafic-body">${contenuHtml}</div>
-                </div>
+                <details class="infotrafic-card">
+                    <summary class="infotrafic-summary">
+                        <span class="summary-title">${titre}</span>
+                        <div class="summary-right">
+                            ${dateText ? `<span class="summary-date">${dateText}</span>` : ""}
+                            <span class="summary-arrow">➔</span>
+                        </div>
+                    </summary>
+                    <div class="infotrafic-details">
+                        ${contenu}
+                    </div>
+                </details>
             `;
         }).join("");
+
+        container.innerHTML = `
+            <div class="infotrafic-topbar">
+                <span class="infotrafic-topbar-title">PERTURBATIONS DU SERVICE</span>
+                <span class="infotrafic-badge">${alerts.length}</span>
+            </div>
+            <div class="infotrafic-list">
+                ${cardsHtml}
+            </div>
+        `;
 
     } catch (err) {
         console.error("Erreur info trafic :", err);
