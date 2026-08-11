@@ -1588,9 +1588,16 @@ const NAOLIB_INFOTRAFIC_URL = "https://plan.naolib.fr/api/infotrafic";
 
 function stripHtmlToText(html) {
     if (!html) return "";
-    const tmp = document.createElement("div");
-    tmp.innerHTML = html.replace(/<br\s*\/?>/gi, "\n");
-    return tmp.textContent || tmp.innerText || "";
+    return html
+        // Remplace les saut de lignes HTML et fermetures de bloc par des retours à la ligne
+        .replace(/<br\s*\/?>/gi, "\n")
+        .replace(/<\/(p|div|li|h[1-6])>/gi, "\n")
+        // Remplace les balises de fin d'élément par un espace pour éviter le texte collé
+        .replace(/<[^>]+>/g, " ")
+        // Nettoie les espaces et retours à la ligne multiples
+        .replace(/[ \t]+/g, " ")
+        .replace(/\n\s*\n/g, "\n")
+        .trim();
 }
 
 async function updateInfotrafic() {
@@ -1602,8 +1609,6 @@ async function updateInfotrafic() {
         if (!res.ok) throw new Error("HTTP " + res.status);
         
         const data = await res.json();
-
-        // Récupération des 34 perturbations dans "disruptions"
         const alerts = Array.isArray(data) ? data : (data.disruptions || []);
 
         if (!Array.isArray(alerts) || alerts.length === 0) {
@@ -1612,17 +1617,13 @@ async function updateInfotrafic() {
         }
 
         container.innerHTML = alerts.map(alert => {
-            const titre = alert.title || alert.name || alert.intitule || alert.titre || "Information";
-            const contenu = alert.description || alert.text || alert.texte || alert.summary || alert.detail || "";
+            const titre = alert.title || alert.name || alert.intitule || "Information";
+            const contenu = alert.description || alert.text || alert.texte || "";
 
             return `
                 <div class="infotrafic-item">
-                    <div class="infotrafic-header">
-                        <strong>${titre}</strong>
-                    </div>
-                    <div class="infotrafic-body">
-                        ${stripHtmlToText(contenu)}
-                    </div>
+                    <div class="infotrafic-header">${titre}</div>
+                    <div class="infotrafic-body">${stripHtmlToText(contenu)}</div>
                 </div>
             `;
         }).join("");
