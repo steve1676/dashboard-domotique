@@ -1611,6 +1611,21 @@ function formatInfotraficDate(dateStr) {
     return `${dateFormatted} à ${timeFormatted}`;
 }
 
+// Fonction utilitaire pour nettoyer le texte HTML de la description
+function cleanAlertContent(html) {
+    if (!html) return "Aucun détail disponible.";
+    return html;
+}
+
+// Fonction utilitaire pour formater les dates/périodes
+function formatPeriod(alert) {
+    if (alert.startDate && alert.endDate) {
+        return `Du ${alert.startDate} au ${alert.endDate}`;
+    }
+    if (alert.period) return alert.period;
+    return "";
+}
+
 async function updateInfotrafic() {
     const container = document.getElementById("transport-alerts-modal");
     if (!container) return;
@@ -1620,36 +1635,80 @@ async function updateInfotrafic() {
         if (!res.ok) throw new Error("HTTP " + res.status);
         
         const data = await res.json();
-        const alerts = Array.isArray(data) ? data : (data.disruptions || []);
+        const rawAlerts = Array.isArray(data) ? data : (data.disruptions || []);
 
-        if (!Array.isArray(alerts) || alerts.length === 0) {
+        if (!Array.isArray(rawAlerts) || rawAlerts.length === 0) {
             container.innerHTML = `<div class="transport-loading">Aucune perturbation signalée sur le réseau.</div>`;
             return;
         }
 
-        const cardsHtml = alerts.map(alert => {
-            const titre = alert.title || alert.name || alert.intitule || "Information";
-            const contenu = alert.description || alert.text || alert.texte || alert.detail || "Aucun détail disponible.";
-            
-            // Formatage de la période / dates
-            let dateText = "";
-            if (alert.startDate && alert.endDate) {
-                dateText = `Du ${formatInfotraficDate(alert.startDate)} au ${formatInfotraficDate(alert.endDate)}`;
-            } else if (alert.period) {
-                dateText = alert.period;
+        // 1. Structuration et regroupement par ligne
+        const groupedByLine = {};
+
+        rawAlerts.forEach(alert => {
+            // Extrait le nom/numéro de la ligne concernée
+            let lineNames = [];
+
+            if (alert.lines && Array.isArray(alert.lines) && alert.lines.length > 0) {
+                lineNames = alert.lines.map(l => l.numLine || l.name || l.shortName || l.num || l);
+            } else if (alert.concernedLines) {
+                if (Array.isArray(alert.concernedLines)) {
+                    lineNames = alert.concernedLines.map(l => l.numLine || l.name || l.num || l);
+                } else if (typeof alert.concernedLines === 'object') {
+                    lineNames = Object.keys(alert.concernedLines);
+                }
+            } else if (alert.line) {
+                lineNames = [alert.line.numLine || alert.line.name || alert.line];
             }
+
+            // Si aucune ligne n'est spécifiée, on classe dans "Réseau général / Autres"
+            if (lineNames.length === 0) {
+                lineNames = ["Infos Réseau"];
+            }
+
+            lineNames.forEach(lineName => {
+                if (!groupedByLine[lineName]) {
+                    groupedByLine[lineName] = [];
+                }
+                groupedByLine[lineName].push(alert);
+            });
+        });
+
+        // 2. Génération du HTML
+        const totalPerturbations = rawAlerts.length;
+
+        const linesHtml = Object.keys(groupedByLine).map(lineName => {
+            const alertsForLine = groupedByLine[lineName];
+
+            const alertsListHtml = alertsForLine.map(alert => {
+                const titre = alert.title || alert.name || alert.intitule || "Information";
+                const contenu = cleanAlertContent(alert.description || alert.text || alert.texte || alert.detail);
+                const periode = formatPeriod(alert);
+
+                return `
+                    <div class="line-disruption-item">
+                        <div class="disruption-header">
+                            <span class="disruption-title">${titre}</span>
+                            ${periode ? `<span class="disruption-date">${periode}</span>` : ""}
+                        </div>
+                        <div class="disruption-body">
+                            ${contenu}
+                        </div>
+                    </div>
+                `;
+            }).join("");
 
             return `
                 <details class="infotrafic-card">
                     <summary class="infotrafic-summary">
-                        <span class="summary-title">${titre}</span>
-                        <div class="summary-right">
-                            ${dateText ? `<span class="summary-date">${dateText}</span>` : ""}
-                            <span class="summary-arrow">➔</span>
+                        <div class="summary-left">
+                            <span class="line-badge">${lineName}</span>
+                            <span class="summary-count">${alertsForLine.length} perturbation${alertsForLine.length > 1 ? 's' : ''}</span>
                         </div>
+                        <span class="summary-arrow">➔</span>
                     </summary>
                     <div class="infotrafic-details">
-                        ${contenu}
+                        ${alertsListHtml}
                     </div>
                 </details>
             `;
@@ -1658,10 +1717,10 @@ async function updateInfotrafic() {
         container.innerHTML = `
             <div class="infotrafic-topbar">
                 <span class="infotrafic-topbar-title">PERTURBATIONS DU SERVICE</span>
-                <span class="infotrafic-badge">${alerts.length}</span>
+                <span class="infotrafic-badge">${totalPerturbations}</span>
             </div>
             <div class="infotrafic-list">
-                ${cardsHtml}
+                ${linesHtml}
             </div>
         `;
 
