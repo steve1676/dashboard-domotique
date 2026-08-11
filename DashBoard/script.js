@@ -1600,9 +1600,15 @@ async function updateInfotrafic() {
     try {
         const res = await fetch(NAOLIB_INFOTRAFIC_URL);
         if (!res.ok) throw new Error("HTTP " + res.status);
-        const alerts = await res.json();
+        
+        const data = await res.json();
 
-        if (!alerts || alerts.length === 0) {
+        // Récupère le tableau, qu'il soit direct ou encapsulé dans un objet
+        const alerts = Array.isArray(data) 
+            ? data 
+            : (data.alerts || data.infotrafic || data.items || []);
+
+        if (!Array.isArray(alerts) || alerts.length === 0) {
             container.innerHTML = `<div class="transport-loading">Aucune perturbation signalée sur le réseau.</div>`;
             return;
         }
@@ -1610,10 +1616,10 @@ async function updateInfotrafic() {
         container.innerHTML = alerts.map(alert => `
             <div class="infotrafic-item">
                 <div class="infotrafic-header">
-                    <strong>${alert.title || "Information"}</strong>
+                    <strong>${alert.title || alert.intitule || "Information"}</strong>
                 </div>
                 <div class="infotrafic-body">
-                    ${stripHtmlToText(alert.description || alert.detail)}
+                    ${stripHtmlToText(alert.description || alert.detail || alert.texte || "")}
                 </div>
             </div>
         `).join("");
