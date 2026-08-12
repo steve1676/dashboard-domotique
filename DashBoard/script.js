@@ -1619,6 +1619,10 @@ function cleanAlertContent(html) {
 
 // Fonction utilitaire pour formater les dates/périodes
 function formatPeriod(alert) {
+    // L'API Naolib fournit déjà startAt/endAt pré-formatés ("15/06/2026 à 05:00")
+    if (alert.startAt && alert.endAt) {
+        return `Du ${alert.startAt} au ${alert.endAt}`;
+    }
     if (alert.startDate && alert.endDate) {
         return `Du ${alert.startDate} au ${alert.endDate}`;
     }
@@ -1646,10 +1650,13 @@ async function updateInfotrafic() {
         const groupedByLine = {};
 
         rawAlerts.forEach(alert => {
-            // Extrait le nom/numéro de la ligne concernée
+            // Extrait le(s) numéro(s) de ligne concerné(s).
+            // L'API Naolib expose ça dans `lineIds` : ["10"], ["C1"], etc.
             let lineNames = [];
 
-            if (alert.lines && Array.isArray(alert.lines) && alert.lines.length > 0) {
+            if (Array.isArray(alert.lineIds) && alert.lineIds.length > 0) {
+                lineNames = alert.lineIds.map(id => String(id));
+            } else if (alert.lines && Array.isArray(alert.lines) && alert.lines.length > 0) {
                 lineNames = alert.lines.map(l => l.numLine || l.name || l.shortName || l.num || l);
             } else if (alert.concernedLines) {
                 if (Array.isArray(alert.concernedLines)) {
@@ -1674,44 +1681,41 @@ async function updateInfotrafic() {
             });
         });
 
-        // 2. Génération du HTML
+        // 2. Tri des lignes (tri naturel : 1, 2, 3 ... 10, 11 ... puis lettres, "Infos Réseau" à la fin)
+        const sortedLineNames = Object.keys(groupedByLine).sort((a, b) => {
+            if (a === "Infos Réseau") return 1;
+            if (b === "Infos Réseau") return -1;
+            return a.localeCompare(b, "fr", { numeric: true, sensitivity: "base" });
+        });
+
+        // 3. Génération du HTML — une carte par perturbation, triée par ligne
         const totalPerturbations = rawAlerts.length;
 
-        const linesHtml = Object.keys(groupedByLine).map(lineName => {
+        const rowsHtml = sortedLineNames.map(lineName => {
             const alertsForLine = groupedByLine[lineName];
+            const badgeColor = lineName === "Infos Réseau" ? "#64748b" : lineColor(lineName);
 
-            const alertsListHtml = alertsForLine.map(alert => {
-                const titre = alert.title || alert.name || alert.intitule || "Information";
+            return alertsForLine.map(alert => {
+                const titre = (alert.name || alert.title || alert.intitule || "Information").trim();
                 const contenu = cleanAlertContent(alert.description || alert.text || alert.texte || alert.detail);
                 const periode = formatPeriod(alert);
 
                 return `
-                    <div class="line-disruption-item">
-                        <div class="disruption-header">
-                            <span class="disruption-title">${titre}</span>
-                            ${periode ? `<span class="disruption-date">${periode}</span>` : ""}
-                        </div>
-                        <div class="disruption-body">
+                    <details class="infotrafic-card">
+                        <summary class="infotrafic-summary">
+                            <span class="infotrafic-line-chip" style="background:${badgeColor}">${lineName}</span>
+                            <span class="infotrafic-row-main">
+                                <span class="infotrafic-row-title">${titre}</span>
+                                ${periode ? `<span class="infotrafic-row-date">${periode}</span>` : ""}
+                            </span>
+                            <span class="infotrafic-row-arrow">➔</span>
+                        </summary>
+                        <div class="infotrafic-details">
                             ${contenu}
                         </div>
-                    </div>
+                    </details>
                 `;
             }).join("");
-
-            return `
-                <details class="infotrafic-card">
-                    <summary class="infotrafic-summary">
-                        <div class="summary-left">
-                            <span class="line-badge">${lineName}</span>
-                            <span class="summary-count">${alertsForLine.length} perturbation${alertsForLine.length > 1 ? 's' : ''}</span>
-                        </div>
-                        <span class="summary-arrow">➔</span>
-                    </summary>
-                    <div class="infotrafic-details">
-                        ${alertsListHtml}
-                    </div>
-                </details>
-            `;
         }).join("");
 
         container.innerHTML = `
@@ -1720,7 +1724,7 @@ async function updateInfotrafic() {
                 <span class="infotrafic-badge">${totalPerturbations}</span>
             </div>
             <div class="infotrafic-list">
-                ${linesHtml}
+                ${rowsHtml}
             </div>
         `;
 

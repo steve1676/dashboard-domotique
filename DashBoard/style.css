@@ -1573,3 +1573,126 @@ body {
     font-size: 0.78rem;
     margin-top: 2px;
 }
+
+/* ── Popup Info Trafic — liste "Perturbations du service" ─────────────────── */
+
+.infotrafic-topbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.infotrafic-topbar-title {
+    color: #94a3b8;
+    font-weight: 700;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.infotrafic-badge {
+    background: #0bbbef;
+    color: #0f172a;
+    font-weight: 800;
+    font-size: 0.8rem;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.infotrafic-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.infotrafic-card {
+    background: #1f2937;
+    border-radius: 14px;
+    overflow: hidden;
+    transition: background 0.15s ease;
+}
+
+.infotrafic-card[open] {
+    background: #263449;
+}
+
+.infotrafic-summary {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+    list-style: none;
+}
+
+.infotrafic-summary::-webkit-details-marker {
+    display: none;
+}
+
+.infotrafic-line-chip {
+    flex-shrink: 0;
+    color: #0f172a;
+    font-weight: 800;
+    font-size: 0.72rem;
+    padding: 3px 8px;
+    border-radius: 6px;
+    min-width: 26px;
+    text-align: center;
+}
+
+.infotrafic-row-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.infotrafic-row-title {
+    color: #f1f5f9;
+    font-weight: 700;
+    font-size: 0.92rem;
+    line-height: 1.3;
+    white-space: normal;
+    overflow-wrap: break-word;
+}
+
+.infotrafic-row-date {
+    color: #94a3b8;
+    font-size: 0.78rem;
+    white-space: nowrap;
+}
+
+.infotrafic-row-arrow {
+    flex-shrink: 0;
+    color: #64748b;
+    font-size: 0.9rem;
+    transition: transform 0.2s ease;
+}
+
+.infotrafic-card[open] .infotrafic-row-arrow {
+    transform: rotate(90deg);
+    color: #0bbbef;
+}
+
+.infotrafic-details {
+    padding: 0 16px 16px 16px;
+    color: #cbd5e1;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    border-top: 1px solid rgba(148, 163, 184, 0.15);
+    margin: 0 16px;
+    padding-top: 12px;
+}
+
+@media (max-width: 480px) {
+    .infotrafic-row-date {
+        display: none;
+    }
+}
