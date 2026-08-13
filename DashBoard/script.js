@@ -931,7 +931,25 @@ const ICON_STAR = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 
 const ICON_STAR_FILLED = `<svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-inline-lg"><path d="M8.243 7.34l-6.38 .925l-.113 .023a1 1 0 0 0 -.44 1.684l4.622 4.499l-1.09 6.355l-.013 .11a1 1 0 0 0 1.464 .944l5.706 -3l5.693 3l.1 .046a1 1 0 0 0 1.352 -1.1l-1.091 -6.355l4.624 -4.5l.078 -.085a1 1 0 0 0 -.633 -1.62l-6.38 -.926l-2.852 -5.78a1 1 0 0 0 -1.794 0l-2.853 5.78z" /></svg>`;
 
-const ICON_BATTERY = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-inline-lg"><path d="M6 7h11a2 2 0 0 1 2 2v.5a.5 .5 0 0 0 .5 .5a.5 .5 0 0 1 .5 .5v3a.5 .5 0 0 1 -.5 .5a.5 .5 0 0 0 -.5 .5v.5a2 2 0 0 1 -2 2h-11a2 2 0 0 1 -2 -2v-6a2 2 0 0 1 2 -2" /><path d="M7 10l0 4" /></svg>`;
+// Jeu d'icônes batterie — une par palier de charge, + charge en cours et déconnecté
+const ICON_BATTERY_0  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-inline-lg"><path d="M6 7h11a2 2 0 0 1 2 2v.5a.5 .5 0 0 0 .5 .5a.5 .5 0 0 1 .5 .5v3a.5 .5 0 0 1 -.5 .5a.5 .5 0 0 0 -.5 .5v.5a2 2 0 0 1 -2 2h-11a2 2 0 0 1 -2 -2v-6a2 2 0 0 1 2 -2" /></svg>`;
+const ICON_BATTERY_25 = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-inline-lg"><path d="M6 7h11a2 2 0 0 1 2 2v.5a.5 .5 0 0 0 .5 .5a.5 .5 0 0 1 .5 .5v3a.5 .5 0 0 1 -.5 .5a.5 .5 0 0 0 -.5 .5v.5a2 2 0 0 1 -2 2h-11a2 2 0 0 1 -2 -2v-6a2 2 0 0 1 2 -2" /><path d="M7 10l0 4" /></svg>`;
+const ICON_BATTERY_50 = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-inline-lg"><path d="M6 7h11a2 2 0 0 1 2 2v.5a.5 .5 0 0 0 .5 .5a.5 .5 0 0 1 .5 .5v3a.5 .5 0 0 1 -.5 .5a.5 .5 0 0 0 -.5 .5v.5a2 2 0 0 1 -2 2h-11a2 2 0 0 1 -2 -2v-6a2 2 0 0 1 2 -2" /><path d="M7 10l0 4" /><path d="M10 10l0 4" /></svg>`;
+const ICON_BATTERY_75 = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-inline-lg"><path d="M6 7h11a2 2 0 0 1 2 2v.5a.5 .5 0 0 0 .5 .5a.5 .5 0 0 1 .5 .5v3a.5 .5 0 0 1 -.5 .5a.5 .5 0 0 0 -.5 .5v.5a2 2 0 0 1 -2 2h-11a2 2 0 0 1 -2 -2v-6a2 2 0 0 1 2 -2" /><path d="M7 10l0 4" /><path d="M10 10l0 4" /><path d="M13 10l0 4" /></svg>`;
+const ICON_BATTERY_100 = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-inline-lg"><path d="M6 7h11a2 2 0 0 1 2 2v.5a.5 .5 0 0 0 .5 .5a.5 .5 0 0 1 .5 .5v3a.5 .5 0 0 1 -.5 .5a.5 .5 0 0 0 -.5 .5v.5a2 2 0 0 1 -2 2h-11a2 2 0 0 1 -2 -2v-6a2 2 0 0 1 2 -2" /><path d="M7 10l0 4" /><path d="M10 10l0 4" /><path d="M13 10l0 4" /><path d="M16 10l0 4" /></svg>`;
+const ICON_BATTERY_CHARGING = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-inline-lg"><path d="M16 7h1a2 2 0 0 1 2 2v.5a.5 .5 0 0 0 .5 .5a.5 .5 0 0 1 .5 .5v3a.5 .5 0 0 1 -.5 .5a.5 .5 0 0 0 -.5 .5v.5a2 2 0 0 1 -2 2h-2" /><path d="M8 7h-2a2 2 0 0 0 -2 2v6a2 2 0 0 0 2 2h1" /><path d="M12 8l-2 4h3l-2 4" /></svg>`;
+const ICON_BATTERY_UNAVAILABLE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-inline-lg"><path d="M9 17h8c1.105 0 2 -.895 2 -2v-.5c0 -.276 .224 -.5 .5 -.5s.5 -.224 .5 -.5v-3c0 -.276 -.224 -.5 -.5 -.5s-.5 -.224 -.5 -.5v-.5c0 -1.105 -.895 -2 -2 -2h-11c-1.105 0 -2 .895 -2 2v3" /><path d="M5 16v3" /><path d="M5 22v.01" /></svg>`;
+
+// Choisit l'icône adaptée au niveau (et à l'état de charge) d'une batterie
+function batteryIconFor(level, isCharging) {
+    if (level === null) return ICON_BATTERY_UNAVAILABLE;
+    if (isCharging) return ICON_BATTERY_CHARGING;
+    if (level <= 5) return ICON_BATTERY_0;
+    if (level <= 25) return ICON_BATTERY_25;
+    if (level <= 50) return ICON_BATTERY_50;
+    if (level <= 75) return ICON_BATTERY_75;
+    return ICON_BATTERY_100;
+}
 
 const ICON_DEVICE_TV = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-inline-lg"><path d="M3 7m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z" /><path d="M16 3l-4 4l-4 -4" /></svg>`;
 
@@ -2081,6 +2099,18 @@ function getBatteryLevel(entityId) {
     return isNaN(level) ? null : level;
 }
 
+// L'app Home Assistant Companion expose en général un capteur jumeau
+// "..._battery_state" (valeurs : Charging / Not charging / Full / Discharging)
+// à côté du capteur "..._battery_level". On le déduit du même entity_id.
+function isBatteryCharging(entityId) {
+    const stateEntityId = entityId.replace(/_battery_level$/, "_battery_state");
+    if (stateEntityId === entityId) return false; // pas de capteur jumeau détectable
+    const stateEntity = haStatesFull[stateEntityId];
+    if (!stateEntity) return false;
+    const state = String(stateEntity.state || "").toLowerCase();
+    return state === "charging" || state === "full";
+}
+
 function renderBatteryBadges() {
     const container = document.getElementById("battery-badges");
     if (!container) return;
@@ -2091,18 +2121,24 @@ function renderBatteryBadges() {
         return;
     }
 
-    const results = phones.map(p => ({ ...p, level: getBatteryLevel(p.entity_id) }));
+    const results = phones.map(p => ({
+        ...p,
+        level: getBatteryLevel(p.entity_id),
+        charging: isBatteryCharging(p.entity_id)
+    }));
 
     container.innerHTML = "";
     results.forEach(p => {
         const badge = document.createElement("span");
         badge.className = "battery-badge";
 
+        const icon = batteryIconFor(p.level, p.charging);
+
         if (p.level === null) {
-            badge.innerHTML = `${ICON_BATTERY} ${p.label} --%`;
+            badge.innerHTML = `${icon} ${p.label} --%`;
         } else {
-            badge.innerHTML = `${ICON_BATTERY} ${p.label} ${p.level}%`;
-            if (p.level <= BATTERY_THRESHOLD) badge.classList.add("low-battery");
+            badge.innerHTML = `${icon} ${p.label} ${p.level}%`;
+            if (!p.charging && p.level <= BATTERY_THRESHOLD) badge.classList.add("low-battery");
         }
 
         container.appendChild(badge);
