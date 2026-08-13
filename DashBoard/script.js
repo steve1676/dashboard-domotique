@@ -17,6 +17,8 @@ const DASHBOARD_STORAGE_VERSIONS = {
     widgetOrder: 1,
     chromecast_yt_thumb_cache: 1,
     display_schedule: 1,
+    chromecast_watch_history: 1,
+    chromecast_genre_prefs: 1,
 };
 
 function storageGet(key, fallback) {
@@ -2570,6 +2572,10 @@ async function chromecastLoadImage(image) {
 function chromecastShowIdle() {
     document.getElementById("chromecastIdle").style.display = "flex";
     document.getElementById("chromecastPlayer").style.display = "none";
+    if (!chromecastRecsLoaded) {
+        chromecastRecsLoaded = true; // évite de relancer les appels API à chaque poll (toutes les ~5-10s)
+        chromecastLoadRecommendations();
+    }
 }
 
 function chromecastShowPlayer() {
@@ -2584,8 +2590,11 @@ function updateChromecast() {
     try {
         const attrs = data.attributes || {};
 
-        // Rien en cours (éteint, en veille, ou pas de média chargé)
-        if (["off", "idle", "unavailable", "standby"].includes(data.state) || !attrs.media_title) {
+        // Rien en cours (éteint, en veille, ou vraiment aucune info exploitable).
+        // Beaucoup d'applis castées (Netflix, Prime Video, Twitch...) ne remontent
+        // pas de media_title via HA — seulement app_name. On ne bascule en idle
+        // que si on n'a NI l'un NI l'autre, sinon on utilise app_name en repli.
+        if (["off", "idle", "unavailable", "standby"].includes(data.state) || (!attrs.media_title && !attrs.app_name)) {
             chromecastShowIdle();
             chromecastLastImage = null;
             chromecastLastSearchedTitle = null;
@@ -2599,11 +2608,19 @@ function updateChromecast() {
         }
 
         chromecastShowPlayer();
+        chromecastRecsLoaded = false; // on est en lecture : les recos seront à recalculer à la prochaine veille
 
-        document.getElementById("chromecastTitle").textContent = attrs.media_title || "—";
+        // Historique de visionnage YouTube (sert de base aux recommandations
+        // affichées quand rien n'est diffusé)
+        if (attrs.app_name && attrs.app_name.toLowerCase() === "youtube" && attrs.media_title) {
+            chromecastRecordWatched(attrs.media_title);
+        }
 
-        // Sous-titre : artiste (musique), ou nom de l'appli/série selon le contenu
-        const subtitle = attrs.media_artist || attrs.media_series_title || attrs.app_name || "";
+        document.getElementById("chromecastTitle").textContent = attrs.media_title || attrs.app_name || "—";
+
+        // Sous-titre : artiste (musique) ou série. Si le titre affiché est déjà
+        // le nom de l'appli (pas de media_title), on n'y remet pas app_name en double.
+        const subtitle = attrs.media_artist || attrs.media_series_title || (attrs.media_title ? attrs.app_name : "") || "";
         document.getElementById("chromecastSubtitle").textContent = subtitle;
 
         document.getElementById("chromecastPlayPause").textContent =
@@ -2654,6 +2671,224 @@ function updateChromecast() {
         console.error("Chromecast :", err);
         chromecastShowIdle();
     }
+}
+
+// ─── Recommandations (affichées quand rien n'est diffusé) ────────────────────
+//
+// Deux sources :
+//  - YouTube : à partir de l'historique local des titres castés, on cherche
+//    des vidéos "proches" via une recherche texte (l'API v3 publique n'offre
+//    plus d'endpoint "vidéos similaires" depuis sa dépréciation — une
+//    recherche sur le dernier titre regardé est l'approximation la plus
+//    proche disponible sans OAuth).
+//  - Films/séries : selon les genres choisis dans les paramètres du widget,
+//    via l'API publique TMDB (themoviedb.org).
+
+// Clé API TMDB — à créer gratuitement sur https://www.themoviedb.org
+// (Paramètres du compte → API → demander une clé "Developer")
+const TMDB_API_KEY = "COLLE_TA_CLE_TMDB_ICI";
+
+const CHROMECAST_WATCH_HISTORY_KEY = "chromecast_watch_history";
+const CHROMECAST_GENRE_PREFS_KEY = "chromecast_genre_prefs";
+const CHROMECAST_WATCH_HISTORY_MAX = 15;
+
+let chromecastRecsLoaded = false;
+let chromecastRecsData = []; // reco actuellement affichées, indexées pour la popup d'infos
+
+// Correspondance genre choisi ↔ identifiants de genre TMDB (différents entre
+// films et séries pour certaines catégories, ex. Action & Aventure côté séries)
+const CHROMECAST_GENRES = [
+    { key: "comedie",      label: "Comédie",         icon: "😄", movieId: 35,  tvId: 35 },
+    { key: "sf",            label: "Science-fiction", icon: "🚀", movieId: 878, tvId: 10765 },
+    { key: "aventure",      label: "Aventure",        icon: "🗺️", movieId: 12,  tvId: 10759 },
+    { key: "action",        label: "Action",          icon: "💥", movieId: 28,  tvId: 10759 },
+    { key: "drame",         label: "Drame",           icon: "🎭", movieId: 18,  tvId: 18 },
+    { key: "horreur",       label: "Horreur",         icon: "👻", movieId: 27,  tvId: 9648 }, // pas de genre "Horreur" côté séries TMDB, "Mystère" en repli
+    { key: "animation",     label: "Animation",       icon: "🎨", movieId: 16,  tvId: 16 },
+    { key: "documentaire",  label: "Documentaire",    icon: "🎥", movieId: 99,  tvId: 99 },
+];
+
+function chromecastGetWatchHistory() {
+    return storageGet(CHROMECAST_WATCH_HISTORY_KEY, []);
+}
+
+function chromecastRecordWatched(title) {
+    const history = chromecastGetWatchHistory().filter(t => t !== title);
+    history.unshift(title);
+    storageSet(CHROMECAST_WATCH_HISTORY_KEY, history.slice(0, CHROMECAST_WATCH_HISTORY_MAX));
+}
+
+function chromecastGetGenrePrefs() {
+    return storageGet(CHROMECAST_GENRE_PREFS_KEY, []);
+}
+
+function chromecastSetGenrePrefs(genres) {
+    storageSet(CHROMECAST_GENRE_PREFS_KEY, genres);
+}
+
+// ── Paramètres : choix des genres préférés ──
+function chromecastOpenGenreSettings() {
+    chromecastRenderGenreChips();
+    openWidgetModal("chromecast-genres");
+}
+
+function chromecastRenderGenreChips() {
+    const container = document.getElementById("chromecastGenreChips");
+    if (!container) return;
+    const selected = chromecastGetGenrePrefs();
+
+    container.innerHTML = CHROMECAST_GENRES.map(g => `
+        <button type="button"
+                class="genre-chip${selected.includes(g.key) ? ' selected' : ''}"
+                onclick="chromecastToggleGenre('${g.key}')">
+            <span>${g.icon}</span> ${g.label}
+        </button>
+    `).join("");
+}
+
+function chromecastToggleGenre(key) {
+    const selected = chromecastGetGenrePrefs();
+    const next = selected.includes(key) ? selected.filter(k => k !== key) : [...selected, key];
+    chromecastSetGenrePrefs(next);
+    chromecastRenderGenreChips();
+    chromecastRecsLoaded = false; // les recos changent avec les préférences : on les recalculera
+}
+
+// ── Construction des recommandations ──
+async function chromecastLoadRecommendations() {
+    const container = document.getElementById("chromecastRecs");
+    if (!container) return;
+
+    try {
+        const [youtubeRecs, tmdbRecs] = await Promise.all([
+            chromecastFetchYoutubeRecs(),
+            chromecastFetchTmdbRecs(),
+        ]);
+
+        chromecastRecsData = [...youtubeRecs, ...tmdbRecs];
+        chromecastRenderRecs();
+    } catch (err) {
+        console.error("Chromecast recommandations :", err);
+    }
+}
+
+async function chromecastFetchYoutubeRecs() {
+    if (!YOUTUBE_API_KEY || YOUTUBE_API_KEY.startsWith("COLLE_")) return [];
+
+    const history = chromecastGetWatchHistory();
+    if (history.length === 0) return [];
+
+    // On se base sur le titre le plus récemment regardé
+    const lastTitle = history[0];
+
+    try {
+        const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=4&type=video&q=${encodeURIComponent(lastTitle)}&key=${YOUTUBE_API_KEY}`;
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        const data = await response.json();
+
+        return (data.items || []).map(item => ({
+            type: "youtube",
+            title: item.snippet.title,
+            subtitle: item.snippet.channelTitle,
+            description: item.snippet.description,
+            image: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
+            publishedAt: item.snippet.publishedAt,
+        }));
+    } catch (err) {
+        console.error("Chromecast recos YouTube :", err);
+        return [];
+    }
+}
+
+async function chromecastFetchTmdbRecs() {
+    if (!TMDB_API_KEY || TMDB_API_KEY.startsWith("COLLE_")) return [];
+
+    const prefs = chromecastGetGenrePrefs();
+    if (prefs.length === 0) return [];
+
+    // Un genre choisi au hasard à chaque rechargement pour varier les propositions
+    const genre = CHROMECAST_GENRES.find(g => g.key === prefs[Math.floor(Math.random() * prefs.length)]);
+    if (!genre) return [];
+
+    try {
+        const [movies, shows] = await Promise.all([
+            fetch(`https://api.themoviedb.org/3/discover/movie?with_genres=${genre.movieId}&sort_by=popularity.desc&language=fr-FR&api_key=${TMDB_API_KEY}`).then(r => r.json()),
+            fetch(`https://api.themoviedb.org/3/discover/tv?with_genres=${genre.tvId}&sort_by=popularity.desc&language=fr-FR&api_key=${TMDB_API_KEY}`).then(r => r.json()),
+        ]);
+
+        const movieRecs = (movies.results || []).slice(0, 3).map(m => ({
+            type: "movie",
+            genreLabel: genre.label,
+            title: m.title,
+            subtitle: (m.release_date || "").slice(0, 4),
+            description: m.overview,
+            rating: m.vote_average,
+            image: m.poster_path ? `https://image.tmdb.org/t/p/w300${m.poster_path}` : null,
+        }));
+
+        const tvRecs = (shows.results || []).slice(0, 3).map(s => ({
+            type: "tv",
+            genreLabel: genre.label,
+            title: s.name,
+            subtitle: (s.first_air_date || "").slice(0, 4),
+            description: s.overview,
+            rating: s.vote_average,
+            image: s.poster_path ? `https://image.tmdb.org/t/p/w300${s.poster_path}` : null,
+        }));
+
+        return [...movieRecs, ...tvRecs];
+    } catch (err) {
+        console.error("Chromecast recos TMDB :", err);
+        return [];
+    }
+}
+
+function chromecastRenderRecs() {
+    const container = document.getElementById("chromecastRecs");
+    if (!container) return;
+
+    if (chromecastRecsData.length === 0) {
+        container.innerHTML = "";
+        container.style.display = "none";
+        return;
+    }
+
+    container.style.display = "flex";
+    container.innerHTML = chromecastRecsData.map((rec, i) => `
+        <button type="button" class="chromecast-rec-card" onclick="chromecastShowRecInfo(${i})">
+            <div class="chromecast-rec-thumb" style="${rec.image ? `background-image:url('${rec.image}')` : ''}">
+                ${rec.image ? '' : (rec.type === 'youtube' ? '▶️' : '🎬')}
+            </div>
+            <div class="chromecast-rec-title">${rec.title}</div>
+        </button>
+    `).join("");
+}
+
+function chromecastShowRecInfo(index) {
+    const rec = chromecastRecsData[index];
+    if (!rec) return;
+
+    const poster = document.getElementById("chromecastInfoPoster");
+    poster.style.backgroundImage = rec.image ? `url('${rec.image}')` : "none";
+    poster.textContent = rec.image ? "" : (rec.type === "youtube" ? "▶️" : "🎬");
+
+    document.getElementById("chromecastInfoTitle").textContent = rec.title;
+
+    const metaParts = [];
+    if (rec.type === "youtube") {
+        metaParts.push(rec.subtitle);
+        if (rec.publishedAt) metaParts.push(new Date(rec.publishedAt).toLocaleDateString("fr-FR"));
+    } else {
+        metaParts.push(rec.type === "movie" ? "Film" : "Série");
+        if (rec.subtitle) metaParts.push(rec.subtitle);
+        if (rec.genreLabel) metaParts.push(rec.genreLabel);
+        if (rec.rating) metaParts.push(`⭐ ${rec.rating.toFixed(1)}/10`);
+    }
+    document.getElementById("chromecastInfoMeta").textContent = metaParts.filter(Boolean).join(" · ");
+    document.getElementById("chromecastInfoDesc").textContent = rec.description || "Pas de description disponible.";
+
+    openWidgetModal("chromecast-info");
 }
 
 async function chromecastControl(service) {
