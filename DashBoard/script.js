@@ -1682,45 +1682,104 @@ async function updateInfotrafic() {
         });
 
         // 2. Tri des lignes (tri naturel : 1, 2, 3 ... 10, 11 ... puis lettres, "Infos Réseau" à la fin)
-        const sortedLineNames = Object.keys(groupedByLine).sort((a, b) => {
+        function compareLineNames(a, b) {
             if (a === "Infos Réseau") return 1;
             if (b === "Infos Réseau") return -1;
             return a.localeCompare(b, "fr", { numeric: true, sensitivity: "base" });
+        }
+        const sortedLineNames = Object.keys(groupedByLine).sort(compareLineNames);
+
+        // 3. Génère le HTML d'une carte de perturbation (une ou plusieurs lignes concernées)
+        function renderAlertCard(lineNames, alert) {
+            const chips = lineNames.map(lineName => {
+                const badgeColor = lineName === "Infos Réseau" ? "#64748b" : lineColor(lineName);
+                return `<span class="infotrafic-line-chip" style="background:${badgeColor}">${lineName}</span>`;
+            }).join("");
+            const titre = (alert.name || alert.title || alert.intitule || "Information").trim();
+            const contenu = cleanAlertContent(alert.description || alert.text || alert.texte || alert.detail);
+            const periode = formatPeriod(alert);
+
+            return `
+                <details class="infotrafic-card">
+                    <summary class="infotrafic-summary">
+                        <span class="infotrafic-row-main">
+                            <span class="infotrafic-line-chips">${chips}</span>
+                            <span class="infotrafic-row-title">${titre}</span>
+                            ${periode ? `<span class="infotrafic-row-date">${periode}</span>` : ""}
+                        </span>
+                        <span class="infotrafic-row-arrow">➔</span>
+                    </summary>
+                    <div class="infotrafic-details">
+                        ${contenu}
+                    </div>
+                </details>
+            `;
+        }
+
+        // 4. Section "Perturbations sur mes lignes" — filtrée sur les lignes favorites.
+        // Une même alerte peut toucher plusieurs lignes favorites : elle n'est
+        // affichée qu'une fois, mais avec TOUS les badges de lignes favorites concernées.
+        const favoriteLines = new Set(
+            getTransportRoutes().map(r => String(r.lineNumber))
+        );
+
+        let favoritesHtml = "";
+        if (favoriteLines.size > 0) {
+            const favoriteAlertMap = new Map(); // alertKey -> { alert, lineNames: [] }
+
+            sortedLineNames.forEach(lineName => {
+                if (!favoriteLines.has(lineName)) return;
+                groupedByLine[lineName].forEach(alert => {
+                    const alertKey = alert.externalCode || alert.name;
+                    if (!favoriteAlertMap.has(alertKey)) {
+                        favoriteAlertMap.set(alertKey, { alert, lineNames: [] });
+                    }
+                    favoriteAlertMap.get(alertKey).lineNames.push(lineName);
+                });
+            });
+
+            const favoriteRows = Array.from(favoriteAlertMap.values())
+                .map(({ alert, lineNames }) => renderAlertCard(lineNames, alert));
+
+            favoritesHtml = `
+                <div class="infotrafic-topbar">
+                    <span class="infotrafic-topbar-title">⭐ SUR MES LIGNES</span>
+                    <span class="infotrafic-topbar-sep"></span>
+                    <span class="infotrafic-badge">${favoriteRows.length}</span>
+                </div>
+                <div class="infotrafic-list">
+                    ${favoriteRows.length > 0
+                        ? favoriteRows.join("")
+                        : `<div class="infotrafic-empty">Aucune perturbation sur tes lignes favorites 👍</div>`}
+                </div>
+            `;
+        }
+
+        // 5. Génération du HTML complet — une carte par perturbation UNIQUE, triée par ligne.
+        // Une alerte qui touche plusieurs lignes n'apparaît qu'une fois, avec tous ses badges de ligne.
+        const allAlertMap = new Map(); // alertKey -> { alert, lineNames: [] }
+        sortedLineNames.forEach(lineName => {
+            groupedByLine[lineName].forEach(alert => {
+                const alertKey = alert.externalCode || alert.name;
+                if (!allAlertMap.has(alertKey)) {
+                    allAlertMap.set(alertKey, { alert, lineNames: [] });
+                }
+                allAlertMap.get(alertKey).lineNames.push(lineName);
+            });
         });
 
-        // 3. Génération du HTML — une carte par perturbation, triée par ligne
-        const totalPerturbations = rawAlerts.length;
+        const totalPerturbations = allAlertMap.size;
 
-        const rowsHtml = sortedLineNames.map(lineName => {
-            const alertsForLine = groupedByLine[lineName];
-            const badgeColor = lineName === "Infos Réseau" ? "#64748b" : lineColor(lineName);
-
-            return alertsForLine.map(alert => {
-                const titre = (alert.name || alert.title || alert.intitule || "Information").trim();
-                const contenu = cleanAlertContent(alert.description || alert.text || alert.texte || alert.detail);
-                const periode = formatPeriod(alert);
-
-                return `
-                    <details class="infotrafic-card">
-                        <summary class="infotrafic-summary">
-                            <span class="infotrafic-line-chip" style="background:${badgeColor}">${lineName}</span>
-                            <span class="infotrafic-row-main">
-                                <span class="infotrafic-row-title">${titre}</span>
-                                ${periode ? `<span class="infotrafic-row-date">${periode}</span>` : ""}
-                            </span>
-                            <span class="infotrafic-row-arrow">➔</span>
-                        </summary>
-                        <div class="infotrafic-details">
-                            ${contenu}
-                        </div>
-                    </details>
-                `;
-            }).join("");
-        }).join("");
+        const rowsHtml = Array.from(allAlertMap.values())
+            .sort((a, b) => compareLineNames(a.lineNames[0], b.lineNames[0]))
+            .map(({ alert, lineNames }) => renderAlertCard(lineNames, alert))
+            .join("");
 
         container.innerHTML = `
-            <div class="infotrafic-topbar">
+            ${favoritesHtml}
+            <div class="infotrafic-topbar${favoritesHtml ? " infotrafic-topbar-secondary" : ""}">
                 <span class="infotrafic-topbar-title">PERTURBATIONS DU SERVICE</span>
+                <span class="infotrafic-topbar-sep"></span>
                 <span class="infotrafic-badge">${totalPerturbations}</span>
             </div>
             <div class="infotrafic-list">

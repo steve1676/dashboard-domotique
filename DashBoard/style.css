@@ -1583,6 +1583,21 @@ body {
     margin-bottom: 14px;
 }
 
+.infotrafic-topbar-secondary {
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+.infotrafic-empty {
+    background: #1f2937;
+    border-radius: 14px;
+    padding: 16px;
+    color: #94a3b8;
+    font-size: 0.88rem;
+    text-align: center;
+}
+
 .infotrafic-topbar-title {
     color: #94a3b8;
     font-weight: 700;
@@ -1591,15 +1606,22 @@ body {
     letter-spacing: 0.06em;
 }
 
+.infotrafic-topbar-sep {
+    width: 1px;
+    height: 12px;
+    background: #334155;
+}
+
 .infotrafic-badge {
-    background: #0bbbef;
-    color: #0f172a;
-    font-weight: 800;
-    font-size: 0.8rem;
-    min-width: 22px;
-    height: 22px;
+    background: transparent;
+    border: 1px solid #475569;
+    color: #cbd5e1;
+    font-weight: 600;
+    font-size: 0.75rem;
+    min-width: 20px;
+    height: 20px;
     padding: 0 6px;
-    border-radius: 999px;
+    border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1635,14 +1657,20 @@ body {
     display: none;
 }
 
+.infotrafic-line-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
 .infotrafic-line-chip {
     flex-shrink: 0;
     color: #0f172a;
     font-weight: 800;
-    font-size: 0.72rem;
-    padding: 3px 8px;
+    font-size: 0.7rem;
+    padding: 2px 7px;
     border-radius: 6px;
-    min-width: 26px;
+    min-width: 22px;
     text-align: center;
 }
 
@@ -1651,7 +1679,7 @@ body {
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 4px;
 }
 
 .infotrafic-row-title {
