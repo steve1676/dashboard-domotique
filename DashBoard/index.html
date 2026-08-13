@@ -95,7 +95,17 @@
 
                 <div id="chromecastIdle" class="spotify-login" style="display:flex;flex-direction:column;gap:12px;">
                     <span style="font-size:1.1rem;color:#cbd5e1;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-inline"><path d="M3 7m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z" /><path d="M16 3l-4 4l-4 -4" /></svg> Aucune diffusion en cours</span>
-                    <div id="chromecastRecs" class="chromecast-recs"></div>
+                    <div id="chromecastRecs" class="chromecast-rec-single" style="display:none;">
+                        <button type="button" class="chromecast-rec-single-card" onclick="chromecastShowRecInfo(chromecastRecIndex)">
+                            <div id="chromecastRecThumb" class="chromecast-rec-single-thumb"></div>
+                            <div id="chromecastRecTitle" class="chromecast-rec-single-title"></div>
+                        </button>
+                        <div class="chromecast-rec-nav">
+                            <button type="button" onclick="event.stopPropagation(); chromecastRecPrev()" aria-label="Recommandation précédente">‹</button>
+                            <span id="chromecastRecDots" class="chromecast-rec-dots"></span>
+                            <button type="button" onclick="event.stopPropagation(); chromecastRecNext()" aria-label="Recommandation suivante">›</button>
+                        </div>
+                    </div>
                 </div>
 
                 <div id="chromecastPlayer" class="spotify-player" style="display:none;">

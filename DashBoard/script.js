@@ -2581,6 +2581,8 @@ function chromecastShowIdle() {
 function chromecastShowPlayer() {
     document.getElementById("chromecastIdle").style.display = "none";
     document.getElementById("chromecastPlayer").style.display = "flex";
+    clearInterval(chromecastRecTimer);
+    chromecastRecTimer = null;
 }
 
 function updateChromecast() {
@@ -2687,12 +2689,15 @@ function updateChromecast() {
 // Clé API TMDB — à créer gratuitement sur https://www.themoviedb.org
 // (Paramètres du compte → API → demander une clé "Developer")
 const TMDB_API_KEY = "09a9834dce1a849ad1ad5e46e2b994d4";
+
 const CHROMECAST_WATCH_HISTORY_KEY = "chromecast_watch_history";
 const CHROMECAST_GENRE_PREFS_KEY = "chromecast_genre_prefs";
 const CHROMECAST_WATCH_HISTORY_MAX = 15;
 
 let chromecastRecsLoaded = false;
-let chromecastRecsData = []; // reco actuellement affichées, indexées pour la popup d'infos
+let chromecastRecsData = []; // reco actuellement chargées, indexées pour la popup d'infos
+let chromecastRecIndex = 0;
+let chromecastRecTimer = null;
 
 // Correspondance genre choisi ↔ identifiants de genre TMDB (différents entre
 // films et séries pour certaines catégories, ex. Action & Aventure côté séries)
@@ -2847,21 +2852,50 @@ function chromecastRenderRecs() {
     const container = document.getElementById("chromecastRecs");
     if (!container) return;
 
+    clearInterval(chromecastRecTimer);
+    chromecastRecTimer = null;
+
     if (chromecastRecsData.length === 0) {
-        container.innerHTML = "";
         container.style.display = "none";
         return;
     }
 
     container.style.display = "flex";
-    container.innerHTML = chromecastRecsData.map((rec, i) => `
-        <button type="button" class="chromecast-rec-card" onclick="chromecastShowRecInfo(${i})">
-            <div class="chromecast-rec-thumb" style="${rec.image ? `background-image:url('${rec.image}')` : ''}">
-                ${rec.image ? '' : (rec.type === 'youtube' ? '▶️' : '🎬')}
-            </div>
-            <div class="chromecast-rec-title">${rec.title}</div>
-        </button>
-    `).join("");
+    chromecastRecIndex = 0;
+    chromecastRenderCurrentRec();
+
+    // Défilement automatique toutes les 8s s'il y a plus d'une reco
+    if (chromecastRecsData.length > 1) {
+        chromecastRecTimer = setInterval(chromecastRecNext, 8000);
+    }
+}
+
+function chromecastRenderCurrentRec() {
+    const rec = chromecastRecsData[chromecastRecIndex];
+    if (!rec) return;
+
+    const thumb = document.getElementById("chromecastRecThumb");
+    thumb.style.backgroundImage = rec.image ? `url('${rec.image}')` : "none";
+    thumb.textContent = rec.image ? "" : (rec.type === "youtube" ? "▶️" : "🎬");
+
+    document.getElementById("chromecastRecTitle").textContent = rec.title;
+
+    const dots = document.getElementById("chromecastRecDots");
+    dots.innerHTML = chromecastRecsData.map((_, i) =>
+        `<span class="chromecast-rec-dot${i === chromecastRecIndex ? ' active' : ''}"></span>`
+    ).join("");
+}
+
+function chromecastRecNext() {
+    if (chromecastRecsData.length === 0) return;
+    chromecastRecIndex = (chromecastRecIndex + 1) % chromecastRecsData.length;
+    chromecastRenderCurrentRec();
+}
+
+function chromecastRecPrev() {
+    if (chromecastRecsData.length === 0) return;
+    chromecastRecIndex = (chromecastRecIndex - 1 + chromecastRecsData.length) % chromecastRecsData.length;
+    chromecastRenderCurrentRec();
 }
 
 function chromecastShowRecInfo(index) {
