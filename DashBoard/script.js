@@ -17,7 +17,7 @@ const DASHBOARD_STORAGE_VERSIONS = {
     widgetOrder: 1,
     chromecast_yt_thumb_cache: 1,
     display_schedule: 1,
-    chromecast_watch_history: 1,
+    chromecast_watch_history: 2,
     chromecast_genre_prefs: 1,
 };
 
@@ -2613,7 +2613,8 @@ function updateChromecast() {
         chromecastRecsLoaded = false; // on est en lecture : les recos seront à recalculer à la prochaine veille
 
         // Historique de visionnage YouTube (sert de base aux recommandations
-        // affichées quand rien n'est diffusé)
+        // affichées quand rien n'est diffusé — on retient aussi la chaîne pour
+        // pouvoir recommander d'autres vidéos du même créateur)
         if (attrs.app_name && attrs.app_name.toLowerCase() === "youtube" && attrs.media_title) {
             chromecastRecordWatched(attrs.media_title);
         }
@@ -2678,17 +2679,16 @@ function updateChromecast() {
 // ─── Recommandations (affichées quand rien n'est diffusé) ────────────────────
 //
 // Deux sources :
-//  - YouTube : à partir de l'historique local des titres castés, on cherche
-//    des vidéos "proches" via une recherche texte (l'API v3 publique n'offre
-//    plus d'endpoint "vidéos similaires" depuis sa dépréciation — une
-//    recherche sur le dernier titre regardé est l'approximation la plus
-//    proche disponible sans OAuth).
+//  - YouTube : à partir des chaînes les plus regardées récemment (déduites de
+//    l'historique local des vidéos castées), on récupère leurs dernières
+//    publications via l'API de recherche YouTube (channelId + order=date).
 //  - Films/séries : selon les genres choisis dans les paramètres du widget,
-//    via l'API publique TMDB (themoviedb.org).
+//    via l'API publique TMDB (themoviedb.org) — limité aux titres inclus
+//    dans l'abonnement Netflix, Prime Video, Disney+ ou Crunchyroll en France.
 
 // Clé API TMDB — à créer gratuitement sur https://www.themoviedb.org
 // (Paramètres du compte → API → demander une clé "Developer")
-const TMDB_API_KEY = "09a9834dce1a849ad1ad5e46e2b994d4";
+const TMDB_API_KEY = "COLLE_TA_CLE_TMDB_ICI";
 
 const CHROMECAST_WATCH_HISTORY_KEY = "chromecast_watch_history";
 const CHROMECAST_GENRE_PREFS_KEY = "chromecast_genre_prefs";
@@ -2712,14 +2712,68 @@ const CHROMECAST_GENRES = [
     { key: "documentaire",  label: "Documentaire",    icon: "🎥", movieId: 99,  tvId: 99 },
 ];
 
+// Plateformes sur lesquelles limiter les recos (identifiants TMDB), et région
+// pour laquelle vérifier la disponibilité en abonnement (flatrate)
+const CHROMECAST_STREAMING_PROVIDERS = "8|119|337|283"; // Netflix | Prime Video | Disney+ | Crunchyroll
+const CHROMECAST_WATCH_REGION = "FR";
+
 function chromecastGetWatchHistory() {
     return storageGet(CHROMECAST_WATCH_HISTORY_KEY, []);
 }
 
-function chromecastRecordWatched(title) {
-    const history = chromecastGetWatchHistory().filter(t => t !== title);
-    history.unshift(title);
-    storageSet(CHROMECAST_WATCH_HISTORY_KEY, history.slice(0, CHROMECAST_WATCH_HISTORY_MAX));
+async function chromecastRecordWatched(title) {
+    const history = chromecastGetWatchHistory();
+
+    // Déjà en tête de l'historique (même titre) : rien à refaire
+    if (history[0] && history[0].title === title) return;
+
+    let entry = { title, channelId: null, channelTitle: null, videoId: null, timestamp: Date.now() };
+
+    // On a déjà vu ce titre exact avant : on réutilise les infos de chaîne
+    // connues plutôt que de refaire un appel API
+    const known = history.find(h => h.title === title && h.channelId);
+    if (known) {
+        entry = { ...known, timestamp: Date.now() };
+    } else if (YOUTUBE_API_KEY && !YOUTUBE_API_KEY.startsWith("COLLE_")) {
+        // Résout la chaîne d'origine de la vidéo via une recherche par titre
+        // (l'attribut HA ne donne que le titre, pas l'ID de la vidéo/chaîne)
+        try {
+            const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&type=video&q=${encodeURIComponent(title)}&key=${YOUTUBE_API_KEY}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            const item = data.items && data.items[0];
+            if (item) {
+                entry.channelId = item.snippet.channelId;
+                entry.channelTitle = item.snippet.channelTitle;
+                entry.videoId = item.id.videoId;
+            }
+        } catch (err) {
+            console.error("Chromecast historique (résolution chaîne) :", err);
+        }
+    }
+
+    const filtered = history.filter(h => h.title !== title);
+    filtered.unshift(entry);
+    storageSet(CHROMECAST_WATCH_HISTORY_KEY, filtered.slice(0, CHROMECAST_WATCH_HISTORY_MAX));
+}
+
+// Chaînes les plus regardées récemment, des plus fréquentes/récentes aux moins
+function chromecastGetTopChannels(max = 2) {
+    const history = chromecastGetWatchHistory();
+    const counts = new Map(); // channelId -> { channelId, channelTitle, score }
+
+    history.forEach((h, i) => {
+        if (!h.channelId) return;
+        const weight = history.length - i; // plus récent = plus de poids
+        const existing = counts.get(h.channelId);
+        if (existing) {
+            existing.score += weight;
+        } else {
+            counts.set(h.channelId, { channelId: h.channelId, channelTitle: h.channelTitle, score: weight });
+        }
+    });
+
+    return [...counts.values()].sort((a, b) => b.score - a.score).slice(0, max);
 }
 
 function chromecastGetGenrePrefs() {
@@ -2779,26 +2833,38 @@ async function chromecastLoadRecommendations() {
 async function chromecastFetchYoutubeRecs() {
     if (!YOUTUBE_API_KEY || YOUTUBE_API_KEY.startsWith("COLLE_")) return [];
 
-    const history = chromecastGetWatchHistory();
-    if (history.length === 0) return [];
+    const topChannels = chromecastGetTopChannels(2);
+    const watchedVideoIds = new Set(chromecastGetWatchHistory().map(h => h.videoId).filter(Boolean));
 
-    // On se base sur le titre le plus récemment regardé
-    const lastTitle = history[0];
+    // Historique pas encore assez riche (chaînes pas encore résolues) : rien à proposer
+    if (topChannels.length === 0) return [];
 
     try {
-        const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=4&type=video&q=${encodeURIComponent(lastTitle)}&key=${YOUTUBE_API_KEY}`;
-        const response = await fetch(url);
-        if (!response.ok) throw new Error("HTTP " + response.status);
-        const data = await response.json();
+        const results = await Promise.all(topChannels.map(async channel => {
+            const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=5&type=video&order=date&channelId=${channel.channelId}&key=${YOUTUBE_API_KEY}`;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error("HTTP " + response.status);
+            const data = await response.json();
 
-        return (data.items || []).map(item => ({
-            type: "youtube",
-            title: item.snippet.title,
-            subtitle: item.snippet.channelTitle,
-            description: item.snippet.description,
-            image: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
-            publishedAt: item.snippet.publishedAt,
+            return (data.items || [])
+                .filter(item => !watchedVideoIds.has(item.id.videoId)) // pas déjà vue
+                .map(item => ({
+                    type: "youtube",
+                    title: item.snippet.title,
+                    subtitle: item.snippet.channelTitle,
+                    description: item.snippet.description,
+                    image: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
+                    publishedAt: item.snippet.publishedAt,
+                }));
         }));
+
+        // On alterne entre les chaînes plutôt que de mettre toute une chaîne à la suite
+        const merged = [];
+        const maxLen = Math.max(...results.map(r => r.length));
+        for (let i = 0; i < maxLen; i++) {
+            results.forEach(r => { if (r[i]) merged.push(r[i]); });
+        }
+        return merged.slice(0, 6);
     } catch (err) {
         console.error("Chromecast recos YouTube :", err);
         return [];
@@ -2817,8 +2883,8 @@ async function chromecastFetchTmdbRecs() {
 
     try {
         const [movies, shows] = await Promise.all([
-            fetch(`https://api.themoviedb.org/3/discover/movie?with_genres=${genre.movieId}&sort_by=popularity.desc&language=fr-FR&api_key=${TMDB_API_KEY}`).then(r => r.json()),
-            fetch(`https://api.themoviedb.org/3/discover/tv?with_genres=${genre.tvId}&sort_by=popularity.desc&language=fr-FR&api_key=${TMDB_API_KEY}`).then(r => r.json()),
+            fetch(`https://api.themoviedb.org/3/discover/movie?with_genres=${genre.movieId}&with_watch_providers=${CHROMECAST_STREAMING_PROVIDERS}&watch_region=${CHROMECAST_WATCH_REGION}&with_watch_monetization_types=flatrate&sort_by=popularity.desc&language=fr-FR&api_key=${TMDB_API_KEY}`).then(r => r.json()),
+            fetch(`https://api.themoviedb.org/3/discover/tv?with_genres=${genre.tvId}&with_watch_providers=${CHROMECAST_STREAMING_PROVIDERS}&watch_region=${CHROMECAST_WATCH_REGION}&with_watch_monetization_types=flatrate&sort_by=popularity.desc&language=fr-FR&api_key=${TMDB_API_KEY}`).then(r => r.json()),
         ]);
 
         const movieRecs = (movies.results || []).slice(0, 3).map(m => ({
