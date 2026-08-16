@@ -2826,9 +2826,6 @@ function chromecastToggleGenre(key) {
 
 // ── Construction des recommandations ──
 async function chromecastLoadRecommendations() {
-    const container = document.getElementById("chromecastRecs");
-    if (!container) return;
-
     try {
         const [youtubeRecs, tmdbRecs] = await Promise.all([
             chromecastFetchYoutubeRecs(),
