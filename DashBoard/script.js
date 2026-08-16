@@ -2572,6 +2572,7 @@ async function chromecastLoadImage(image) {
 function chromecastShowIdle() {
     document.getElementById("chromecastIdle").style.display = "flex";
     document.getElementById("chromecastPlayer").style.display = "none";
+    document.getElementById("chromecastBg").style.filter = "brightness(0.8)"; // affiche plus lumineuse qu'en lecture
     if (!chromecastRecsLoaded) {
         chromecastRecsLoaded = true; // évite de relancer les appels API à chaque poll (toutes les ~5-10s)
         chromecastLoadRecommendations();
@@ -2581,6 +2582,7 @@ function chromecastShowIdle() {
 function chromecastShowPlayer() {
     document.getElementById("chromecastIdle").style.display = "none";
     document.getElementById("chromecastPlayer").style.display = "flex";
+    document.getElementById("chromecastBg").style.filter = ""; // retour au réglage par défaut (plus sombre) pendant la lecture
     clearInterval(chromecastRecTimer);
     chromecastRecTimer = null;
 }
@@ -2616,10 +2618,10 @@ function updateChromecast() {
         // affichées quand rien n'est diffusé — on retient aussi la chaîne pour
         // pouvoir recommander d'autres vidéos du même créateur)
         if (attrs.app_name && attrs.app_name.toLowerCase() === "youtube" && attrs.media_title) {
-            chromecastRecordWatched(attrs.media_title);
+            chromecastRecordWatched(chromecastDecodeHtml(attrs.media_title));
         }
 
-        document.getElementById("chromecastTitle").textContent = attrs.media_title || attrs.app_name || "—";
+        document.getElementById("chromecastTitle").textContent = chromecastDecodeHtml(attrs.media_title) || chromecastDecodeHtml(attrs.app_name) || "—";
 
         // Sous-titre : artiste (musique) ou série. Si le titre affiché est déjà
         // le nom de l'appli (pas de media_title), on n'y remet pas app_name en double.
@@ -2699,6 +2701,16 @@ let chromecastRecsData = []; // reco actuellement chargées, indexées pour la p
 let chromecastRecIndex = 0;
 let chromecastRecTimer = null;
 
+// L'API YouTube (et parfois d'autres sources) renvoie du texte avec des
+// entités HTML encodées littéralement (ex. "L&#39;idée" au lieu de "L'idée").
+// On décode systématiquement tout texte venant de l'extérieur avant affichage.
+function chromecastDecodeHtml(str) {
+    if (!str) return str;
+    const el = document.createElement("textarea");
+    el.innerHTML = str;
+    return el.value;
+}
+
 // Correspondance genre choisi ↔ identifiants de genre TMDB (différents entre
 // films et séries pour certaines catégories, ex. Action & Aventure côté séries)
 const CHROMECAST_GENRES = [
@@ -2744,7 +2756,7 @@ async function chromecastRecordWatched(title) {
             const item = data.items && data.items[0];
             if (item) {
                 entry.channelId = item.snippet.channelId;
-                entry.channelTitle = item.snippet.channelTitle;
+                entry.channelTitle = chromecastDecodeHtml(item.snippet.channelTitle);
                 entry.videoId = item.id.videoId;
             }
         } catch (err) {
@@ -2850,9 +2862,9 @@ async function chromecastFetchYoutubeRecs() {
                 .filter(item => !watchedVideoIds.has(item.id.videoId)) // pas déjà vue
                 .map(item => ({
                     type: "youtube",
-                    title: item.snippet.title,
-                    subtitle: item.snippet.channelTitle,
-                    description: item.snippet.description,
+                    title: chromecastDecodeHtml(item.snippet.title),
+                    subtitle: chromecastDecodeHtml(item.snippet.channelTitle),
+                    description: chromecastDecodeHtml(item.snippet.description),
                     image: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
                     publishedAt: item.snippet.publishedAt,
                 }));
@@ -2890,9 +2902,9 @@ async function chromecastFetchTmdbRecs() {
         const movieRecs = (movies.results || []).slice(0, 3).map(m => ({
             type: "movie",
             genreLabel: genre.label,
-            title: m.title,
+            title: chromecastDecodeHtml(m.title),
             subtitle: (m.release_date || "").slice(0, 4),
-            description: m.overview,
+            description: chromecastDecodeHtml(m.overview),
             rating: m.vote_average,
             image: m.poster_path ? `https://image.tmdb.org/t/p/w300${m.poster_path}` : null,
         }));
@@ -2900,9 +2912,9 @@ async function chromecastFetchTmdbRecs() {
         const tvRecs = (shows.results || []).slice(0, 3).map(s => ({
             type: "tv",
             genreLabel: genre.label,
-            title: s.name,
+            title: chromecastDecodeHtml(s.name),
             subtitle: (s.first_air_date || "").slice(0, 4),
-            description: s.overview,
+            description: chromecastDecodeHtml(s.overview),
             rating: s.vote_average,
             image: s.poster_path ? `https://image.tmdb.org/t/p/w300${s.poster_path}` : null,
         }));
@@ -2915,18 +2927,28 @@ async function chromecastFetchTmdbRecs() {
 }
 
 function chromecastRenderRecs() {
-    const container = document.getElementById("chromecastRecs");
-    if (!container) return;
+    const tap = document.getElementById("chromecastRecTap");
+    const nav = document.getElementById("chromecastRecNav");
+    const empty = document.getElementById("chromecastRecEmpty");
+    if (!tap || !nav || !empty) return;
 
     clearInterval(chromecastRecTimer);
     chromecastRecTimer = null;
 
     if (chromecastRecsData.length === 0) {
-        container.style.display = "none";
+        tap.style.display = "none";
+        nav.style.display = "none";
+        document.getElementById("chromecastRecBadge").style.display = "none";
+        empty.style.display = "flex";
+        document.getElementById("chromecastBg").style.backgroundImage = "none";
+        chromecastClearFallback();
         return;
     }
 
-    container.style.display = "flex";
+    empty.style.display = "none";
+    tap.style.display = "flex";
+    document.getElementById("chromecastRecBadge").style.display = "flex";
+    nav.style.display = chromecastRecsData.length > 1 ? "flex" : "none";
     chromecastRecIndex = 0;
     chromecastRenderCurrentRec();
 
@@ -2936,15 +2958,24 @@ function chromecastRenderRecs() {
     }
 }
 
+const CHROMECAST_REC_EYEBROWS = { youtube: "Nouvelle vidéo", movie: "Film à regarder", tv: "Série à regarder" };
+
 function chromecastRenderCurrentRec() {
     const rec = chromecastRecsData[chromecastRecIndex];
     if (!rec) return;
 
-    const thumb = document.getElementById("chromecastRecThumb");
-    thumb.style.backgroundImage = rec.image ? `url('${rec.image}')` : "none";
-    thumb.textContent = rec.image ? "" : (rec.type === "youtube" ? "▶️" : "🎬");
+    // La reco devient le fond du widget, comme une affiche
+    chromecastClearFallback();
+    document.getElementById("chromecastBg").style.backgroundImage = rec.image ? `url('${rec.image}')` : "none";
 
     document.getElementById("chromecastRecTitle").textContent = rec.title;
+
+    const metaParts = rec.type === "youtube"
+        ? [rec.subtitle]
+        : [rec.subtitle, rec.genreLabel].filter(Boolean);
+    document.getElementById("chromecastRecMeta").textContent = metaParts.join(" • ");
+
+    document.getElementById("chromecastRecBadgeLabel").textContent = CHROMECAST_REC_EYEBROWS[rec.type] || "À regarder";
 
     const dots = document.getElementById("chromecastRecDots");
     dots.innerHTML = chromecastRecsData.map((_, i) =>
