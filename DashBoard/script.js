@@ -2371,6 +2371,17 @@ function spotifyShowPlayer() {
 
 // -- Lecture en cours --
 
+// Icônes play/pause (Tabler) — un seul point de vérité pour éviter la
+// duplication de markup SVG, et un data-attribute pour connaître l'état
+// actuel sans avoir à parser le contenu du bouton.
+const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" class="icon-btn"><path d="M6 4v16l14 -8z" /></svg>';
+const ICON_PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor" class="icon-btn"><path d="M6 4h4v16h-4z" /><path d="M14 4h4v16h-4z" /></svg>';
+
+function setPlayPauseIcon(btn, isPlaying) {
+    btn.innerHTML = isPlaying ? ICON_PAUSE : ICON_PLAY;
+    btn.dataset.playing = isPlaying ? "true" : "false";
+}
+
 async function spotifyUpdatePlayer() {
     const token = await spotifyGetToken();
     if (!token) { spotifyShowLogin(); return; }
@@ -2404,7 +2415,7 @@ async function spotifyUpdatePlayer() {
         spotifyShowPlayer();
         document.getElementById("spotifyTitle").textContent  = data.item.name;
         document.getElementById("spotifyArtist").textContent = data.item.artists.map(a => a.name).join(", ");
-        document.getElementById("spotifyPlayPause").textContent = data.is_playing ? "⏸" : "▶";
+        setPlayPauseIcon(document.getElementById("spotifyPlayPause"), data.is_playing);
 
         if (data.item.id !== spotifyLastTrackId) {
             spotifyLastTrackId = data.item.id;
@@ -2424,7 +2435,7 @@ async function spotifyTogglePlay() {
     if (!token) return;
 
     const btn = document.getElementById("spotifyPlayPause");
-    const endpoint = btn.textContent === "⏸" ? "pause" : "play";
+    const endpoint = btn.dataset.playing === "true" ? "pause" : "play";
 
     await fetch(`https://api.spotify.com/v1/me/player/${endpoint}`, {
         method: "PUT",
@@ -2607,11 +2618,15 @@ function updateChromecast() {
     try {
         const attrs = data.attributes || {};
 
-        // Rien en cours (éteint, en veille, ou vraiment aucune info exploitable).
-        // Beaucoup d'applis castées (Netflix, Prime Video, Twitch...) ne remontent
-        // pas de media_title via HA — seulement app_name. On ne bascule en idle
-        // que si on n'a NI l'un NI l'autre, sinon on utilise app_name en repli.
-        if (["off", "idle", "unavailable", "standby"].includes(data.state) || (!attrs.media_title && !attrs.app_name)) {
+        // Rien en cours : appareil éteint/indisponible, OU en "idle" HA sans
+        // aucune appli ouverte (écran d'accueil Chromecast / backdrop).
+        // Si une appli est ouverte (app_name présent) — même sans vidéo lancée,
+        // ex. sur le menu d'accueil YouTube — on affiche son fallback plutôt
+        // que de rester sur les recos : "idle" côté HA veut souvent juste dire
+        // "rien ne joue", pas "rien n'est ouvert".
+        const trulyOff = ["off", "unavailable"].includes(data.state);
+        const noAppOpen = !attrs.app_name && !attrs.media_title;
+        if (trulyOff || (["idle", "standby"].includes(data.state) && noAppOpen)) {
             // Ce nettoyage ne doit se faire qu'une fois, à la transition
             // lecture → veille — sinon il efface à chaque poll l'image de la
             // reco déjà affichée (clignotement toutes les quelques secondes)
@@ -2648,8 +2663,7 @@ function updateChromecast() {
         const subtitle = attrs.media_artist || attrs.media_series_title || (attrs.media_title ? attrs.app_name : "") || "";
         document.getElementById("chromecastSubtitle").textContent = subtitle;
 
-        document.getElementById("chromecastPlayPause").textContent =
-            data.state === "playing" ? "⏸" : "▶";
+        setPlayPauseIcon(document.getElementById("chromecastPlayPause"), data.state === "playing");
 
         // Image (jaquette / miniature), relative à l'URL de Home Assistant si besoin
         const image = attrs.entity_picture
