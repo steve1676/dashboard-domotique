@@ -2476,6 +2476,7 @@ const YOUTUBE_API_KEY = "AIzaSyCDc5MPkXyNH6P7xo_aZRgMuv1ouO5T8ZA";
 let chromecastLastImage = null;
 let chromecastImageObjectUrl = null;
 let chromecastLastSearchedTitle = null;
+let chromecastWasPlaying = false; // détecte la transition lecture → veille, pour ne nettoyer qu'une fois
 
 const YOUTUBE_THUMB_CACHE_KEY = "chromecast_yt_thumb_cache";
 
@@ -2520,12 +2521,14 @@ async function chromecastSearchYoutubeThumbnail(title) {
     }
 }
 
-// Fallback visuel (couleur + icône) quand aucune image n'est disponible / trouvée
+// Fallback visuel (couleur + logo) quand aucune image n'est disponible / trouvée
+// (juste après le lancement d'une appli, le temps que la vignette charge)
 const CHROMECAST_APP_STYLES = {
     "youtube":        { color: "#FF0000", icon: "▶️" },
-    "netflix":        { color: "#141414", icon: "🅽" },
-    "disney+":        { color: "#113CCF", icon: "✦" },
-    "prime video":    { color: "#00A8E1", icon: "▶" },
+    "netflix":        { color: "#E50914", logo: `<svg viewBox="0 0 24 24" width="40" height="40"><text x="12" y="19" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-weight="700" font-size="22" fill="#fff">N</text></svg>` },
+    "disney+":        { color: "#113CCF", logo: `<svg viewBox="0 0 24 24" width="40" height="40"><text x="12" y="17" text-anchor="middle" font-family="-apple-system, sans-serif" font-weight="800" font-size="13" fill="#fff">D+</text></svg>` },
+    "prime video":    { color: "#00A8E1", logo: `<svg viewBox="0 0 24 24" width="40" height="40"><polygon points="9,7 17,12 9,17" fill="#fff"/><path d="M6 19 Q12 22 18 19" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>` },
+    "crunchyroll":    { color: "#F47521", logo: `<svg viewBox="0 0 24 24" width="40" height="40"><text x="12" y="16" text-anchor="middle" font-family="-apple-system, sans-serif" font-weight="800" font-size="10" fill="#fff">CR</text></svg>` },
     "spotify":        { color: "#1DB954", icon: "🎵" },
     "plex":           { color: "#E5A00D", icon: "▶" },
     "twitch":         { color: "#9146FF", icon: "🎮" },
@@ -2538,18 +2541,28 @@ function chromecastApplyFallback(appName) {
 
     const bg = document.getElementById("chromecastBg");
     bg.style.backgroundImage = "none";
-    bg.style.backgroundColor = style.color;
-    bg.textContent = style.icon;
+    // Dégradé doux (glow) teinté de la couleur de la plateforme sur fond sombre,
+    // plutôt qu'un aplat uni — même esprit que l'écran "aucune reco" du widget
+    bg.style.background = `radial-gradient(ellipse at 50% 38%, ${style.color}77, #11151c 78%)`;
+    bg.style.backgroundColor = "#11151c";
+    if (style.logo) {
+        bg.innerHTML = style.logo;
+    } else {
+        bg.textContent = style.icon;
+    }
     bg.style.display = "flex";
     bg.style.alignItems = "center";
     bg.style.justifyContent = "center";
     bg.style.fontSize = "48px";
+    bg.style.filter = "drop-shadow(0 4px 12px rgba(0,0,0,0.45))";
 }
 
 function chromecastClearFallback() {
     const bg = document.getElementById("chromecastBg");
-    bg.textContent = "";
+    bg.innerHTML = "";
+    bg.style.background = "";
     bg.style.backgroundColor = "#374151";
+    bg.style.filter = "";
 }
 
 async function chromecastLoadImage(image) {
@@ -2589,7 +2602,7 @@ function chromecastShowPlayer() {
 
 function updateChromecast() {
     const data = haStatesFull[CHROMECAST_ENTITY_ID];
-    if (!data) { chromecastShowIdle(); return; }
+    if (!data) { chromecastWasPlaying = false; chromecastShowIdle(); return; }
 
     try {
         const attrs = data.attributes || {};
@@ -2599,18 +2612,25 @@ function updateChromecast() {
         // pas de media_title via HA — seulement app_name. On ne bascule en idle
         // que si on n'a NI l'un NI l'autre, sinon on utilise app_name en repli.
         if (["off", "idle", "unavailable", "standby"].includes(data.state) || (!attrs.media_title && !attrs.app_name)) {
-            chromecastShowIdle();
-            chromecastLastImage = null;
-            chromecastLastSearchedTitle = null;
-            if (chromecastImageObjectUrl) {
-                URL.revokeObjectURL(chromecastImageObjectUrl);
-                chromecastImageObjectUrl = null;
+            // Ce nettoyage ne doit se faire qu'une fois, à la transition
+            // lecture → veille — sinon il efface à chaque poll l'image de la
+            // reco déjà affichée (clignotement toutes les quelques secondes)
+            if (chromecastWasPlaying) {
+                chromecastLastImage = null;
+                chromecastLastSearchedTitle = null;
+                if (chromecastImageObjectUrl) {
+                    URL.revokeObjectURL(chromecastImageObjectUrl);
+                    chromecastImageObjectUrl = null;
+                }
+                chromecastClearFallback();
+                document.getElementById("chromecastBg").style.backgroundImage = "none";
             }
-            chromecastClearFallback();
-            document.getElementById("chromecastBg").style.backgroundImage = "none";
+            chromecastWasPlaying = false;
+            chromecastShowIdle();
             return;
         }
 
+        chromecastWasPlaying = true;
         chromecastShowPlayer();
         chromecastRecsLoaded = false; // on est en lecture : les recos seront à recalculer à la prochaine veille
 
@@ -2832,7 +2852,7 @@ async function chromecastLoadRecommendations() {
             chromecastFetchTmdbRecs(),
         ]);
 
-        chromecastRecsData = [...youtubeRecs, ...tmdbRecs];
+        chromecastRecsData = [...youtubeRecs, ...tmdbRecs].slice(0, 3);
         chromecastRenderRecs();
     } catch (err) {
         console.error("Chromecast recommandations :", err);

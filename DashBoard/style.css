@@ -699,19 +699,19 @@ body {
     margin-bottom: auto; /* pousse le reste (titre/nav) vers le bas de la carte */
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     background: rgba(255,255,255,0.08);
     border: 1px solid rgba(255,255,255,0.15);
     border-radius: 20px;
-    padding: 5px 12px 5px 8px;
-    font-size: 0.7rem;
+    padding: 4px 10px 4px 7px;
+    font-size: 0.62rem;
     font-weight: 600;
     color: #f1f5f9;
 }
 
 .chromecast-poster-badge-dot {
-    width: 8px;
-    height: 8px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
     background: #e83fb4;
     box-shadow: 0 0 8px #e83fb4;
@@ -730,12 +730,12 @@ body {
     cursor: pointer;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
     -webkit-tap-highlight-color: transparent;
 }
 
 .chromecast-poster-title {
-    font-size: 1.25rem;
+    font-size: 1.05rem;
     font-weight: 800;
     color: #ffffff;
     line-height: 1.2;
@@ -746,7 +746,7 @@ body {
 }
 
 .chromecast-poster-meta {
-    font-size: 0.8rem;
+    font-size: 0.72rem;
     color: #c9bce8;
 }
 
