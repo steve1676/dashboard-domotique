@@ -118,7 +118,7 @@
                     </div>
                 </div>
 
-                <div id="chromecastPlayer" class="spotify-player" style="display:none;">
+                <div id="chromecastPlayer" class="spotify-player chromecast-player-tap" style="display:none;" onclick="if (!event.target.closest('.spotify-controls')) chromecastOpenPlayerModal()">
 
                     <div class="spotify-track">
                         <div id="chromecastTitle" class="spotify-title">—</div>
@@ -414,6 +414,31 @@
             <div id="chromecastInfoTitle" class="rec-info-title"></div>
             <div id="chromecastInfoMeta" class="rec-info-meta"></div>
             <div id="chromecastInfoDesc" class="rec-info-desc"></div>
+        </div>
+
+        <!-- Lecteur Chromecast en grand (ouvert en cliquant sur le widget en cours de lecture) -->
+        <div id="modal-chromecast-player" class="widget-modal-section">
+            <div id="chromecastPlayerModalPoster" class="player-modal-poster"></div>
+
+            <span id="chromecastPlayerModalBadge" class="player-modal-badge"></span>
+            <div id="chromecastPlayerModalTitle" class="player-modal-title"></div>
+            <div id="chromecastPlayerModalMeta" class="player-modal-meta"></div>
+
+            <div id="chromecastPlayerModalProgress" class="player-modal-progress" style="display:none;">
+                <div class="player-modal-progress-track">
+                    <div id="chromecastPlayerModalProgressFill" class="player-modal-progress-fill"></div>
+                </div>
+                <div class="player-modal-progress-times">
+                    <span id="chromecastPlayerModalPosition">0:00</span>
+                    <span id="chromecastPlayerModalDuration">0:00</span>
+                </div>
+            </div>
+
+            <div class="spotify-controls" style="margin-top:18px;">
+                <button onclick="chromecastControl('media_previous_track')" aria-label="Précédent"><svg viewBox="0 0 24 24" fill="currentColor" class="icon-btn"><path d="M20 5v14l-11 -7z" /><path d="M6 5h2v14h-2z" /></svg></button>
+                <button id="chromecastPlayerModalPlayPause" onclick="chromecastTogglePlay()" aria-label="Lecture / Pause" data-playing="true"><svg viewBox="0 0 24 24" fill="currentColor" class="icon-btn"><path d="M6 4h4v16h-4z" /><path d="M14 4h4v16h-4z" /></svg></button>
+                <button onclick="chromecastControl('media_next_track')" aria-label="Suivant"><svg viewBox="0 0 24 24" fill="currentColor" class="icon-btn"><path d="M4 5v14l11 -7z" /><path d="M16 5h2v14h-2z" /></svg></button>
+            </div>
         </div>
 
     </div>

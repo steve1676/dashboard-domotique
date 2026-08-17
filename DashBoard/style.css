@@ -878,6 +878,74 @@ body {
     line-height: 1.5;
 }
 
+.chromecast-player-tap {
+    cursor: pointer;
+}
+
+/* ── Lecteur Chromecast en grand (popup) ── */
+.player-modal-poster {
+    width: 100%;
+    height: 220px;
+    border-radius: 16px;
+    background-color: #374151;
+    background-size: cover;
+    background-position: center;
+    margin-bottom: 16px;
+}
+
+.player-modal-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin-bottom: 10px;
+}
+
+.player-modal-title {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #f8fafc;
+    margin-bottom: 4px;
+}
+
+.player-modal-meta {
+    font-size: 0.9rem;
+    color: #94a3b8;
+}
+
+.player-modal-progress {
+    margin-top: 18px;
+}
+
+.player-modal-progress-track {
+    width: 100%;
+    height: 4px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.player-modal-progress-fill {
+    height: 100%;
+    background: #1db954;
+    border-radius: 2px;
+    width: 0%;
+}
+
+.player-modal-progress-times {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin-top: 5px;
+}
+
 /* miroir + spotify + chromecast dans la rangée du haut : même comportement de grille */
 .top-row .spotify-card {
     margin-bottom: 0;

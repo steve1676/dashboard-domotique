@@ -2488,6 +2488,8 @@ let chromecastLastImage = null;
 let chromecastImageObjectUrl = null;
 let chromecastLastSearchedTitle = null;
 let chromecastWasPlaying = false; // détecte la transition lecture → veille, pour ne nettoyer qu'une fois
+let chromecastCurrentAttrs = null; // derniers attrs HA connus, pour peupler le popup lecteur en grand
+let chromecastCurrentState = null;
 
 const YOUTUBE_THUMB_CACHE_KEY = "chromecast_yt_thumb_cache";
 
@@ -2624,9 +2626,14 @@ function updateChromecast() {
         // ex. sur le menu d'accueil YouTube — on affiche son fallback plutôt
         // que de rester sur les recos : "idle" côté HA veut souvent juste dire
         // "rien ne joue", pas "rien n'est ouvert".
+        // Exception : Spotify (Spotify Connect) laisse app_name="Spotify" même
+        // quand rien n'est réellement diffusé — on ne le traite jamais comme
+        // "actif" sur la seule foi de app_name, sinon le widget reste bloqué
+        // en permanence sur le fallback Spotify au lieu des recos.
         const trulyOff = ["off", "unavailable"].includes(data.state);
         const noAppOpen = !attrs.app_name && !attrs.media_title;
-        if (trulyOff || (["idle", "standby"].includes(data.state) && noAppOpen)) {
+        const appIsSpotify = (attrs.app_name || "").toLowerCase() === "spotify";
+        if (trulyOff || (["idle", "standby"].includes(data.state) && (noAppOpen || appIsSpotify))) {
             // Ce nettoyage ne doit se faire qu'une fois, à la transition
             // lecture → veille — sinon il efface à chaque poll l'image de la
             // reco déjà affichée (clignotement toutes les quelques secondes)
@@ -2641,6 +2648,7 @@ function updateChromecast() {
                 document.getElementById("chromecastBg").style.backgroundImage = "none";
             }
             chromecastWasPlaying = false;
+            chromecastCurrentAttrs = null;
             chromecastShowIdle();
             return;
         }
@@ -2664,6 +2672,10 @@ function updateChromecast() {
         document.getElementById("chromecastSubtitle").textContent = subtitle;
 
         setPlayPauseIcon(document.getElementById("chromecastPlayPause"), data.state === "playing");
+
+        chromecastCurrentAttrs = attrs;
+        chromecastCurrentState = data.state;
+        chromecastRenderPlayerModal(); // tient le popup à jour s'il est ouvert
 
         // Image (jaquette / miniature), relative à l'URL de Home Assistant si besoin
         const image = attrs.entity_picture
@@ -3050,6 +3062,65 @@ function chromecastShowRecInfo(index) {
     document.getElementById("chromecastInfoDesc").textContent = rec.description || "Pas de description disponible.";
 
     openWidgetModal("chromecast-info");
+}
+
+// ── Popup "lecteur en grand" (ouvert en cliquant sur le widget en cours de lecture) ──
+
+function chromecastFormatTime(seconds) {
+    if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+function chromecastRenderPlayerModal() {
+    const modal = document.getElementById("modal-chromecast-player");
+    if (!modal || !modal.classList.contains("visible") || !chromecastCurrentAttrs) return;
+
+    const attrs = chromecastCurrentAttrs;
+
+    // Même affiche que le widget principal (déjà chargée/mise en cache là-bas)
+    const bgImage = document.getElementById("chromecastBg").style.backgroundImage;
+    document.getElementById("chromecastPlayerModalPoster").style.backgroundImage =
+        bgImage && bgImage !== "none" ? bgImage : "none";
+
+    document.getElementById("chromecastPlayerModalTitle").textContent =
+        chromecastDecodeHtml(attrs.media_title) || chromecastDecodeHtml(attrs.app_name) || "—";
+
+    const metaParts = [attrs.media_artist, attrs.media_series_title].filter(Boolean).map(chromecastDecodeHtml);
+    document.getElementById("chromecastPlayerModalMeta").textContent = metaParts.join(" · ");
+
+    const style = CHROMECAST_APP_STYLES[(attrs.app_name || "").toLowerCase()] || CHROMECAST_APP_STYLES["default"];
+    const badge = document.getElementById("chromecastPlayerModalBadge");
+    badge.textContent = chromecastDecodeHtml(attrs.app_name) || "Chromecast";
+    badge.style.borderColor = style.color;
+    badge.style.color = style.color;
+
+    setPlayPauseIcon(document.getElementById("chromecastPlayerModalPlayPause"), chromecastCurrentState === "playing");
+
+    // Barre de progression (si HA fournit la durée du média)
+    const progress = document.getElementById("chromecastPlayerModalProgress");
+    if (Number.isFinite(attrs.media_duration) && attrs.media_duration > 0) {
+        let position = attrs.media_position || 0;
+        if (chromecastCurrentState === "playing" && attrs.media_position_updated_at) {
+            const elapsed = (Date.now() - new Date(attrs.media_position_updated_at).getTime()) / 1000;
+            position += Math.max(0, elapsed);
+        }
+        position = Math.min(position, attrs.media_duration);
+
+        progress.style.display = "block";
+        document.getElementById("chromecastPlayerModalProgressFill").style.width = `${(position / attrs.media_duration) * 100}%`;
+        document.getElementById("chromecastPlayerModalPosition").textContent = chromecastFormatTime(position);
+        document.getElementById("chromecastPlayerModalDuration").textContent = chromecastFormatTime(attrs.media_duration);
+    } else {
+        progress.style.display = "none";
+    }
+}
+
+function chromecastOpenPlayerModal() {
+    if (!chromecastCurrentAttrs) return; // rien en lecture pour l'instant
+    openWidgetModal("chromecast-player");
+    chromecastRenderPlayerModal();
 }
 
 async function chromecastControl(service) {
