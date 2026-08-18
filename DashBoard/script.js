@@ -2238,9 +2238,14 @@ initWidgetToggles();
 
 const SPOTIFY_CLIENT_ID    = "e5f7b5f7ee1747f6a10f9c2a87af35a5"; // ← 
 const SPOTIFY_REDIRECT_URI = "https://steve1676.github.io/dashboard-domotique/DashBoard/";
-const SPOTIFY_SCOPES       = "user-read-playback-state user-read-currently-playing user-modify-playback-state";
+const SPOTIFY_SCOPES       = "user-read-playback-state user-read-currently-playing user-modify-playback-state user-top-read";
 
 let spotifyLastTrackId = null;
+let spotifyCurrentData = null; // dernière réponse /me/player connue, pour le popup lecteur
+let spotifyRecsLoaded = false;
+let spotifyRecsData = [];
+let spotifyRecIndex = 0;
+let spotifyRecTimer = null;
 
 // -- PKCE helpers --
 
@@ -2361,12 +2366,52 @@ async function spotifyGetToken() {
 
 function spotifyShowLogin() {
     document.getElementById("spotifyLoggedOut").style.display = "flex";
+    document.getElementById("spotifyIdle").style.display = "none";
     document.getElementById("spotifyPlayer").style.display = "none";
+    clearInterval(spotifyRecTimer);
+    spotifyRecTimer = null;
 }
 
 function spotifyShowPlayer() {
     document.getElementById("spotifyLoggedOut").style.display = "none";
+    document.getElementById("spotifyIdle").style.display = "none";
     document.getElementById("spotifyPlayer").style.display = "flex";
+    document.getElementById("spotifyBgBlur").style.filter = ""; // flou par défaut pendant la lecture
+    clearInterval(spotifyRecTimer);
+    spotifyRecTimer = null;
+}
+
+function spotifyShowIdle() {
+    document.getElementById("spotifyLoggedOut").style.display = "none";
+    document.getElementById("spotifyPlayer").style.display = "none";
+    document.getElementById("spotifyIdle").style.display = "flex";
+    spotifyCurrentData = null;
+    if (!spotifyRecsLoaded) {
+        spotifyRecsLoaded = true;
+        spotifyLoadRecommendations();
+    }
+}
+
+// Pose une image "en entier" (pas de recadrage) avec un calque flouté/agrandi
+// en dessous pour combler les bords — même principe que le widget Chromecast
+function spotifySetImage(url) {
+    const bg = document.getElementById("spotifyAlbumArt");
+    const blur = document.getElementById("spotifyBgBlur");
+    bg.style.backgroundImage = `url(${url})`;
+    bg.style.backgroundSize = "contain";
+    bg.style.backgroundRepeat = "no-repeat";
+    bg.style.backgroundColor = "transparent";
+    blur.style.backgroundImage = `url(${url})`;
+}
+
+function spotifyClearImage() {
+    const bg = document.getElementById("spotifyAlbumArt");
+    const blur = document.getElementById("spotifyBgBlur");
+    bg.style.backgroundImage = "none";
+    bg.style.backgroundSize = "";
+    bg.style.backgroundRepeat = "";
+    bg.style.backgroundColor = "";
+    blur.style.backgroundImage = "none";
 }
 
 // -- Lecture en cours --
@@ -2398,21 +2443,20 @@ async function spotifyUpdatePlayer() {
         }
 
         if (response.status === 204 || response.status === 404) {
-            spotifyShowPlayer();
-            document.getElementById("spotifyTitle").textContent = "Aucune lecture en cours";
-            document.getElementById("spotifyArtist").textContent = "";
+            spotifyShowIdle();
             return;
         }
 
         const data = await response.json();
         if (!data || !data.item) {
-            spotifyShowPlayer();
-            document.getElementById("spotifyTitle").textContent = "Aucune lecture en cours";
-            document.getElementById("spotifyArtist").textContent = "";
+            spotifyShowIdle();
             return;
         }
 
         spotifyShowPlayer();
+        spotifyRecsLoaded = false; // en lecture : les recos seront recalculées à la prochaine veille
+        spotifyCurrentData = data;
+
         document.getElementById("spotifyTitle").textContent  = data.item.name;
         document.getElementById("spotifyArtist").textContent = data.item.artists.map(a => a.name).join(", ");
         setPlayPauseIcon(document.getElementById("spotifyPlayPause"), data.is_playing);
@@ -2420,12 +2464,206 @@ async function spotifyUpdatePlayer() {
         if (data.item.id !== spotifyLastTrackId) {
             spotifyLastTrackId = data.item.id;
             const art = data.item.album?.images?.[0]?.url;
-            if (art) document.getElementById("spotifyAlbumArt").style.backgroundImage = `url(${art})`;
+            if (art) spotifySetImage(art); else spotifyClearImage();
         }
+
+        spotifyRenderPlayerModal(); // tient le popup à jour s'il est ouvert
 
     } catch (err) {
         console.error("Spotify player :", err);
     }
+}
+
+// -- Recommandations (rien en lecture) --
+//
+// L'endpoint officiel /v1/recommendations de Spotify est désactivé pour toute
+// appli créée après le 27/11/2024 (403 systématique). À la place : artistes
+// les plus écoutés récemment (/me/top/artists, nécessite le scope
+// user-top-read) → genres dominants → recherche de titres correspondants.
+
+async function spotifyLoadRecommendations() {
+    const token = await spotifyGetToken();
+    if (!token) return;
+
+    try {
+        const topRes = await fetch("https://api.spotify.com/v1/me/top/artists?limit=6&time_range=short_term", {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        // 403 probable si le token a été obtenu avant l'ajout du scope user-top-read
+        if (!topRes.ok) { spotifyRecsData = []; spotifyRenderRecs(); return; }
+
+        const topData = await topRes.json();
+        const artists = topData.artists || [];
+        if (artists.length === 0) { spotifyRecsData = []; spotifyRenderRecs(); return; }
+
+        // Genres dominants parmi ces artistes (pondérés par rang de popularité perso)
+        const genreScores = new Map();
+        artists.forEach((a, i) => (a.genres || []).forEach(g =>
+            genreScores.set(g, (genreScores.get(g) || 0) + (artists.length - i))
+        ));
+        const topGenres = [...genreScores.entries()].sort((a, b) => b[1] - a[1]).slice(0, 2).map(([g]) => g);
+
+        const queries = [
+            ...artists.slice(0, 2).map(a => `artist:"${a.name}"`),
+            ...topGenres.map(g => `genre:"${g}"`)
+        ];
+
+        const results = await Promise.all(queries.map(q =>
+            fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=track&limit=5`, {
+                headers: { Authorization: `Bearer ${token}` }
+            }).then(r => r.ok ? r.json() : null).catch(() => null)
+        ));
+
+        const seen = new Set();
+        const tracks = [];
+        results.forEach(r => (r?.tracks?.items || []).forEach(t => {
+            if (seen.has(t.id)) return;
+            seen.add(t.id);
+            tracks.push({
+                uri: t.uri,
+                title: t.name,
+                artist: t.artists.map(a => a.name).join(", "),
+                image: t.album?.images?.[1]?.url || t.album?.images?.[0]?.url || null,
+            });
+        }));
+
+        // Mélange (sinon les résultats sont groupés requête par requête)
+        for (let i = tracks.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [tracks[i], tracks[j]] = [tracks[j], tracks[i]];
+        }
+
+        spotifyRecsData = tracks.slice(0, 3);
+        spotifyRenderRecs();
+    } catch (err) {
+        console.error("Spotify recommandations :", err);
+    }
+}
+
+function spotifyRenderRecs() {
+    const tap = document.getElementById("spotifyRecTap");
+    const nav = document.getElementById("spotifyRecNav");
+    const empty = document.getElementById("spotifyRecEmpty");
+    const badge = document.getElementById("spotifyRecBadge");
+    if (!tap || !nav || !empty) return;
+
+    clearInterval(spotifyRecTimer);
+    spotifyRecTimer = null;
+
+    if (spotifyRecsData.length === 0) {
+        tap.style.display = "none";
+        nav.style.display = "none";
+        badge.style.display = "none";
+        empty.style.display = "flex";
+        spotifyClearImage();
+        return;
+    }
+
+    empty.style.display = "none";
+    tap.style.display = "flex";
+    badge.style.display = "flex";
+    nav.style.display = spotifyRecsData.length > 1 ? "flex" : "none";
+    spotifyRecIndex = 0;
+    spotifyRenderCurrentRec();
+
+    if (spotifyRecsData.length > 1) {
+        spotifyRecTimer = setInterval(spotifyRecNext, 8000);
+    }
+}
+
+function spotifyRenderCurrentRec() {
+    const rec = spotifyRecsData[spotifyRecIndex];
+    if (!rec) return;
+
+    if (rec.image) spotifySetImage(rec.image); else spotifyClearImage();
+
+    document.getElementById("spotifyRecTitle").textContent = rec.title;
+    document.getElementById("spotifyRecMeta").textContent = rec.artist;
+
+    const dots = document.getElementById("spotifyRecDots");
+    dots.innerHTML = spotifyRecsData.map((_, i) =>
+        `<span class="chromecast-rec-dot${i === spotifyRecIndex ? ' active' : ''}"></span>`
+    ).join("");
+}
+
+function spotifyRecNext() {
+    if (spotifyRecsData.length === 0) return;
+    spotifyRecIndex = (spotifyRecIndex + 1) % spotifyRecsData.length;
+    spotifyRenderCurrentRec();
+}
+
+function spotifyRecPrev() {
+    if (spotifyRecsData.length === 0) return;
+    spotifyRecIndex = (spotifyRecIndex - 1 + spotifyRecsData.length) % spotifyRecsData.length;
+    spotifyRenderCurrentRec();
+}
+
+// Lance directement la lecture de la suggestion (nécessite un appareil Spotify actif)
+async function spotifyPlayRec(index) {
+    const rec = spotifyRecsData[index];
+    if (!rec) return;
+    const token = await spotifyGetToken();
+    if (!token) return;
+    try {
+        await fetch("https://api.spotify.com/v1/me/player/play", {
+            method: "PUT",
+            headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+            body: JSON.stringify({ uris: [rec.uri] })
+        });
+        setTimeout(spotifyUpdatePlayer, 500);
+    } catch (err) {
+        console.error("Spotify lecture suggestion :", err);
+    }
+}
+
+// -- Popup "lecteur en grand" --
+
+function spotifyFormatTime(ms) {
+    if (!Number.isFinite(ms) || ms < 0) return "0:00";
+    const totalSeconds = Math.floor(ms / 1000);
+    const m = Math.floor(totalSeconds / 60);
+    const s = totalSeconds % 60;
+    return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+function spotifyRenderPlayerModal() {
+    const modal = document.getElementById("modal-spotify-player");
+    if (!modal || !modal.classList.contains("visible") || !spotifyCurrentData?.item) return;
+
+    const data = spotifyCurrentData;
+    const item = data.item;
+
+    const bgImage = document.getElementById("spotifyAlbumArt").style.backgroundImage;
+    document.getElementById("spotifyPlayerModalPoster").style.backgroundImage =
+        bgImage && bgImage !== "none" ? bgImage : "none";
+
+    document.getElementById("spotifyPlayerModalTitle").textContent = item.name;
+    document.getElementById("spotifyPlayerModalMeta").textContent =
+        `${item.artists.map(a => a.name).join(", ")} · ${item.album?.name || ""}`;
+
+    setPlayPauseIcon(document.getElementById("spotifyPlayerModalPlayPause"), data.is_playing);
+
+    const progress = document.getElementById("spotifyPlayerModalProgress");
+    if (Number.isFinite(item.duration_ms) && item.duration_ms > 0) {
+        let position = data.progress_ms || 0;
+        if (data.is_playing && data.timestamp) {
+            position += Math.max(0, Date.now() - data.timestamp);
+        }
+        position = Math.min(position, item.duration_ms);
+
+        progress.style.display = "block";
+        document.getElementById("spotifyPlayerModalProgressFill").style.width = `${(position / item.duration_ms) * 100}%`;
+        document.getElementById("spotifyPlayerModalPosition").textContent = spotifyFormatTime(position);
+        document.getElementById("spotifyPlayerModalDuration").textContent = spotifyFormatTime(item.duration_ms);
+    } else {
+        progress.style.display = "none";
+    }
+}
+
+function spotifyOpenPlayerModal() {
+    if (!spotifyCurrentData?.item) return;
+    openWidgetModal("spotify-player");
+    spotifyRenderPlayerModal();
 }
 
 // -- Contrôles --
