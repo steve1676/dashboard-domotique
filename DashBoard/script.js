@@ -2552,6 +2552,8 @@ function chromecastApplyFallback(appName) {
     const key = (appName || "").toLowerCase();
     const style = CHROMECAST_APP_STYLES[key] || CHROMECAST_APP_STYLES["default"];
 
+    chromecastClearImage(); // pas d'image ici : on repasse le calque flouté à vide
+
     const bg = document.getElementById("chromecastBg");
     bg.style.backgroundImage = "none";
     // Dégradé doux (glow) teinté de la couleur de la plateforme sur fond sombre,
@@ -2578,6 +2580,30 @@ function chromecastClearFallback() {
     bg.style.filter = "";
 }
 
+// Pose une image "en entier" (pas de recadrage → pas de perte de contenu),
+// avec un calque flouté et agrandi derrière pour combler les bords/bandes
+// noires plutôt que de laisser du vide ou un aplat uni (technique Spotify/
+// Apple Music). Centralise tous les endroits qui posent une image de fond.
+function chromecastSetImage(url) {
+    const bg = document.getElementById("chromecastBg");
+    const blur = document.getElementById("chromecastBgBlur");
+    bg.style.backgroundImage = `url(${url})`;
+    bg.style.backgroundSize = "contain";
+    bg.style.backgroundRepeat = "no-repeat";
+    bg.style.backgroundColor = "transparent"; // sinon le gris opaque cache le calque flouté en dessous
+    blur.style.backgroundImage = `url(${url})`;
+}
+
+function chromecastClearImage() {
+    const bg = document.getElementById("chromecastBg");
+    const blur = document.getElementById("chromecastBgBlur");
+    bg.style.backgroundImage = "none";
+    bg.style.backgroundSize = ""; // revient au "cover" par défaut de .spotify-bg
+    bg.style.backgroundRepeat = "";
+    bg.style.backgroundColor = ""; // revient au gris par défaut de .spotify-bg
+    blur.style.backgroundImage = "none";
+}
+
 async function chromecastLoadImage(image) {
     try {
         const response = await fetch(image);
@@ -2589,7 +2615,7 @@ async function chromecastLoadImage(image) {
         if (chromecastImageObjectUrl) URL.revokeObjectURL(chromecastImageObjectUrl);
         chromecastImageObjectUrl = objectUrl;
 
-        document.getElementById("chromecastBg").style.backgroundImage = `url(${objectUrl})`;
+        chromecastSetImage(objectUrl);
     } catch (err) {
         console.error("Chromecast image :", err);
     }
@@ -2645,7 +2671,7 @@ function updateChromecast() {
                     chromecastImageObjectUrl = null;
                 }
                 chromecastClearFallback();
-                document.getElementById("chromecastBg").style.backgroundImage = "none";
+                chromecastClearImage();
             }
             chromecastWasPlaying = false;
             chromecastCurrentAttrs = null;
@@ -2704,7 +2730,7 @@ function updateChromecast() {
                         chromecastClearFallback();
                         // Pose directe en CSS (pas de fetch/blob) : i.ytimg.com ne renvoie
                         // pas toujours d'en-têtes CORS compatibles avec une lecture en blob
-                        document.getElementById("chromecastBg").style.backgroundImage = `url(${thumb})`;
+                        chromecastSetImage(thumb);
                     }
                 });
             }
@@ -2983,7 +3009,7 @@ function chromecastRenderRecs() {
         nav.style.display = "none";
         document.getElementById("chromecastRecBadge").style.display = "none";
         empty.style.display = "flex";
-        document.getElementById("chromecastBg").style.backgroundImage = "none";
+        chromecastClearImage();
         chromecastClearFallback();
         return;
     }
@@ -3009,7 +3035,11 @@ function chromecastRenderCurrentRec() {
 
     // La reco devient le fond du widget, comme une affiche
     chromecastClearFallback();
-    document.getElementById("chromecastBg").style.backgroundImage = rec.image ? `url('${rec.image}')` : "none";
+    if (rec.image) {
+        chromecastSetImage(rec.image);
+    } else {
+        chromecastClearImage();
+    }
 
     document.getElementById("chromecastRecTitle").textContent = rec.title;
 
@@ -3095,6 +3125,13 @@ function chromecastRenderPlayerModal() {
     badge.textContent = chromecastDecodeHtml(attrs.app_name) || "Chromecast";
     badge.style.borderColor = style.color;
     badge.style.color = style.color;
+
+    // Fond du popup teinté de la couleur de la plateforme (même esprit que le
+    // fallback du widget principal), plutôt qu'un simple gris uni
+    document.getElementById("modal-chromecast-player").style.setProperty(
+        "--player-modal-glow",
+        `radial-gradient(ellipse at 50% 0%, ${style.color}4d, #1f2937 65%)`
+    );
 
     setPlayPauseIcon(document.getElementById("chromecastPlayerModalPlayPause"), chromecastCurrentState === "playing");
 

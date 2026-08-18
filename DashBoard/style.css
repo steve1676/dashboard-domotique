@@ -589,6 +589,20 @@ body {
     transition: background-image 0.5s ease;
 }
 
+/* Calque flouté/agrandi placé sous #chromecastBg : comble les bandes noires
+   qu'une vignette peut contenir sans avoir à recadrer l'image du dessus
+   (technique Spotify/Apple Music). N'existe que pour le widget Chromecast. */
+.spotify-bg-blur {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    background-color: #11151c;
+    filter: blur(22px) brightness(0.55) saturate(1.15);
+    transform: scale(1.25); /* cache le halo flou sur les bords de la carte */
+    transition: background-image 0.5s ease;
+}
+
 .spotify-overlay {
     position: relative;
     z-index: 1;
@@ -890,7 +904,7 @@ body {
     background-color: #374151;
     background-size: cover;
     background-position: center;
-    margin-bottom: 16px;
+    margin: 22px 0 16px; /* dégage le bouton fermer (top:15 / 34px) qui chevauchait sinon le coin haut-droit */
 }
 
 .player-modal-badge {
@@ -944,6 +958,15 @@ body {
     font-size: 0.75rem;
     color: #94a3b8;
     margin-top: 5px;
+}
+
+/* Le fond (dégradé teinté plateforme) est posé en JS via --player-modal-glow ;
+   ce bloc l'étend jusqu'aux bords de la modale (qui a 35px de padding) */
+#modal-chromecast-player.visible {
+    margin: -35px;
+    padding: 35px;
+    border-radius: 25px;
+    background: var(--player-modal-glow, #1f2937);
 }
 
 /* miroir + spotify + chromecast dans la rangée du haut : même comportement de grille */
