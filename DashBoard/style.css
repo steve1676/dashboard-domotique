@@ -714,6 +714,10 @@ body {
         linear-gradient(180deg, rgba(8,20,14,0.05) 30%, rgba(8,20,14,0.88) 100%);
 }
 
+#spotifyIdle {
+    box-shadow: inset 0 0 0 1px rgba(29,185,84,0.22);
+}
+
 .chromecast-poster-badge {
     position: relative;
     z-index: 1;
