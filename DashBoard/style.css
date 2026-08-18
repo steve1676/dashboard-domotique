@@ -706,6 +706,14 @@ body {
     pointer-events: none;
 }
 
+/* Widget Spotify : même structure de poster, glow vert (marque Spotify)
+   plutôt que le magenta utilisé pour Chromecast */
+#spotifyIdle::before {
+    background:
+        radial-gradient(ellipse at 75% 15%, rgba(29,185,84,0.25), transparent 55%),
+        linear-gradient(180deg, rgba(8,20,14,0.05) 30%, rgba(8,20,14,0.88) 100%);
+}
+
 .chromecast-poster-badge {
     position: relative;
     z-index: 1;
@@ -905,6 +913,16 @@ body {
     background-size: cover;
     background-position: center;
     margin: 22px 0 16px; /* dégage le bouton fermer (top:15 / 34px) qui chevauchait sinon le coin haut-droit */
+}
+
+/* Popup Spotify : pochette d'album carrée (format natif), pas étirée en
+   large comme les vignettes vidéo de Chromecast */
+#spotifyPlayerModalPoster {
+    height: auto;
+    aspect-ratio: 1 / 1;
+    max-width: 260px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .player-modal-badge {
