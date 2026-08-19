@@ -251,7 +251,7 @@
         </div>
 
         <div class="widget-item">
-            <span class="widget-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-inline"><path d="M3 17a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /><path d="M13 17a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /><path d="M9 17v-13h10v13" /><path d="M9 8h10" /></svg> Spotify</span>
+            <span class="widget-label widget-label-clickable" onclick="spotifyOpenSettings()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-inline"><path d="M3 17a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /><path d="M13 17a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /><path d="M9 17v-13h10v13" /><path d="M9 8h10" /></svg> Spotify <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-inline-sm widget-label-chevron"><path d="M9 6l6 6l-6 6" /></svg></span>
             <label class="switch">
                 <input type="checkbox" id="chk-spotify" onchange="toggleWidget('spotifyCard', this.checked)">
                 <span class="slider"></span>
@@ -433,6 +433,13 @@
             <div class="transport-title" style="margin-bottom:14px;">Genres préférés</div>
             <p style="color:#94a3b8;font-size:0.9rem;margin:0 0 16px;">Utilisés pour proposer des films et séries quand rien n'est diffusé (hors YouTube).</p>
             <div id="chromecastGenreChips" class="genre-chips"></div>
+        </div>
+
+        <!-- Réglages Spotify -->
+        <div id="modal-spotify-settings" class="widget-modal-section">
+            <div class="transport-title" style="margin-bottom:14px;">Spotify</div>
+            <p id="spotifySettingsStatus" style="color:#94a3b8;font-size:0.9rem;margin:0 0 20px;"></p>
+            <button type="button" class="chromecast-poster-empty-cta" onclick="spotifyLogout()">Déconnecter</button>
         </div>
 
         <!-- Infos sur une recommandation Chromecast -->

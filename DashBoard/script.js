@@ -2329,6 +2329,26 @@ function spotifySaveTokens(data) {
     }
 }
 
+function spotifyOpenSettings() {
+    const connected = !!localStorage.getItem("spotify_access_token");
+    document.getElementById("spotifySettingsStatus").textContent = connected
+        ? "Connecté. Se déconnecter force une reconnexion (utile après l'ajout d'une nouvelle permission, par ex.)."
+        : "Non connecté.";
+    openWidgetModal("spotify-settings");
+}
+
+function spotifyLogout() {
+    localStorage.removeItem("spotify_access_token");
+    localStorage.removeItem("spotify_refresh_token");
+    localStorage.removeItem("spotify_token_expires");
+    spotifyLastTrackId = null;
+    spotifyCurrentData = null;
+    spotifyRecsLoaded = false;
+    spotifyRecsData = [];
+    spotifyShowLogin();
+    closeWidgetModal();
+}
+
 async function spotifyRefreshToken() {
     const refreshToken = localStorage.getItem("spotify_refresh_token");
     if (!refreshToken) return null;
