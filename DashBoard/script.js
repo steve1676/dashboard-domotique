@@ -3030,7 +3030,7 @@ function updateChromecast() {
 
 // Clé API TMDB — à créer gratuitement sur https://www.themoviedb.org
 // (Paramètres du compte → API → demander une clé "Developer")
-const TMDB_API_KEY = "COLLE_TA_CLE_TMDB_ICI";
+const TMDB_API_KEY = "09a9834dce1a849ad1ad5e46e2b994d4";
 
 const CHROMECAST_WATCH_HISTORY_KEY = "chromecast_watch_history";
 const CHROMECAST_GENRE_PREFS_KEY = "chromecast_genre_prefs";
