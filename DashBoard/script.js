@@ -2242,6 +2242,7 @@ const SPOTIFY_SCOPES       = "user-read-playback-state user-read-currently-playi
 
 let spotifyLastTrackId = null;
 let spotifyCurrentData = null; // dernière réponse /me/player connue, pour le popup lecteur
+let spotifyCurrentDataFetchedAt = 0; // Date.now() local au moment de la réponse (jamais l'horloge serveur — cf. spotifyRenderPlayerModal)
 let spotifyRecsLoaded = false;
 let spotifyRecsData = [];
 let spotifyRecIndex = 0;
@@ -2476,6 +2477,7 @@ async function spotifyUpdatePlayer() {
         spotifyShowPlayer();
         spotifyRecsLoaded = false; // en lecture : les recos seront recalculées à la prochaine veille
         spotifyCurrentData = data;
+        spotifyCurrentDataFetchedAt = Date.now();
 
         document.getElementById("spotifyTitle").textContent  = data.item.name;
         document.getElementById("spotifyArtist").textContent = data.item.artists.map(a => a.name).join(", ");
@@ -2666,8 +2668,10 @@ function spotifyRenderPlayerModal() {
     const progress = document.getElementById("spotifyPlayerModalProgress");
     if (Number.isFinite(item.duration_ms) && item.duration_ms > 0) {
         let position = data.progress_ms || 0;
-        if (data.is_playing && data.timestamp) {
-            position += Math.max(0, Date.now() - data.timestamp);
+        if (data.is_playing && spotifyCurrentDataFetchedAt) {
+            // Horloge locale uniquement des deux côtés (jamais data.timestamp,
+            // qui vient du serveur Spotify et peut être désynchro de l'appareil)
+            position += Math.max(0, Date.now() - spotifyCurrentDataFetchedAt);
         }
         position = Math.min(position, item.duration_ms);
 
@@ -2747,6 +2751,7 @@ let chromecastImageObjectUrl = null;
 let chromecastLastSearchedTitle = null;
 let chromecastWasPlaying = false; // détecte la transition lecture → veille, pour ne nettoyer qu'une fois
 let chromecastCurrentAttrs = null; // derniers attrs HA connus, pour peupler le popup lecteur en grand
+let chromecastCurrentAttrsFetchedAt = 0; // Date.now() local à la réception (jamais l'horloge HA — cf. chromecastRenderPlayerModal)
 let chromecastCurrentState = null;
 
 const YOUTUBE_THUMB_CACHE_KEY = "chromecast_yt_thumb_cache";
@@ -2800,7 +2805,7 @@ const CHROMECAST_APP_STYLES = {
     "disney+":        { color: "#113CCF", logo: `<svg viewBox="0 0 24 24" width="40" height="40"><text x="12" y="17" text-anchor="middle" font-family="-apple-system, sans-serif" font-weight="800" font-size="13" fill="#fff">D+</text></svg>` },
     "prime video":    { color: "#00A8E1", logo: `<svg viewBox="0 0 24 24" width="40" height="40"><polygon points="9,7 17,12 9,17" fill="#fff"/><path d="M6 19 Q12 22 18 19" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>` },
     "crunchyroll":    { color: "#F47521", logo: `<svg viewBox="0 0 24 24" width="40" height="40"><text x="12" y="16" text-anchor="middle" font-family="-apple-system, sans-serif" font-weight="800" font-size="10" fill="#fff">CR</text></svg>` },
-    "spotify":        { color: "#1DB954", icon: `<svg viewBox="0 0 24 24" width="40" height="40" fill="#fff"><path d="M17 3.34a10 10 0 1 1 -15 8.66l.005 -.324a10 10 0 0 1 14.995 -8.336m-2.168 11.605c-1.285 -1.927 -4.354 -2.132 -6.387 -.777a1 1 0 0 0 1.11 1.664c1.195 -.797 3.014 -.675 3.613 .223a1 1 0 1 0 1.664 -1.11m1.268 -3.245c-2.469 -1.852 -5.895 -2.187 -8.608 -.589a1 1 0 0 0 1.016 1.724c1.986 -1.171 4.544 -.92 6.392 .465a1 1 0 0 0 1.2 -1.6m1.43 -3.048c-3.677 -2.298 -7.766 -2.152 -10.977 -.546a1 1 0 0 0 .894 1.788c2.635 -1.317 5.997 -1.437 9.023 .454a1 1 0 1 0 1.06 -1.696" /></svg>` },
+    "spotify":        { color: "#1DB954", icon: "🎵" },
     "plex":           { color: "#E5A00D", icon: "▶" },
     "twitch":         { color: "#9146FF", icon: "🎮" },
     "default":        { color: "#374151", icon: "📺" }
@@ -2958,6 +2963,7 @@ function updateChromecast() {
         setPlayPauseIcon(document.getElementById("chromecastPlayPause"), data.state === "playing");
 
         chromecastCurrentAttrs = attrs;
+        chromecastCurrentAttrsFetchedAt = Date.now();
         chromecastCurrentState = data.state;
         chromecastRenderPlayerModal(); // tient le popup à jour s'il est ouvert
 
@@ -3004,6 +3010,10 @@ function updateChromecast() {
 
     } catch (err) {
         console.error("Chromecast :", err);
+        chromecastWasPlaying = false;
+        chromecastCurrentAttrs = null;
+        chromecastClearFallback();
+        chromecastClearImage();
         chromecastShowIdle();
     }
 }
@@ -3397,9 +3407,10 @@ function chromecastRenderPlayerModal() {
     const progress = document.getElementById("chromecastPlayerModalProgress");
     if (Number.isFinite(attrs.media_duration) && attrs.media_duration > 0) {
         let position = attrs.media_position || 0;
-        if (chromecastCurrentState === "playing" && attrs.media_position_updated_at) {
-            const elapsed = (Date.now() - new Date(attrs.media_position_updated_at).getTime()) / 1000;
-            position += Math.max(0, elapsed);
+        if (chromecastCurrentState === "playing" && chromecastCurrentAttrsFetchedAt) {
+            // Horloge locale uniquement des deux côtés (jamais media_position_updated_at,
+            // qui vient de Home Assistant et peut être désynchro de l'appareil)
+            position += Math.max(0, (Date.now() - chromecastCurrentAttrsFetchedAt) / 1000);
         }
         position = Math.min(position, attrs.media_duration);
 
