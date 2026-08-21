@@ -674,13 +674,6 @@ body {
     background: rgba(255,255,255,0.3);
 }
 
-#spotifyPlayPause {
-    width: 56px;
-    height: 56px;
-    font-size: 1.6rem;
-    background: rgba(255,255,255,0.25);
-}
-
 /* ── Chromecast : poster immersif "Stream Néon" (état veille) ──
    La reco en cours devient elle-même le fond du widget (via #chromecastBg,
    déjà utilisé pour l'affiche pendant la lecture) : pas de message d'état,
@@ -909,19 +902,39 @@ body {
 }
 
 /* ── Lecteur Chromecast en grand (popup) ── */
-.player-modal-poster {
+.player-modal-poster-wrap {
+    position: relative;
     width: 100%;
     height: 220px;
     border-radius: 16px;
-    background-color: #374151;
+    overflow: hidden;
+    margin: 22px 0 16px; /* dégage le bouton fermer (top:15 / 34px) qui chevauchait sinon le coin haut-droit */
+}
+
+/* Calque net (image entière, pas de recadrage) + calque flouté/agrandi en
+   dessous pour combler les bords — même principe que le widget principal */
+.player-modal-poster {
+    position: absolute;
+    inset: 0;
+    background-color: transparent;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.player-modal-poster-blur {
+    position: absolute;
+    inset: 0;
+    background-color: #11151c;
     background-size: cover;
     background-position: center;
-    margin: 22px 0 16px; /* dégage le bouton fermer (top:15 / 34px) qui chevauchait sinon le coin haut-droit */
+    filter: blur(18px) brightness(0.6);
+    transform: scale(1.25);
 }
 
 /* Popup Spotify : pochette d'album carrée (format natif), pas étirée en
    large comme les vignettes vidéo de Chromecast */
-#spotifyPlayerModalPoster {
+#modal-spotify-player .player-modal-poster-wrap {
     height: auto;
     aspect-ratio: 1 / 1;
     max-width: 260px;
@@ -989,6 +1002,15 @@ body {
     padding: 35px;
     border-radius: 25px;
     background: var(--player-modal-glow, #1f2937);
+}
+
+/* Même principe pour le popup Spotify, en vert fixe (une seule plateforme,
+   pas besoin de variable dynamique comme pour Chromecast) */
+#modal-spotify-player.visible {
+    margin: -35px;
+    padding: 35px;
+    border-radius: 25px;
+    background: radial-gradient(ellipse at 50% 0%, rgba(29,185,84,0.3), #1f2937 65%);
 }
 
 /* miroir + spotify + chromecast dans la rangée du haut : même comportement de grille */

@@ -452,7 +452,10 @@
 
         <!-- Lecteur Chromecast en grand (ouvert en cliquant sur le widget en cours de lecture) -->
         <div id="modal-chromecast-player" class="widget-modal-section">
-            <div id="chromecastPlayerModalPoster" class="player-modal-poster"></div>
+            <div class="player-modal-poster-wrap">
+                <div id="chromecastPlayerModalPosterBlur" class="player-modal-poster-blur"></div>
+                <div id="chromecastPlayerModalPoster" class="player-modal-poster"></div>
+            </div>
 
             <span id="chromecastPlayerModalBadge" class="player-modal-badge"></span>
             <div id="chromecastPlayerModalTitle" class="player-modal-title"></div>
@@ -477,7 +480,10 @@
 
         <!-- Lecteur Spotify en grand -->
         <div id="modal-spotify-player" class="widget-modal-section">
-            <div id="spotifyPlayerModalPoster" class="player-modal-poster"></div>
+            <div class="player-modal-poster-wrap">
+                <div id="spotifyPlayerModalPosterBlur" class="player-modal-poster-blur"></div>
+                <div id="spotifyPlayerModalPoster" class="player-modal-poster"></div>
+            </div>
 
             <span id="spotifyPlayerModalBadge" class="player-modal-badge" style="border-color:#1db954;color:#1db954;">Spotify</span>
             <div id="spotifyPlayerModalTitle" class="player-modal-title"></div>

@@ -2563,6 +2563,10 @@ async function spotifyLoadRecommendations() {
 }
 
 function spotifyRenderRecs() {
+    // Même garde que côté Chromecast : réponse async arrivée après qu'une
+    // vraie lecture a démarré → on n'écrase pas la pochette en cours.
+    if (document.getElementById("spotifyIdle").style.display === "none") return;
+
     const tap = document.getElementById("spotifyRecTap");
     const nav = document.getElementById("spotifyRecNav");
     const empty = document.getElementById("spotifyRecEmpty");
@@ -2656,8 +2660,9 @@ function spotifyRenderPlayerModal() {
     const item = data.item;
 
     const bgImage = document.getElementById("spotifyAlbumArt").style.backgroundImage;
-    document.getElementById("spotifyPlayerModalPoster").style.backgroundImage =
-        bgImage && bgImage !== "none" ? bgImage : "none";
+    const resolvedImage = bgImage && bgImage !== "none" ? bgImage : "none";
+    document.getElementById("spotifyPlayerModalPoster").style.backgroundImage = resolvedImage;
+    document.getElementById("spotifyPlayerModalPosterBlur").style.backgroundImage = resolvedImage;
 
     document.getElementById("spotifyPlayerModalTitle").textContent = item.name;
     document.getElementById("spotifyPlayerModalMeta").textContent =
@@ -3030,7 +3035,7 @@ function updateChromecast() {
 
 // Clé API TMDB — à créer gratuitement sur https://www.themoviedb.org
 // (Paramètres du compte → API → demander une clé "Developer")
-const TMDB_API_KEY = "09a9834dce1a849ad1ad5e46e2b994d4";
+const TMDB_API_KEY = "COLLE_TA_CLE_TMDB_ICI";
 
 const CHROMECAST_WATCH_HISTORY_KEY = "chromecast_watch_history";
 const CHROMECAST_GENRE_PREFS_KEY = "chromecast_genre_prefs";
@@ -3264,6 +3269,11 @@ async function chromecastFetchTmdbRecs() {
 }
 
 function chromecastRenderRecs() {
+    // Réponse arrivée en retard (chromecastLoadRecommendations est async) alors
+    // qu'une vraie lecture a démarré entre-temps : on n'écrase pas l'affiche du
+    // widget en cours de lecture avec une image de recommandation périmée.
+    if (document.getElementById("chromecastIdle").style.display === "none") return;
+
     const tap = document.getElementById("chromecastRecTap");
     const nav = document.getElementById("chromecastRecNav");
     const empty = document.getElementById("chromecastRecEmpty");
@@ -3379,8 +3389,9 @@ function chromecastRenderPlayerModal() {
 
     // Même affiche que le widget principal (déjà chargée/mise en cache là-bas)
     const bgImage = document.getElementById("chromecastBg").style.backgroundImage;
-    document.getElementById("chromecastPlayerModalPoster").style.backgroundImage =
-        bgImage && bgImage !== "none" ? bgImage : "none";
+    const resolvedImage = bgImage && bgImage !== "none" ? bgImage : "none";
+    document.getElementById("chromecastPlayerModalPoster").style.backgroundImage = resolvedImage;
+    document.getElementById("chromecastPlayerModalPosterBlur").style.backgroundImage = resolvedImage;
 
     document.getElementById("chromecastPlayerModalTitle").textContent =
         chromecastDecodeHtml(attrs.media_title) || chromecastDecodeHtml(attrs.app_name) || "—";
