@@ -19,6 +19,7 @@ const DASHBOARD_STORAGE_VERSIONS = {
     display_schedule: 1,
     chromecast_watch_history: 2,
     chromecast_genre_prefs: 1,
+    spotify_display_style: 1,
 };
 
 function storageGet(key, fallback) {
@@ -2337,11 +2338,28 @@ function spotifySaveTokens(data) {
     }
 }
 
+function spotifyGetDisplayStyle() {
+    return storageGet("spotify_display_style", "normal");
+}
+
+function spotifySetDisplayStyle(style) {
+    storageSet("spotify_display_style", style);
+    spotifyRenderStyleButtons();
+    spotifyRenderPlayerModal(); // applique tout de suite si le popup est ouvert
+}
+
+function spotifyRenderStyleButtons() {
+    const current = spotifyGetDisplayStyle();
+    document.getElementById("spotifyStyleBtn-normal").classList.toggle("selected", current === "normal");
+    document.getElementById("spotifyStyleBtn-vinyl").classList.toggle("selected", current === "vinyl");
+}
+
 function spotifyOpenSettings() {
     const connected = !!localStorage.getItem("spotify_access_token");
     document.getElementById("spotifySettingsStatus").textContent = connected
         ? "Connecté. Se déconnecter force une reconnexion (utile après l'ajout d'une nouvelle permission, par ex.)."
         : "Non connecté.";
+    spotifyRenderStyleButtons();
     openWidgetModal("spotify-settings");
 }
 
@@ -2670,6 +2688,12 @@ function spotifyRenderPlayerModal() {
     const resolvedImage = bgImage && bgImage !== "none" ? bgImage : "none";
     document.getElementById("spotifyPlayerModalPoster").style.backgroundImage = resolvedImage;
     document.getElementById("spotifyPlayerModalPosterBlur").style.backgroundImage = resolvedImage;
+
+    // Mode vinyle : la pochette tourne comme un disque, en rotation seulement
+    // pendant la lecture (mise en pause visuelle si le morceau est en pause)
+    const posterWrap = document.getElementById("spotifyPlayerModalPosterWrap");
+    posterWrap.classList.toggle("vinyl-mode", spotifyGetDisplayStyle() === "vinyl");
+    posterWrap.classList.toggle("vinyl-paused", !data.is_playing);
 
     document.getElementById("spotifyPlayerModalTitle").textContent = item.name;
     document.getElementById("spotifyPlayerModalMeta").textContent =

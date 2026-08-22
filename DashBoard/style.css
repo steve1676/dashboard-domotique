@@ -942,6 +942,53 @@ body {
     margin-right: auto;
 }
 
+/* Mode vinyle (réglage dans les paramètres Spotify) : la pochette devient
+   l'étiquette centrale d'un disque qui tourne pendant la lecture */
+.player-modal-poster-wrap.vinyl-mode {
+    border-radius: 50%;
+    background:
+        repeating-radial-gradient(circle, #1a1a1a 0 3px, #242424 3px 6px);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.06);
+    animation: vinylSpin 6s linear infinite;
+}
+
+.player-modal-poster-wrap.vinyl-mode.vinyl-paused {
+    animation-play-state: paused;
+}
+
+/* Étiquette centrale = la pochette, recadrée en cercle (comportement normal
+   d'une étiquette de vinyle, pas de calque flouté nécessaire ici) */
+.player-modal-poster-wrap.vinyl-mode .player-modal-poster {
+    inset: auto;
+    top: 30%;
+    left: 30%;
+    width: 40%;
+    height: 40%;
+    border-radius: 50%;
+    background-size: cover;
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.15);
+}
+
+.player-modal-poster-wrap.vinyl-mode .player-modal-poster-blur {
+    display: none;
+}
+
+.player-modal-poster-wrap.vinyl-mode::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    background: #0d1117;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+}
+
+@keyframes vinylSpin {
+    to { transform: rotate(360deg); }
+}
+
 .player-modal-badge {
     display: inline-flex;
     align-items: center;

@@ -439,6 +439,13 @@
         <div id="modal-spotify-settings" class="widget-modal-section">
             <div class="transport-title" style="margin-bottom:14px;">Spotify</div>
             <p id="spotifySettingsStatus" style="color:#94a3b8;font-size:0.9rem;margin:0 0 20px;"></p>
+
+            <p style="color:#94a3b8;font-size:0.85rem;margin:0 0 10px;">Style de la pochette dans le popup lecteur</p>
+            <div class="genre-chips" style="margin-bottom:24px;">
+                <button type="button" id="spotifyStyleBtn-normal" class="genre-chip" onclick="spotifySetDisplayStyle('normal')">Normal</button>
+                <button type="button" id="spotifyStyleBtn-vinyl" class="genre-chip" onclick="spotifySetDisplayStyle('vinyl')">Vinyle</button>
+            </div>
+
             <button type="button" class="chromecast-poster-empty-cta" onclick="spotifyLogout()">Déconnecter</button>
         </div>
 
@@ -480,12 +487,12 @@
 
         <!-- Lecteur Spotify en grand -->
         <div id="modal-spotify-player" class="widget-modal-section">
-            <div class="player-modal-poster-wrap">
+            <div class="player-modal-poster-wrap" id="spotifyPlayerModalPosterWrap">
                 <div id="spotifyPlayerModalPosterBlur" class="player-modal-poster-blur"></div>
                 <div id="spotifyPlayerModalPoster" class="player-modal-poster"></div>
             </div>
 
-            <span id="spotifyPlayerModalBadge" class="player-modal-badge" style="border-color:#1db954;color:#1db954;">Spotify</span>
+            <span id="spotifyPlayerModalBadge" class="player-modal-badge" style="border-color:#1db954;color:#1db954;"><svg viewBox="0 0 24 24" fill="#1db954" width="16" height="16"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.586 14.424a.622.622 0 0 1-.857.207c-2.348-1.435-5.304-1.76-8.785-.964a.622.622 0 1 1-.277-1.215c3.809-.871 7.077-.496 9.712 1.115a.623.623 0 0 1 .207.857zm1.223-2.723a.78.78 0 0 1-1.072.257c-2.688-1.652-6.786-2.131-9.965-1.166a.78.78 0 1 1-.452-1.492c3.632-1.102 8.147-.568 11.232 1.329a.78.78 0 0 1 .257 1.072zm.105-2.835C14.692 9.15 9.375 8.97 6.297 9.906a.936.936 0 1 1-.543-1.79c3.532-1.072 9.404-.865 13.115 1.338a.936.936 0 0 1-.955 1.612z"/></svg> Spotify</span>
             <div id="spotifyPlayerModalTitle" class="player-modal-title"></div>
             <div id="spotifyPlayerModalMeta" class="player-modal-meta"></div>
 
