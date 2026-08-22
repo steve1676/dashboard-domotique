@@ -124,11 +124,17 @@ async function getWeather(lat, lon) {
         applyWeatherBackground(data.current.weather_code);
 
         const forecastContainer = document.getElementById("forecast");
-        forecastContainer.innerHTML = "";
         const currentHour = new Date().getHours();
 
         const totalHours = data.hourly.temperature_2m.length;
         const maxHours = Math.min(totalHours, currentHour + 24);
+        // On construit le HTML dans une simple chaîne, puis on l'injecte une
+        // seule fois — "innerHTML +=" dans une boucle reconstruit et
+        // reparse TOUT le contenu déjà généré à chaque itération (au lieu
+        // de juste ajouter le nouvel élément), ce qui devient très lourd
+        // sur du matériel faible avec 24 itérations et une image de fond
+        // par élément.
+        let forecastHtml = "";
         for (let i = 1; currentHour + i < maxHours; i++) {
             const hour = (currentHour + i) % 24;
             const temp = Math.round(data.hourly.temperature_2m[currentHour + i]);
@@ -136,7 +142,7 @@ async function getWeather(lat, lon) {
             const hIcon = getWeatherIcon(hCode, hour);
             const hBg   = getWeatherImage(hCode, hour);
             const dayMark = hour === 0 ? `<div class="forecast-day">demain</div>` : "";
-            forecastContainer.innerHTML += `
+            forecastHtml += `
                 <div class="forecast-item" style="background-image:url('${hBg}')">
                     ${dayMark}
                     <div class="forecast-hour">${hour}h</div>
@@ -144,6 +150,7 @@ async function getWeather(lat, lon) {
                     <div class="forecast-temp">${temp}°</div>
                 </div>`;
         }
+        forecastContainer.innerHTML = forecastHtml;
 
     } catch (err) {
         console.error("Météo :", err);
@@ -2689,10 +2696,27 @@ function spotifyRenderPlayerModal() {
     }
 }
 
+let spotifyProgressTicker = null;
+
 function spotifyOpenPlayerModal() {
     if (!spotifyCurrentData?.item) return;
     openWidgetModal("spotify-player");
     spotifyRenderPlayerModal();
+
+    // Rafraîchit la barre de progression toutes les 500ms à partir des
+    // données déjà en cache (pas de nouvel appel réseau) — sinon elle ne
+    // bouge qu'au rythme du poll API (5s) et donne l'impression de sauter.
+    // S'arrête tout seul dès que le popup n'est plus visible.
+    clearInterval(spotifyProgressTicker);
+    spotifyProgressTicker = setInterval(() => {
+        const modal = document.getElementById("modal-spotify-player");
+        if (!modal || !modal.classList.contains("visible")) {
+            clearInterval(spotifyProgressTicker);
+            spotifyProgressTicker = null;
+            return;
+        }
+        spotifyRenderPlayerModal();
+    }, 500);
 }
 
 // -- Contrôles --
@@ -3434,10 +3458,26 @@ function chromecastRenderPlayerModal() {
     }
 }
 
+let chromecastProgressTicker = null;
+
 function chromecastOpenPlayerModal() {
     if (!chromecastCurrentAttrs) return; // rien en lecture pour l'instant
     openWidgetModal("chromecast-player");
     chromecastRenderPlayerModal();
+
+    // Même principe que Spotify : rafraîchit la barre localement toutes les
+    // 500ms (pas de nouvel appel réseau) pour éviter l'effet de saut entre
+    // deux polls HA (5s). S'arrête tout seul dès que le popup se ferme.
+    clearInterval(chromecastProgressTicker);
+    chromecastProgressTicker = setInterval(() => {
+        const modal = document.getElementById("modal-chromecast-player");
+        if (!modal || !modal.classList.contains("visible")) {
+            clearInterval(chromecastProgressTicker);
+            chromecastProgressTicker = null;
+            return;
+        }
+        chromecastRenderPlayerModal();
+    }, 500);
 }
 
 async function chromecastControl(service) {

@@ -985,6 +985,7 @@ body {
     background: #1db954;
     border-radius: 2px;
     width: 0%;
+    transition: width 0.4s linear;
 }
 
 .player-modal-progress-times {
