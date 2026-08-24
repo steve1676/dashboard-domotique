@@ -2533,14 +2533,23 @@ async function spotifyLoadRecommendations() {
     if (!token) return;
 
     try {
-        const topRes = await fetch("https://api.spotify.com/v1/me/top/artists?limit=6&time_range=short_term", {
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        // 403 probable si le token a été obtenu avant l'ajout du scope user-top-read
-        if (!topRes.ok) { spotifyRecsData = []; spotifyRenderRecs(); return; }
+        // short_term (4 dernières semaines) met souvent plusieurs jours à se
+        // peupler après une écoute récente. On tente d'abord ça, puis on
+        // retombe sur medium_term (~6 derniers mois) et long_term (plusieurs
+        // années) si vide — bien plus susceptibles d'avoir déjà des données
+        // dès maintenant, vu que ton historique Spotify existait déjà avant.
+        let artists = [];
+        for (const range of ["short_term", "medium_term", "long_term"]) {
+            const topRes = await fetch(`https://api.spotify.com/v1/me/top/artists?limit=6&time_range=${range}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            // 403 probable si le token a été obtenu avant l'ajout du scope user-top-read
+            if (!topRes.ok) { spotifyRecsData = []; spotifyRenderRecs(); return; }
 
-        const topData = await topRes.json();
-        const artists = topData.artists || [];
+            const topData = await topRes.json();
+            artists = topData.artists || [];
+            if (artists.length > 0) break;
+        }
         if (artists.length === 0) { spotifyRecsData = []; spotifyRenderRecs(); return; }
 
         // Genres dominants parmi ces artistes (pondérés par rang de popularité perso)
