@@ -2434,6 +2434,7 @@ function spotifyShowIdle() {
     spotifyCurrentData = null;
     if (!spotifyRecsLoaded) {
         spotifyRecsLoaded = true;
+        console.log("[Spotify recos] chargement déclenché (spotifyShowIdle)");
         spotifyLoadRecommendations();
     }
 }
@@ -2530,7 +2531,7 @@ async function spotifyUpdatePlayer() {
 
 async function spotifyLoadRecommendations() {
     const token = await spotifyGetToken();
-    if (!token) return;
+    if (!token) { console.log("[Spotify recos] pas de token, abandon"); return; }
 
     try {
         // short_term (4 dernières semaines) met souvent plusieurs jours à se
@@ -2543,14 +2544,20 @@ async function spotifyLoadRecommendations() {
             const topRes = await fetch(`https://api.spotify.com/v1/me/top/artists?limit=6&time_range=${range}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
+            console.log(`[Spotify recos] /me/top/artists (${range}) → statut ${topRes.status}`);
             // 403 probable si le token a été obtenu avant l'ajout du scope user-top-read
-            if (!topRes.ok) { spotifyRecsData = []; spotifyRenderRecs(); return; }
+            if (!topRes.ok) {
+                const body = await topRes.text();
+                console.log("[Spotify recos] réponse en erreur :", body);
+                spotifyRecsData = []; spotifyRenderRecs(); return;
+            }
 
             const topData = await topRes.json();
             artists = topData.artists || [];
+            console.log(`[Spotify recos] ${artists.length} artiste(s) trouvé(s) pour ${range}`);
             if (artists.length > 0) break;
         }
-        if (artists.length === 0) { spotifyRecsData = []; spotifyRenderRecs(); return; }
+        if (artists.length === 0) { console.log("[Spotify recos] aucun artiste sur aucune période, abandon"); spotifyRecsData = []; spotifyRenderRecs(); return; }
 
         // Genres dominants parmi ces artistes (pondérés par rang de popularité perso)
         const genreScores = new Map();
@@ -2558,11 +2565,13 @@ async function spotifyLoadRecommendations() {
             genreScores.set(g, (genreScores.get(g) || 0) + (artists.length - i))
         ));
         const topGenres = [...genreScores.entries()].sort((a, b) => b[1] - a[1]).slice(0, 2).map(([g]) => g);
+        console.log("[Spotify recos] genres dominants :", topGenres);
 
         const queries = [
             ...artists.slice(0, 2).map(a => `artist:"${a.name}"`),
             ...topGenres.map(g => `genre:"${g}"`)
         ];
+        console.log("[Spotify recos] requêtes de recherche :", queries);
 
         const results = await Promise.all(queries.map(q =>
             fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=track&limit=5`, {
@@ -2583,6 +2592,8 @@ async function spotifyLoadRecommendations() {
             });
         }));
 
+        console.log(`[Spotify recos] ${tracks.length} titre(s) trouvé(s) au total`);
+
         // Mélange (sinon les résultats sont groupés requête par requête)
         for (let i = tracks.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -2590,9 +2601,10 @@ async function spotifyLoadRecommendations() {
         }
 
         spotifyRecsData = tracks.slice(0, 3);
+        console.log("[Spotify recos] rendu de", spotifyRecsData.length, "reco(s)");
         spotifyRenderRecs();
     } catch (err) {
-        console.error("Spotify recommandations :", err);
+        console.error("[Spotify recos] erreur :", err);
     }
 }
 
