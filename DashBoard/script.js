@@ -320,7 +320,7 @@ function resumeBackgroundPolling() {
     backgroundPollingPaused = false;
 
     haInterval        = setInterval(haFetchStates, 5000);
-    transportInterval = setInterval(updateTransports, 30000);
+    transportInterval = setInterval(updateTransports, 60000);
     infotraficInterval = setInterval(updateInfotrafic, 5 * 60 * 1000);
     phoneSelectInterval = setInterval(refreshPhoneEntitySelect, 30000);
     if (typeof spotifyUpdatePlayer === "function") spotifyInterval = setInterval(spotifyUpdatePlayer, 5000);
@@ -381,10 +381,43 @@ setInterval(checkDisplaySchedule, 5000); // vérifie toutes les 5s (réactif mê
 // leurs lignes (linked_lines) et coordonnées GPS, sans appel API par arrêt.
 // Les arrêts d'une ligne sont ensuite triés par proximité GPS (plus proche
 // voisin en partant des deux points les plus éloignés) pour approximer
-// l'ordre de passage réel — ce fichier ne fournit pas de rang officiel.
+// l'ordre de passage réel — ce fichier ne fournit pas de rang officiel. Cette
+// approximation reste utilisée pour peupler les listes d'arrêts (peu importe
+// l'ordre), mais PAS pour la barre "Approche estimée" : voir stops-order.json
+// et loadNaolibStopOrder() plus bas, qui utilisent le vrai ordre GTFS.
 
 const NAOLIB_GEOJSON_URL  = "https://plan.naolib.fr/map/logical_stops.geojson";
 const NAOLIB_API_BASE     = "https://plan.naolib.fr/api/stop/logical/";
+
+// Ordre RÉEL de passage des arrêts par ligne + direction. Remplace le tri GPS
+// ci-dessus pour la barre "Approche estimée" : l'aller et le retour d'une
+// ligne sont souvent tout proches en GPS (arrêts de part et d'autre de la
+// rue) mais pas du tout consécutifs dans le vrai trajet, ce qui rendait la
+// barre incohérente. stop_times.txt du GTFS officiel donne le VRAI ordre.
+//
+// stops-order.json est un fichier STATIQUE, régénéré par
+// build-naolib-stop-order.mjs — exécuté automatiquement par le workflow
+// GitHub Actions .github/workflows/update-naolib-stop-order.yml (1x/mois +
+// déclenchement manuel possible depuis l'onglet Actions de GitHub, sans
+// terminal). Le fichier est commité dans le dépôt et servi tel quel par
+// GitHub Pages : simple fetch same-origin ici, aucun souci de CORS, puisque
+// le téléchargement du GTFS se fait côté GitHub Actions, jamais dans le
+// navigateur du visiteur.
+const NAOLIB_STOP_ORDER_URL = "stops-order.json";
+let naolibStopOrder = null; // ligne -> [{ directionId, headsign, headsignNormalized, stops: [nom, ...] }]
+
+async function loadNaolibStopOrder() {
+    try {
+        const res = await fetch(NAOLIB_STOP_ORDER_URL, { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        naolibStopOrder = await res.json();
+    } catch (err) {
+        // Pas bloquant : getEstimatedApproachStops() retombe sur l'ordre GPS
+        // approximatif tant que ce fichier est absent ou invalide (ex. avant
+        // le premier passage du workflow GitHub Actions).
+        console.warn("stops-order.json indisponible, repli sur l'ordre GPS approximatif :", err.message);
+    }
+}
 const LINES_CACHE_KEY      = "transport_lines_index_cache";
 const LINES_CACHE_MAX_AGE  = 30 * 24 * 60 * 60 * 1000; // 30 jours avant rescan auto
 
@@ -997,6 +1030,242 @@ function rtIconSVG() {
     </svg>`;
 }
 
+// Position visuelle volontairement estimée : l'API Naolib utilisée ici fournit
+// l'horaire du prochain passage, mais aucune coordonnée GPS du véhicule. La
+// barre rend l'approche plus lisible, jamais ne localise réellement le bus.
+function estimatedApproachProgress(label) {
+    if (label === "À quai") return 96;
+    const minutes = Number.parseInt(label, 10);
+    if (!Number.isFinite(minutes)) return 18;
+    // Fenêtre d'approche de 15 min : plus l'arrivée est proche, plus le bus se
+    // rapproche visuellement de l'arrêt. Bornes pour rester lisible.
+    return Math.round(Math.max(18, Math.min(88, 18 + ((15 - Math.min(minutes, 15)) / 15) * 70)));
+}
+
+function busIconSVG() {
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M6 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
+        <path d="M18 17m-2 0a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+        <path d="M4 17h-2v-11a1 1 0 0 1 1 -1h14a5 7 0 0 1 5 7v5h-2m-4 0h-8" />
+        <path d="M16 5l1.5 7l4.5 0" /><path d="M2 10l15 0" />
+    </svg>`;
+}
+
+function transportEscapeHTML(value) {
+    const el = document.createElement("span");
+    el.textContent = value || "";
+    return el.innerHTML;
+}
+
+function normalizeTransportName(value) {
+    return String(value || "").toLocaleLowerCase("fr-FR").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+function transportNameMatches(name, normalizedNeedle) {
+    if (!normalizedNeedle) return false;
+    const normalizedName = normalizeTransportName(name);
+    return normalizedName === normalizedNeedle || normalizedName.includes(normalizedNeedle) || normalizedNeedle.includes(normalizedName);
+}
+
+// Résout, pour une ligne + destination, la séquence d'arrêts GTFS (déjà dans
+// le bon sens de trajet) et l'index du "targetStop" dans cette séquence.
+// Factorisé car utilisé à la fois pour choisir les arrêts à interroger en
+// amont (getApproachCandidateStopIds) et pour construire la fenêtre affichée
+// (getEstimatedApproachStops).
+function resolveGtfsRouteWindow(lineNumber, destLabel, targetStopLabel) {
+    const gtfsDirections = naolibStopOrder?.[lineNumber];
+    const destinationNorm = normalizeTransportName(destLabel);
+    if (!gtfsDirections || !destinationNorm) return null;
+
+    const directionEntry = gtfsDirections.find(d => transportNameMatches(d.headsign, destinationNorm));
+    const orderedStops = directionEntry?.stops || [];
+    const targetIndex = orderedStops.findIndex(name => transportNameMatches(name, normalizeTransportName(targetStopLabel)));
+    if (targetIndex < 0 || orderedStops.length < 2) return null;
+
+    return { orderedStops, targetIndex };
+}
+
+// Construit, pour une route donnée (ligne + arrêt + direction favorite), la
+// table nom d'arrêt -> stopId de l'appli (via linesIndex, issu du geojson)
+// afin de pouvoir interroger l'API temps réel de n'importe quel arrêt de la
+// séquence GTFS (qui ne connaît que des noms, pas les id internes Naolib).
+function buildStopNameToIdMap(lineNumber) {
+    const map = new Map();
+    (linesIndex[lineNumber]?.stops || []).forEach(s => {
+        const norm = normalizeTransportName(s.name);
+        if (!map.has(norm)) map.set(norm, s.id);
+    });
+    return map;
+}
+
+const APPROACH_LOCATE_WINDOW = 8; // nb d'arrêts précédents interrogés pour localiser le véhicule
+
+// Arrêts à interroger EN PLUS du tien pour localiser le véhicule sur cette
+// route (voir getEstimatedApproachStops) — à ajouter au fetch groupé de
+// updateTransports() avant le rendu, pour rester dans le même lot de
+// requêtes plutôt que d'en déclencher de nouvelles pendant le rendu.
+function getApproachCandidateStopIds(route) {
+    const window_ = resolveGtfsRouteWindow(route.lineNumber, route.destLabel, route.stopLabel);
+    if (!window_) return [];
+    const { orderedStops, targetIndex } = window_;
+    const nameToId = buildStopNameToIdMap(route.lineNumber);
+
+    const ids = [];
+    for (let i = Math.max(0, targetIndex - APPROACH_LOCATE_WINDOW); i < targetIndex; i++) {
+        const id = nameToId.get(normalizeTransportName(orderedStops[i]));
+        if (id) ids.push(id);
+    }
+    return ids;
+}
+
+// Reconstruit la fenêtre de 7 arrêts autour du véhicule pour la barre
+// "Approche estimée". Localise le véhicule de deux façons, par ordre de
+// préférence :
+//  1. Temps réel : on regarde, parmi les arrêts précédant le tien sur le
+//     même trajet (déjà récupérés dans stopDataById par updateTransports),
+//     lequel a l'horaire le plus proche — mais AVANT l'heure de passage
+//     prévue à ton arrêt — pour éviter de confondre notre bus avec le
+//     suivant sur les lignes à fréquence élevée.
+//  2. Repli : estimation par interpolation temporelle (% du temps d'attente
+//     écoulé), utilisée si le temps réel amont n'est pas exploitable.
+// Si aucune donnée GTFS n'est disponible pour la ligne/direction, retombe
+// entièrement sur l'ancienne estimation par proximité GPS.
+function getEstimatedApproachStops(card, dir, progress, stopDataById, targetTimeHHMM) {
+    // Design "C" (liste verticale) : moins d'arrêts affichés à la fois qu'en
+    // horizontal (l'espace vertical de la popup est plus contraint), 2 avant
+    // + l'arrêt courant + 2 après suffisent à montrer la progression.
+    const centerIndex = 2;
+    const stopCount = 5;
+    const approachLength = 6;
+    const travelled = Math.max(0, Math.min(approachLength, Math.round((progress / 100) * approachLength)));
+    const destinationNorm = normalizeTransportName(dir?.destLabel);
+
+    const window_ = resolveGtfsRouteWindow(card.lineNumber, dir?.destLabel, card.stopLabel);
+    if (window_) {
+        const { orderedStops, targetIndex } = window_;
+        // Repli par défaut si le temps réel amont n'apporte rien.
+        let vehicleLineIndex = targetIndex - (approachLength - travelled);
+
+        if (stopDataById && targetTimeHHMM) {
+            const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+            const toAbsMin = hhmm => {
+                const [h, m] = hhmm.split(":").map(Number);
+                let total = h * 60 + m;
+                if (total < nowMin - 120) total += 24 * 60; // passage minuit
+                return total;
+            };
+            const targetMin = toAbsMin(targetTimeHHMM);
+            const nameToId = buildStopNameToIdMap(card.lineNumber);
+
+            let bestIndex = null;
+            let bestMin = -Infinity; // le plus proche AVANT targetMin
+            for (let i = Math.max(0, targetIndex - APPROACH_LOCATE_WINDOW); i < targetIndex; i++) {
+                const id = nameToId.get(normalizeTransportName(orderedStops[i]));
+                if (!id) continue;
+                const first = stopDataById[id]?.departures?.[card.lineNumber]?.[card.direction]?.hours?.[0];
+                if (!first) continue;
+                const t = toAbsMin(first.time);
+                // On ne garde que les passages antérieurs au tien : un arrêt
+                // déjà dépassé par notre bus affiche le PROCHAIN passage (donc
+                // potentiellement après le tien si la fréquence est élevée) —
+                // l'ignorer évite de le prendre pour la position actuelle.
+                if (t < targetMin && t > bestMin) { bestMin = t; bestIndex = i; }
+            }
+            if (bestIndex !== null) vehicleLineIndex = bestIndex;
+        }
+
+        const stops = Array.from({ length: stopCount }, (_, index) => {
+            const name = orderedStops[vehicleLineIndex + (index - centerIndex)];
+            return name ? { name } : null;
+        });
+        return { stops, vehicleIndex: centerIndex };
+    }
+
+    // ─── Repli : ancienne estimation GPS ────────────────────────────────
+    const lineStops = linesIndex[card.lineNumber]?.stops || [];
+    const targetIndex = lineStops.findIndex(stop => String(stop.id) === String(card.stopId));
+    if (targetIndex < 0 || lineStops.length < 2) return { stops: [], vehicleIndex: centerIndex };
+
+    const destinationIndex = lineStops.findIndex(stop => transportNameMatches(stop.name, destinationNorm));
+    // Sans terminus identifiable, le sens de parcours ne peut pas être établi
+    // de façon fiable avec les seules données locales : on affiche la barre
+    // simple, plutôt que des arrêts potentiellement erronés.
+    if (destinationIndex < 0) return { stops: [], vehicleIndex: centerIndex };
+    const step = destinationIndex < targetIndex ? -1 : 1;
+    const vehicleLineIndex = targetIndex - (approachLength - travelled) * step;
+    const stops = Array.from({ length: stopCount }, (_, index) =>
+        lineStops[vehicleLineIndex + (index - centerIndex) * step] || null
+    );
+
+    // Position estimée par l'horaire : aucune position GPS n'est fournie.
+    return { stops, vehicleIndex: centerIndex };
+}
+
+// Version compacte pour l'accueil : le bus suit une progression estimée mais
+// sans texte additionnel afin de conserver des cartes d'horaires lisibles.
+function updateEstimatedApproach(el, card, entry) {
+    const existing = el.querySelector(".transport-estimated-approach");
+    if (!entry) {
+        existing?.remove();
+        el.classList.remove("has-estimated-approach");
+        return;
+    }
+
+    const progress = estimatedApproachProgress(entry.label);
+    const approach = existing || document.createElement("div");
+    approach.className = "transport-estimated-approach";
+    approach.setAttribute("aria-label", "Approche estimée de l'arrêt : " + entry.label);
+    approach.innerHTML = `
+        <div class="transport-estimated-track">
+            <span class="transport-estimated-fill" style="width:${progress}%"></span>
+            <span class="transport-estimated-bus" style="left:${progress}%">${busIconSVG()}</span>
+        </div>
+    `;
+    if (!existing) el.appendChild(approach);
+    el.classList.add("has-estimated-approach");
+}
+
+function createEstimatedApproachRow(entry, card, stopDataById) {
+    if (!entry) return null;
+
+    const progress = estimatedApproachProgress(entry.label);
+    const row = document.createElement("div");
+    row.className = "transport-estimated-approach-row";
+    row.style.setProperty("--transport-line-color", card.color);
+    row.setAttribute("aria-label", "Approche estimée de l'arrêt : " + entry.label);
+    const route = getEstimatedApproachStops(card, { destLabel: card.destLabel }, progress, stopDataById, entry?.time);
+    const colorStyle = `style="--transport-line-color:${card.color}"`;
+    // Liste verticale (design "C") : on ne garde que les arrêts réellement
+    // résolus (les cases vides en bord de fenêtre sont simplement omises,
+    // pas besoin de les préserver comme avec une grille à colonnes fixes).
+    const items = route.stops
+        .map((stop, index) => ({ stop, isVehicle: index === route.vehicleIndex, isPassed: index < route.vehicleIndex }))
+        .filter(it => it.stop);
+    row.innerHTML = items.length ? `
+        <div class="transport-estimated-stops transport-estimated-popup-stops" ${colorStyle}>
+            ${items.map((it, i) => {
+                const connector = i > 0
+                    ? `<span class="transport-estimated-connector ${(items[i - 1].isPassed || items[i - 1].isVehicle) ? "passed" : ""}"></span>`
+                    : "";
+                const rowClass = it.isVehicle ? "vehicle-stop" : (it.isPassed ? "passed" : "");
+                const marker = it.isVehicle
+                    ? `<span class="transport-estimated-vehicle-icon">${busIconSVG()}</span>`
+                    : `<span class="transport-estimated-dot"></span>`;
+                return `${connector}<div class="transport-estimated-stop ${rowClass}">${marker}<span class="transport-estimated-stop-name">${transportEscapeHTML(it.stop.name)}</span></div>`;
+            }).join("")}
+        </div>
+        <span class="transport-estimated-row-label">Approche estimée · votre arrêt dans ${entry.label}</span>
+    ` : `
+        <span class="transport-estimated-row-label">Approche estimée</span>
+        <div class="transport-estimated-row-track" ${colorStyle}>
+            <span class="transport-estimated-row-fill" style="width:${progress}%"></span>
+            <span class="transport-estimated-row-bus" style="left:${progress}%">${busIconSVG()}</span>
+        </div>
+        <span class="transport-estimated-row-arrival">Votre arrêt · ${entry.label}</span>
+    `;
+    return row;
+}
+
 // ─── Transports : carrousel de cartes ────────────────────────────────────────
 // Une carte = une ligne à un arrêt configuré. Swipe horizontal (natif, scroll-
 // snap) = change de carte/ligne. Swipe vertical (custom, par carte) = change
@@ -1080,6 +1349,8 @@ function updateSingleCard(el, card, dirIdx) {
 
     const countEl = el.querySelector(".transport-card-dircount");
     if (countEl) countEl.textContent = `${dirIdx + 1}/${card.directions.length}`;
+
+    updateEstimatedApproach(el, card, entry);
 }
 
 function mirrorCardDirection(cardKey, dirIdx) {
@@ -1176,6 +1447,9 @@ function renderTransportTile(containerId, cards) {
             <div class="transport-card-unit">${unit}</div>
             ${card.directions.length > 1 ? `<span class="transport-card-dircount">${dirIdx + 1}/${card.directions.length}</span>` : ""}
         `;
+
+        updateEstimatedApproach(el, card, entry);
+
 
         if (entry && entry.isRt) {
             const rtHolder = document.createElement("span");
@@ -1475,7 +1749,7 @@ function renderFavoritesHomeList(routes, stopDataById, toMin, nowMin, waitLabel)
         const data  = stopDataById[r.stopId];
         const hours = data?.departures?.[r.lineNumber]?.[r.direction]?.hours || [];
         const next  = hours.filter(h => toMin(h.time) > nowMin);
-        const first = next[0];
+        const first = next[0] ? { ...next[0], label: waitLabel(next[0].time) } : null;
 
         const block = document.createElement("div");
         block.className = "transport-favorite-block";
@@ -1515,6 +1789,8 @@ function renderFavoritesHomeList(routes, stopDataById, toMin, nowMin, waitLabel)
         });
 
         block.appendChild(cardsRow);
+        const approachRow = createEstimatedApproachRow(first, r, stopDataById);
+        if (approachRow) block.appendChild(approachRow);
         container.appendChild(block);
     });
 }
@@ -1573,10 +1849,14 @@ async function updateTransports() {
     }
 
     try {
-        // Un seul appel API par arrêt, même si plusieurs lignes y sont configurées
-        const stopIds = [...new Set(routes.map(r => r.stopId))];
+        // Un appel API par arrêt utile — le tien pour chaque route favorite,
+        // + quelques arrêts en amont sur le même trajet pour localiser
+        // précisément le véhicule (voir getApproachCandidateStopIds), tous
+        // dédupliqués dans le même Set pour ne pas multiplier les requêtes.
+        const stopIds = new Set(routes.map(r => r.stopId));
+        routes.forEach(r => getApproachCandidateStopIds(r).forEach(id => stopIds.add(id)));
         const stopDataById = {};
-        await Promise.all(stopIds.map(async id => {
+        await Promise.all([...stopIds].map(async id => {
             delete stopDataCache[id]; // toujours des horaires frais au refresh
             stopDataById[id] = await fetchNaolibStop(id);
         }));
@@ -1601,9 +1881,10 @@ async function updateTransports() {
 }
 
 initTransportLines();
+loadNaolibStopOrder();
 renderTransportRoutesList();
 updateTransports();
-transportInterval = setInterval(updateTransports, 30000);
+transportInterval = setInterval(updateTransports, 60000);
 initNearbyLines().then(() => {
     renderNearbyGrid("transport-nearby-grid", { interactive: false, showStars: false });
     renderNearbyGrid("transport-favoris-grid", { interactive: true, showStars: true });

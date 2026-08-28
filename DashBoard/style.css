@@ -1302,6 +1302,216 @@ body {
     color: rgba(255, 255, 255, 0.75);
 }
 
+/* Barre d'approche : elle apparaît pour le prochain passage. La position du
+   bus est une estimation basée sur le temps restant, jamais une géolocalisation GPS. */
+.transport-card-item.has-estimated-approach .transport-card-value {
+    transform: translateY(-5px);
+}
+
+.transport-card-item.has-estimated-approach .transport-card-unit {
+    transform: translateY(-5px);
+}
+
+.transport-card-item.has-estimated-approach .transport-card-dircount {
+    bottom: 35px;
+}
+
+.transport-estimated-approach {
+    position: absolute;
+    left: 6px;
+    right: 6px;
+    bottom: 10px;
+    color: rgba(255, 255, 255, 0.88);
+    font-size: 0.47rem;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+}
+
+.transport-estimated-track {
+    position: relative;
+    height: 4px;
+    margin-bottom: 5px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.38);
+}
+
+.transport-estimated-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    border-radius: inherit;
+    background: var(--transport-line-color, rgba(255, 255, 255, 0.88));
+}
+
+/* La barre compacte de l'accueil reste neutre : la couleur de ligne est
+   réservée au parcours détaillé de la popup. */
+.transport-estimated-approach .transport-estimated-fill {
+    background: rgba(255, 255, 255, 0.88);
+}
+
+.transport-estimated-bus {
+    position: absolute;
+    top: 50%;
+    display: grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    color: #1f2937;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.28);
+    transform: translate(-50%, -50%);
+}
+
+.transport-estimated-bus svg {
+    width: 11px;
+    height: 11px;
+}
+
+/* Design "C" : liste verticale plutôt qu'une grille horizontale à colonnes
+   fixes — chaque arrêt a toute la largeur du popup pour son nom, donc plus
+   de troncature ni de chevauchement avec l'icône du véhicule (l'ancien badge
+   séparé .transport-estimated-fixed-bus, positionné en absolu par-dessus la
+   grille, causait ce bug : il se superposait au libellé de l'arrêt courant). */
+.transport-estimated-stops {
+    display: flex;
+    flex-direction: column;
+    margin: 0 0 4px;
+}
+
+.transport-estimated-connector {
+    display: block;
+    width: 2px;
+    height: 10px;
+    margin-left: 9px; /* aligne sous le centre des pastilles de 8px + leur padding gauche */
+    background: rgba(148, 163, 184, 0.35);
+}
+
+.transport-estimated-connector.passed {
+    background: var(--transport-line-color, #facc15);
+}
+
+.transport-estimated-stop {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    padding: 3px 0;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.transport-estimated-dot {
+    flex: 0 0 auto;
+    display: block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #94a3b8;
+}
+
+.transport-estimated-stop.passed {
+    color: rgba(255, 255, 255, 0.78);
+}
+
+.transport-estimated-stop.passed .transport-estimated-dot {
+    background: var(--transport-line-color, white);
+}
+
+.transport-estimated-stop.vehicle-stop {
+    color: white;
+    font-weight: 600;
+    background: color-mix(in srgb, var(--transport-line-color, #facc15) 16%, transparent);
+    border-radius: 8px;
+    padding: 5px 8px;
+    margin: 1px 0;
+}
+
+.transport-estimated-vehicle-icon {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    color: #1f2937;
+    background: white;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--transport-line-color, #facc15) 35%, transparent);
+}
+
+.transport-estimated-vehicle-icon svg {
+    width: 13px;
+    height: 13px;
+}
+
+.transport-estimated-stop-name {
+    min-width: 0;
+    flex: 1;
+    font-size: 0.78rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Même indication dans la popup, sous la rangée d'horaires. */
+.transport-estimated-approach-row {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 15px;
+    color: #94a3b8;
+    font-size: 0.72rem;
+    overflow: hidden;
+}
+
+.transport-estimated-approach-row .transport-estimated-stops {
+    width: 100%;
+    margin: 0;
+}
+
+.transport-estimated-row-label {
+    width: 100%;
+}
+
+.transport-estimated-row-track {
+    position: relative;
+    height: 5px;
+    border-radius: 999px;
+    background: #475569;
+}
+
+.transport-estimated-row-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    border-radius: inherit;
+    background: var(--transport-line-color, #facc15);
+}
+
+.transport-estimated-row-bus {
+    position: absolute;
+    top: 50%;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    color: #1f2937;
+    background: #f8fafc;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--transport-line-color, #facc15) 25%, transparent);
+    transform: translate(-50%, -50%);
+}
+
+.transport-estimated-row-bus svg {
+    width: 13px;
+    height: 13px;
+}
+
+@media (max-width: 480px) {
+    .transport-estimated-approach-row {
+        gap: 7px;
+    }
+}
+
 .transport-direction-header {
     display: flex;
     align-items: center;
