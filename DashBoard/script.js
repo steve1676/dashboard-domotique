@@ -2561,12 +2561,47 @@ function spotifyBase64Url(buffer) {
 }
 
 // -- Connexion --
+//
+// Le verifier PKCE est ponctuel : il ne doit servir qu'à UNE tentative de
+// connexion précise. Le stocker sous une clé fixe partagée ("spotify_code_
+// verifier") pose problème car localStorage est partagé entre tous les
+// onglets/fenêtres du même site — si une connexion est relancée ailleurs
+// (autre onglet resté ouvert, ex. le dashboard tournant en permanence sur un
+// écran + un test dans un autre onglet) pendant qu'une première est en vol,
+// la seconde écrase la clé avant le retour de la première : le verifier
+// renvoyé à Spotify ne correspond plus au challenge d'origine → 400
+// "code_verifier was incorrect". On stocke donc chaque verifier sous une clé
+// propre à sa tentative (via un `state` aléatoire), pour que deux connexions
+// concurrentes ne s'écrasent plus.
+const SPOTIFY_VERIFIER_KEY_PREFIX = "spotify_code_verifier_";
+const SPOTIFY_VERIFIER_MAX_AGE = 10 * 60 * 1000; // 10 min : largement le temps d'un login, purge les tentatives abandonnées
+
+function spotifyCleanupStaleVerifiers() {
+    const now = Date.now();
+    Object.keys(localStorage)
+        .filter(k => k.startsWith(SPOTIFY_VERIFIER_KEY_PREFIX))
+        .forEach(k => {
+            try {
+                const { ts } = JSON.parse(localStorage.getItem(k));
+                if (!ts || now - ts > SPOTIFY_VERIFIER_MAX_AGE) localStorage.removeItem(k);
+            } catch {
+                localStorage.removeItem(k);
+            }
+        });
+}
+
+let spotifyLoginInFlight = false; // évite aussi un double déclenchement dans le MÊME onglet (double-clic, listener dupliqué)
 
 async function spotifyLogin() {
+    if (spotifyLoginInFlight) return;
+    spotifyLoginInFlight = true;
+    spotifyCleanupStaleVerifiers();
+
     const verifier  = spotifyRandomString(64);
+    const state     = spotifyRandomString(16);
     const challenge = spotifyBase64Url(await spotifySha256(verifier));
 
-    localStorage.setItem("spotify_code_verifier", verifier);
+    localStorage.setItem(SPOTIFY_VERIFIER_KEY_PREFIX + state, JSON.stringify({ verifier, ts: Date.now() }));
 
     const params = new URLSearchParams({
         response_type: "code",
@@ -2574,7 +2609,8 @@ async function spotifyLogin() {
         scope: SPOTIFY_SCOPES,
         code_challenge_method: "S256",
         code_challenge: challenge,
-        redirect_uri: SPOTIFY_REDIRECT_URI
+        redirect_uri: SPOTIFY_REDIRECT_URI,
+        state
     });
 
     window.location.href = `https://accounts.spotify.com/authorize?${params.toString()}`;
@@ -2582,10 +2618,20 @@ async function spotifyLogin() {
 
 async function spotifyHandleRedirect() {
     const params = new URLSearchParams(window.location.search);
-    const code = params.get("code");
+    const code  = params.get("code");
+    const state = params.get("state");
     if (!code) return;
 
-    const verifier = localStorage.getItem("spotify_code_verifier");
+    let verifier = null;
+    if (state) {
+        const key = SPOTIFY_VERIFIER_KEY_PREFIX + state;
+        const raw = localStorage.getItem(key);
+        localStorage.removeItem(key); // usage unique : jamais réutilisé après ce point
+        if (raw) {
+            try { verifier = JSON.parse(raw).verifier; } catch { /* ignore */ }
+        }
+    }
+    if (!verifier) verifier = localStorage.getItem("spotify_code_verifier"); // repli pour un lien de connexion généré avant cette correction
 
     try {
         const response = await fetch("https://accounts.spotify.com/api/token", {
@@ -2602,12 +2648,13 @@ async function spotifyHandleRedirect() {
 
         const data = await response.json();
         if (data.access_token) spotifySaveTokens(data);
+        else console.error("Spotify auth : pas d'access_token dans la réponse", data);
 
     } catch (err) {
         console.error("Spotify auth :", err);
     }
 
-    // Nettoie l'URL (retire ?code=...)
+    // Nettoie l'URL (retire ?code=...&state=...)
     window.history.replaceState({}, document.title, SPOTIFY_REDIRECT_URI);
 }
 
