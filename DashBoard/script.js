@@ -1249,8 +1249,8 @@ function createEstimatedApproachRow(entry, card, stopDataById) {
                     : "";
                 const rowClass = it.isVehicle ? "vehicle-stop" : (it.isPassed ? "passed" : "");
                 const marker = it.isVehicle
-                    ? `<span class="transport-estimated-vehicle-icon">${busIconSVG()}</span>`
-                    : `<span class="transport-estimated-dot"></span>`;
+                    ? `<span class="transport-estimated-marker"><span class="transport-estimated-vehicle-icon">${busIconSVG()}</span></span>`
+                    : `<span class="transport-estimated-marker"><span class="transport-estimated-dot"></span></span>`;
                 return `${connector}<div class="transport-estimated-stop ${rowClass}">${marker}<span class="transport-estimated-stop-name">${transportEscapeHTML(it.stop.name)}</span></div>`;
             }).join("")}
         </div>

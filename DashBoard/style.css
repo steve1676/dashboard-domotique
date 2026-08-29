@@ -1383,7 +1383,9 @@ body {
     display: block;
     width: 2px;
     height: 10px;
-    margin-left: 9px; /* aligne sous le centre des pastilles de 8px + leur padding gauche */
+    /* Doit tomber exactement sous le centre de la colonne .transport-estimated-marker
+       ci-dessous : padding gauche commune (8px) + moitié de sa largeur (22px/2). */
+    margin-left: 19px;
     background: rgba(148, 163, 184, 0.35);
 }
 
@@ -1396,12 +1398,24 @@ body {
     align-items: center;
     gap: 10px;
     min-width: 0;
-    padding: 3px 0;
+    /* Même padding pour toutes les lignes (avant/véhicule/après) : c'est ce
+       qui garde le connecteur aligné, quel que soit le marqueur affiché. */
+    padding: 4px 8px;
+    border-radius: 8px;
     color: rgba(255, 255, 255, 0.6);
 }
 
+/* Colonne de largeur fixe partagée par le rond et l'icône véhicule, pour que
+   leur centre horizontal soit toujours au même endroit peu importe leur
+   taille propre (8px pour le rond, 22px pour l'icône). */
+.transport-estimated-marker {
+    flex: 0 0 22px;
+    height: 22px;
+    display: grid;
+    place-items: center;
+}
+
 .transport-estimated-dot {
-    flex: 0 0 auto;
     display: block;
     width: 8px;
     height: 8px;
@@ -1421,13 +1435,9 @@ body {
     color: white;
     font-weight: 600;
     background: color-mix(in srgb, var(--transport-line-color, #facc15) 16%, transparent);
-    border-radius: 8px;
-    padding: 5px 8px;
-    margin: 1px 0;
 }
 
 .transport-estimated-vehicle-icon {
-    flex: 0 0 auto;
     display: grid;
     place-items: center;
     width: 22px;
