@@ -2527,7 +2527,7 @@ initWidgetToggles();
 
 const SPOTIFY_CLIENT_ID    = "e5f7b5f7ee1747f6a10f9c2a87af35a5"; // ← 
 const SPOTIFY_REDIRECT_URI = "https://steve1676.github.io/dashboard-domotique/DashBoard/";
-const SPOTIFY_SCOPES       = "user-read-playback-state user-read-currently-playing user-modify-playback-state user-top-read";
+const SPOTIFY_SCOPES       = "user-read-playback-state user-read-currently-playing user-modify-playback-state user-top-read user-read-recently-played";
 
 let spotifyLastTrackId = null;
 let spotifyCurrentData = null; // dernière réponse /me/player connue, pour le popup lecteur
@@ -2856,6 +2856,45 @@ async function spotifyUpdatePlayer() {
 // appli créée après le 27/11/2024 (403 systématique). À la place : artistes
 // les plus écoutés récemment (/me/top/artists, nécessite le scope
 // user-top-read) → genres dominants → recherche de titres correspondants.
+// /me/top/artists se base sur un modèle d'"affinité" calculé côté Spotify et
+// peut rester vide durablement pour certains comptes, sans lien avec le
+// volume d'écoute réel (cas documenté et signalé par d'autres devs). En
+// repli dans ce cas : dérivation des mêmes infos depuis l'historique
+// d'écoute brut (/me/player/recently-played, scope user-read-recently-
+// played), bien moins sujet à ce trou de données puisque ce n'est pas un
+// calcul d'affinité mais un simple historique.
+
+// Construit une liste d'"artistes" (même forme que /me/top/artists : id,
+// name, genres) à partir de l'historique d'écoute brut, en secours quand
+// /me/top/artists ne renvoie rien. Les objets de recently-played n'incluent
+// pas les genres : on les récupère via un appel par artiste (l'endpoint
+// batch "Get Several Artists" a été supprimé en février 2026).
+async function spotifyArtistsFromRecentlyPlayed(token) {
+    const res = await fetch("https://api.spotify.com/v1/me/player/recently-played?limit=30", {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+    console.log(`[Spotify recos] /me/player/recently-played → statut ${res.status}`);
+    if (!res.ok) return [];
+
+    const data = await res.json();
+    const countById = new Map(); // artistId -> { name, count }
+    (data.items || []).forEach(item => (item.track?.artists || []).forEach(a => {
+        const entry = countById.get(a.id) || { id: a.id, name: a.name, count: 0 };
+        entry.count += 1;
+        countById.set(a.id, entry);
+    }));
+
+    const topIds = [...countById.values()].sort((a, b) => b.count - a.count).slice(0, 6);
+    console.log(`[Spotify recos] ${topIds.length} artiste(s) distinct(s) dans l'historique récent`);
+    if (topIds.length === 0) return [];
+
+    const artists = await Promise.all(topIds.map(({ id }) =>
+        fetch(`https://api.spotify.com/v1/artists/${id}`, { headers: { Authorization: `Bearer ${token}` } })
+            .then(r => r.ok ? r.json() : null)
+            .catch(() => null)
+    ));
+    return artists.filter(Boolean);
+}
 
 async function spotifyLoadRecommendations() {
     const token = await spotifyGetToken();
@@ -2885,7 +2924,13 @@ async function spotifyLoadRecommendations() {
             console.log(`[Spotify recos] ${artists.length} artiste(s) trouvé(s) pour ${range}`);
             if (artists.length > 0) break;
         }
-        if (artists.length === 0) { console.log("[Spotify recos] aucun artiste sur aucune période, abandon"); spotifyRecsData = []; spotifyRenderRecs(); return; }
+
+        if (artists.length === 0) {
+            console.log("[Spotify recos] aucun artiste via /me/top/artists, repli sur l'historique d'écoute récent");
+            artists = await spotifyArtistsFromRecentlyPlayed(token);
+        }
+
+        if (artists.length === 0) { console.log("[Spotify recos] aucun artiste trouvé (top ni historique), abandon"); spotifyRecsData = []; spotifyRenderRecs(); return; }
 
         // Genres dominants parmi ces artistes (pondérés par rang de popularité perso)
         const genreScores = new Map();
