@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Domotique</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=20260831-2">
 </head>
 
 <body>
@@ -175,12 +175,43 @@
 
 <!-- ── Page Appareils ── -->
 <div id="allDevice" class="page container" style="display:none;">
-    <h1>Tous les Appareils</h1>
-    <p style="margin-top: 5px;">Gestion des appareils</p>
+    <div class="devices-page-heading">
+        <div>
+            <h1>Plan de la maison</h1>
+            <p>Visualisez et pilotez vos appareils par pièce.</p>
+        </div>
+        <div class="devices-page-buttons">
+            <button id="detect-devices-btn" class="plan-primary-btn" type="button" onclick="openDetectDevicesModal()">Détecter les nouveaux appareils</button>
+            <button id="plan-edit-btn" class="plan-primary-btn" type="button" onclick="planEnterEditMode()">Modifier le plan</button>
+        </div>
+        <div id="plan-edit-actions" class="plan-edit-actions" hidden>
+            <button type="button" onclick="planAddRoom()">+ Ajouter une pièce</button>
+            <button type="button" onclick="planReset()">Réinitialiser</button>
+            <button type="button" class="plan-save-btn" onclick="planSaveAndExit()">Enregistrer et terminer</button>
+        </div>
+    </div>
 
     <div id="ha-status" class="transport-error" style="display:none;"></div>
 
-    <div id="rooms-container"></div>
+    <div id="rooms-container" class="plan-view-layout">
+        <div id="house-plan" class="house-plan" aria-label="Plan de la maison"></div>
+        <aside id="plan-editor-panel" class="plan-editor-panel" hidden>
+            <div class="plan-editor-tabs" role="tablist">
+                <button type="button" data-plan-tab="rooms" class="active">Pièces</button>
+                <button type="button" data-plan-tab="elements">Éléments</button>
+                <button type="button" data-plan-tab="devices">Appareils</button>
+            </div>
+            <div id="plan-editor-content"></div>
+        </aside>
+    </div>
+
+    <section id="plan-devices-section" class="plan-devices-section">
+        <div class="plan-section-heading">
+            <h2>Appareils</h2>
+            <span id="plan-devices-summary"></span>
+        </div>
+        <div id="plan-devices-grid" class="plan-devices-grid"></div>
+    </section>
 
      <button class="all-off" onclick="allOff()">
             Éteindre toutes les lumières
@@ -516,6 +547,25 @@
     </div>
 </div>
 
+<!-- ── Fiche détaillée d'un appareil ── -->
+<div id="deviceDetailModal" class="device-detail-overlay" onclick="if(event.target===this) closeDeviceDetail()" aria-hidden="true">
+    <section class="device-detail-modal" role="dialog" aria-modal="true" aria-labelledby="device-detail-name">
+        <button class="device-detail-close" type="button" onclick="closeDeviceDetail()" aria-label="Fermer">✕</button>
+        <div id="device-detail-content"></div>
+    </section>
+</div>
+
+<!-- ── Modale : détection de nouveaux appareils ── -->
+<div id="detectDevicesModal" class="widget-modal-overlay" onclick="if(event.target===this) closeDetectDevicesModal()">
+    <div class="widget-modal">
+        <button class="widget-modal-close" onclick="closeDetectDevicesModal()" aria-label="Fermer">✕</button>
+        <h2>Détecter les nouveaux appareils</h2>
+        <p class="plan-editor-muted" style="margin-top:-6px;">Compare le plan avec les appareils connus de Home Assistant.</p>
+        <div id="detect-devices-status" class="plan-editor-muted"></div>
+        <div id="detect-devices-list" class="detect-devices-list"></div>
+    </div>
+</div>
+
 <!-- ── Overlay Mode Miroir ── -->
 <div id="mirrorOverlay" class="mirror-overlay">
     <video id="mirrorVideo" autoplay playsinline></video>
@@ -528,7 +578,7 @@
 
 <!-- Dézippage du GTFS Naolib dans le navigateur (ordre réel des arrêts) -->
 <script src="https://cdn.jsdelivr.net/npm/fflate@0.8.3/umd/index.js"></script>
-<script src="script.js"></script>
+<script src="script.js?v=20260831-3"></script>
 
 </body>
 </html>

@@ -2141,6 +2141,45 @@ ROOMS.forEach(room => {
     });
 });
 
+// ─── Appareils ajoutés via "Détecter les nouveaux appareils" ───────────────
+// Ces appareils viennent s'ajouter à ceux codés en dur dans ROOMS ci-dessus ;
+// ils sont mémorisés dans localStorage pour survivre au rechargement.
+const CUSTOM_DEVICES_KEY = "customDevicesV1";
+const DISMISSED_DEVICES_KEY = "dismissedDevicesV1";
+const DELETED_DEVICES_KEY = "deletedDevicesV1";
+const DETECT_DOMAINS = ["light", "switch", "media_player", "fan", "climate", "lock", "cover"];
+
+function haDeviceDomain(entityId) {
+    return entityId.split(".")[0];
+}
+
+function getRoomByName(name) {
+    let room = ROOMS.find(r => r.name === name);
+    if (!room) {
+        room = { name, devices: [] };
+        ROOMS.push(room);
+    }
+    return room;
+}
+
+(storageGet(CUSTOM_DEVICES_KEY, []) || []).forEach(custom => {
+    const room = getRoomByName(custom.room || "Autres appareils");
+    if (!room.devices.some(d => d.entity_id === custom.entity_id)) {
+        room.devices.push({ entity_id: custom.entity_id, label: custom.label });
+    }
+    HA_DEVICES[custom.entity_id] = { label: custom.label, room: room.name };
+});
+
+// Une suppression depuis la fiche reste effective après un rechargement,
+// y compris pour les appareils initialement déclarés en dur dans ROOMS.
+const deletedDeviceIds = storageGet(DELETED_DEVICES_KEY, []) || [];
+if (deletedDeviceIds.length) {
+    ROOMS.forEach(room => {
+        room.devices = room.devices.filter(device => !deletedDeviceIds.includes(device.entity_id));
+    });
+    deletedDeviceIds.forEach(entityId => delete HA_DEVICES[entityId]);
+}
+
 const haStates = {}; // entity_id -> "on" | "off" | "unavailable" ...
 const haStatesFull = {}; // entity_id -> objet complet {state, attributes, ...} — partagé par batterie/Chromecast pour éviter des appels HA en double
 
@@ -2213,48 +2252,555 @@ async function haToggle(entityId) {
     setTimeout(haFetchStates, 1000);
 }
 
-function renderRooms() {
-    const container = document.getElementById("rooms-container");
-    container.innerHTML = "";
+// ─── Éditeur visuel du plan ─────────────────────────────────────────────────
+const PLAN_STORAGE_KEY = "housePlanV1";
+let planEditMode = false;
+let planActiveTab = "rooms";
+let planSelectedRoomId = null;
+let planSelectedObjectId = null;
+let planDrag = null;
+
+const planSvg = body => `<svg viewBox="0 0 64 64" aria-hidden="true">${body}</svg>`;
+const PLAN_ICONS = {
+    bulb: planSvg('<circle cx="32" cy="24" r="15"/><path d="M24 38h16M26 44h12M29 50h6"/>'),
+    outlet: planSvg('<rect x="12" y="10" width="40" height="44" rx="8"/><circle cx="24" cy="30" r="3"/><circle cx="40" cy="30" r="3"/><path d="M32 38v8"/>'),
+    heater: planSvg('<rect x="10" y="15" width="44" height="34" rx="5"/><path d="M20 21v22M29 21v22M38 21v22M47 21v22M16 54v5M48 54v5"/>'),
+    tv: planSvg('<rect x="8" y="14" width="48" height="34" rx="3"/><path d="M24 55h16M32 48v7"/>'),
+    switch: planSvg('<rect x="14" y="8" width="36" height="48" rx="6"/><rect x="22" y="16" width="20" height="32" rx="4"/><path d="M22 32h20"/>'),
+    fan: planSvg('<circle cx="32" cy="32" r="5"/><path d="M32 27c-3-15 7-20 13-13 5 6 0 14-13 18M37 32c15-3 20 7 13 13-6 5-14 0-18-13M32 37c3 15-7 20-13 13-5-6 0-14 13-18M27 32c-15 3-20-7-13-13 6-5 14 0 18 13"/>'),
+    camera: planSvg('<rect x="9" y="18" width="38" height="28" rx="5"/><circle cx="28" cy="32" r="9"/><path d="M47 27l9-6v22l-9-6"/>'),
+    lock: planSvg('<rect x="14" y="27" width="36" height="29" rx="5"/><path d="M22 27v-8a10 10 0 0 1 20 0v8"/><circle cx="32" cy="40" r="3"/><path d="M32 43v6"/>'),
+    speaker: planSvg('<rect x="16" y="7" width="32" height="50" rx="5"/><circle cx="32" cy="39" r="10"/><circle cx="32" cy="19" r="5"/>'),
+    thermostat: planSvg('<circle cx="32" cy="32" r="24"/><path d="M32 15v17l10 6"/><circle cx="32" cy="32" r="3"/>')
+};
+
+const PLAN_FURNITURE = [
+    ["door", "Porte", planSvg('<path d="M12 54V10h8v44"/><path d="M20 12c23 1 32 16 32 40"/><path d="M20 52h32"/>')],
+    ["window", "Fenêtre", planSvg('<path d="M8 24h48v16H8z"/><path d="M12 28h40M12 36h40M32 24v16"/>')],
+    ["sofa", "Canapé", planSvg('<rect x="8" y="18" width="48" height="30" rx="8"/><path d="M14 18v18h36V18M14 36l-4 10M50 36l4 10M32 18v18"/>')],
+    ["table", "Table", planSvg('<rect x="10" y="16" width="44" height="32" rx="4"/><circle cx="16" cy="10" r="5"/><circle cx="32" cy="10" r="5"/><circle cx="48" cy="10" r="5"/><circle cx="16" cy="54" r="5"/><circle cx="32" cy="54" r="5"/><circle cx="48" cy="54" r="5"/>')],
+    ["bed", "Lit", planSvg('<rect x="10" y="7" width="44" height="50" rx="3"/><path d="M10 24h44"/><rect x="15" y="11" width="14" height="9" rx="3"/><rect x="35" y="11" width="14" height="9" rx="3"/>')],
+    ["shower", "Douche", planSvg('<rect x="8" y="8" width="48" height="48" rx="4"/><circle cx="32" cy="32" r="7"/><path d="M12 12l40 40M52 12L12 52"/>')]
+];
+
+function planDefaultState() {
+    const roomDefaults = [
+        { x: 18, y: 18, w: 470, h: 330 },
+        { x: 505, y: 18, w: 260, h: 210 }
+    ];
+    return {
+        rooms: ROOMS.map((room, index) => ({
+            id: `room-${index + 1}`,
+            name: room.name,
+            ...(roomDefaults[index] || { x: 40 + index * 35, y: 55 + index * 30, w: 220, h: 150 })
+        })),
+        objects: []
+    };
+}
+
+let planState = storageGet(PLAN_STORAGE_KEY, null) || planDefaultState();
+if (!Array.isArray(planState.rooms) || !Array.isArray(planState.objects)) planState = planDefaultState();
+
+function planEscape(value) {
+    const el = document.createElement("span");
+    el.textContent = String(value ?? "");
+    return el.innerHTML;
+}
+
+function planDeviceIconKey(entityId) {
+    if (entityId.includes("poele") || entityId.includes("heater")) return "heater";
+    if (entityId.startsWith("media_player.")) return "tv";
+    if (entityId.startsWith("switch.")) return "switch";
+    return "bulb";
+}
+
+function planEnterEditMode() {
+    planEditMode = true;
+    document.getElementById("plan-edit-btn").hidden = true;
+    document.getElementById("plan-edit-actions").hidden = false;
+    document.getElementById("rooms-container").classList.add("editing");
+    document.getElementById("plan-editor-panel").hidden = false;
+    document.getElementById("plan-devices-section").hidden = true;
+    planRenderAll();
+}
+
+function planSaveAndExit() {
+    storageSet(PLAN_STORAGE_KEY, planState);
+    planEditMode = false;
+    planSelectedRoomId = null;
+    planSelectedObjectId = null;
+    document.getElementById("plan-edit-btn").hidden = false;
+    document.getElementById("plan-edit-actions").hidden = true;
+    document.getElementById("rooms-container").classList.remove("editing");
+    document.getElementById("plan-editor-panel").hidden = true;
+    document.getElementById("plan-devices-section").hidden = false;
+    planRenderAll();
+}
+
+function planReset() {
+    planState = planDefaultState();
+    planSelectedRoomId = planState.rooms[0]?.id || null;
+    planSelectedObjectId = null;
+    planRenderAll();
+}
+
+function planAddRoom() {
+    const id = `room-${Date.now()}`;
+    planState.rooms.push({ id, name: "Nouvelle pièce", x: 45, y: 55, w: 220, h: 150 });
+    planSelectedRoomId = id;
+    planSelectedObjectId = null;
+    planActiveTab = "rooms";
+    planRenderAll();
+}
+
+function planRenderCanvas() {
+    const canvas = document.getElementById("house-plan");
+    if (!canvas) return;
+    canvas.innerHTML = planState.rooms.map(room => {
+        const count = Object.values(HA_DEVICES).filter(device => device.room === room.name).length;
+        return `<section class="plan-room ${room.id === planSelectedRoomId ? "selected" : ""}" data-plan-room="${room.id}" style="left:${room.x}px;top:${room.y}px;width:${room.w}px;height:${room.h}px"><div class="plan-room-header"><span>${planEscape(room.name)}</span><span class="plan-room-count">${count}</span></div></section>`;
+    }).join("") + planState.objects.map(object => {
+        const icon = object.kind === "device" ? PLAN_ICONS[object.iconKey] : PLAN_FURNITURE.find(item => item[0] === object.type)?.[2];
+        const wide = ["sofa", "bed", "window"].includes(object.type) ? "wide" : "";
+        return `<div class="plan-object ${wide} ${object.kind === "device" ? "device-object" : ""} ${object.id === planSelectedObjectId ? "selected" : ""}" data-plan-object="${object.id}" style="left:${object.x}px;top:${object.y}px;transform:rotate(${object.rotation || 0}deg)" aria-label="${planEscape(object.label)}">${icon || PLAN_ICONS.outlet}</div>`;
+    }).join("");
+    planBindCanvas();
+}
+
+function planBindCanvas() {
+    const canvas = document.getElementById("house-plan");
+    canvas.querySelectorAll("[data-plan-room]").forEach(element => {
+        const id = element.dataset.planRoom;
+        element.addEventListener("click", () => {
+            if (!planEditMode) return;
+            planSelectedRoomId = id; planSelectedObjectId = null; planActiveTab = "rooms"; planRenderAll();
+        });
+        element.querySelector(".plan-room-header").addEventListener("pointerdown", event => {
+            if (!planEditMode) return;
+            const room = planState.rooms.find(item => item.id === id);
+            planDrag = { kind: "room", id, sx: event.clientX, sy: event.clientY, x: room.x, y: room.y };
+            event.currentTarget.setPointerCapture(event.pointerId);
+        });
+        element.querySelector(".plan-room-header").addEventListener("pointermove", event => planMoveDrag(event, element));
+        element.querySelector(".plan-room-header").addEventListener("pointerup", () => { planDrag = null; });
+    });
+    canvas.querySelectorAll("[data-plan-object]").forEach(element => {
+        const id = element.dataset.planObject;
+        element.addEventListener("pointerdown", event => {
+            if (!planEditMode) return;
+            event.stopPropagation();
+            const object = planState.objects.find(item => item.id === id);
+            planSelectedObjectId = id; planSelectedRoomId = null; planActiveTab = object.kind === "device" ? "devices" : "elements";
+            planDrag = { kind: "object", id, sx: event.clientX, sy: event.clientY, x: object.x, y: object.y };
+            element.setPointerCapture(event.pointerId);
+            planRenderEditor();
+        });
+        element.addEventListener("pointermove", event => planMoveDrag(event, element));
+        element.addEventListener("pointerup", () => { planDrag = null; });
+    });
+}
+
+function planMoveDrag(event, element) {
+    if (!planDrag) return;
+    const canvas = document.getElementById("house-plan");
+    const target = planDrag.kind === "room"
+        ? planState.rooms.find(item => item.id === planDrag.id)
+        : planState.objects.find(item => item.id === planDrag.id);
+    target.x = Math.max(0, Math.min(canvas.clientWidth - element.offsetWidth, planDrag.x + event.clientX - planDrag.sx));
+    target.y = Math.max(0, Math.min(canvas.clientHeight - element.offsetHeight, planDrag.y + event.clientY - planDrag.sy));
+    element.style.left = `${target.x}px`;
+    element.style.top = `${target.y}px`;
+}
+
+function planRenderEditor() {
+    if (!planEditMode) return;
+    document.querySelectorAll("[data-plan-tab]").forEach(button => button.classList.toggle("active", button.dataset.planTab === planActiveTab));
+    const content = document.getElementById("plan-editor-content");
+    if (planActiveTab === "elements") return planRenderElementEditor(content);
+    if (planActiveTab === "devices") return planRenderDeviceEditor(content);
+    const room = planState.rooms.find(item => item.id === planSelectedRoomId);
+    if (!room) { content.innerHTML = '<h3>Pièces</h3><p class="plan-editor-muted">Sélectionnez une pièce dans le plan.</p>'; return; }
+    content.innerHTML = `<h3>${planEscape(room.name)}</h3><label class="plan-field">Nom<input id="plan-room-name" value="${planEscape(room.name)}"></label><div class="plan-editor-actions"><button class="full" id="plan-room-rename">Enregistrer le nom</button><button id="plan-room-w-minus">− Largeur</button><button id="plan-room-w-plus">+ Largeur</button><button id="plan-room-h-minus">− Hauteur</button><button id="plan-room-h-plus">+ Hauteur</button><button class="danger" id="plan-room-delete">Supprimer la pièce</button></div>`;
+    content.querySelector("#plan-room-rename").onclick = () => { room.name = content.querySelector("#plan-room-name").value || "Sans nom"; planRenderAll(); };
+    content.querySelector("#plan-room-w-minus").onclick = () => { room.w = Math.max(110, room.w - 20); planRenderAll(); };
+    content.querySelector("#plan-room-w-plus").onclick = () => { room.w = Math.min(760, room.w + 20); planRenderAll(); };
+    content.querySelector("#plan-room-h-minus").onclick = () => { room.h = Math.max(82, room.h - 20); planRenderAll(); };
+    content.querySelector("#plan-room-h-plus").onclick = () => { room.h = Math.min(500, room.h + 20); planRenderAll(); };
+    content.querySelector("#plan-room-delete").onclick = () => { planState.rooms = planState.rooms.filter(item => item.id !== room.id); planSelectedRoomId = planState.rooms[0]?.id || null; planRenderAll(); };
+}
+
+function planRenderElementEditor(content) {
+    const object = planState.objects.find(item => item.id === planSelectedObjectId && item.kind === "element");
+    content.innerHTML = `<h3>Éléments</h3><div class="plan-palette">${PLAN_FURNITURE.map(item => `<button data-add-element="${item[0]}"><span class="plan-palette-icon">${item[2]}</span><span>${item[1]}</span></button>`).join("")}</div>${object ? `<div class="plan-editor-actions"><button id="plan-object-left">↶ Tourner</button><button id="plan-object-right">↷ Tourner</button><button class="danger" id="plan-object-delete">Supprimer</button></div>` : '<p class="plan-editor-muted">Ajoutez ou sélectionnez un élément.</p>'}`;
+    content.querySelectorAll("[data-add-element]").forEach(button => button.onclick = () => {
+        const item = PLAN_FURNITURE.find(value => value[0] === button.dataset.addElement);
+        const id = `object-${Date.now()}`;
+        planState.objects.push({ id, kind: "element", type: item[0], label: item[1], x: 80, y: 90, rotation: 0 });
+        planSelectedObjectId = id; planRenderAll();
+    });
+    planBindObjectActions(content, object);
+}
+
+function planRenderDeviceEditor(content) {
+    const devices = ROOMS.flatMap(room => room.devices.map(device => ({ ...device, room: room.name })));
+    const object = planState.objects.find(item => item.id === planSelectedObjectId && item.kind === "device");
+    content.innerHTML = `<h3>Appareils</h3><div class="plan-palette">${devices.map(device => `<button data-add-device="${device.entity_id}"><span class="plan-palette-icon">${PLAN_ICONS[planDeviceIconKey(device.entity_id)]}</span><span>${planEscape(device.label)}</span></button>`).join("")}</div>${object ? `<p class="plan-editor-muted">Choisir une icône</p><div class="plan-icon-picker">${Object.entries(PLAN_ICONS).map(([key, icon]) => `<button class="plan-icon-option ${object.iconKey === key ? "active" : ""}" data-plan-icon="${key}" aria-label="${key}">${icon}</button>`).join("")}</div><div class="plan-editor-actions"><button id="plan-object-left">↶ Tourner</button><button id="plan-object-right">↷ Tourner</button><button class="danger" id="plan-object-delete">Retirer du plan</button></div>` : '<p class="plan-editor-muted">Ajoutez ou sélectionnez un appareil.</p>'}`;
+    content.querySelectorAll("[data-add-device]").forEach(button => button.onclick = () => {
+        const device = devices.find(item => item.entity_id === button.dataset.addDevice);
+        let placed = planState.objects.find(item => item.kind === "device" && item.entityId === device.entity_id);
+        if (!placed) {
+            placed = { id: `device-${Date.now()}`, kind: "device", entityId: device.entity_id, label: device.label, iconKey: planDeviceIconKey(device.entity_id), x: 105, y: 110, rotation: 0 };
+            planState.objects.push(placed);
+        }
+        planSelectedObjectId = placed.id; planRenderAll();
+    });
+    content.querySelectorAll("[data-plan-icon]").forEach(button => button.onclick = () => { object.iconKey = button.dataset.planIcon; planRenderAll(); });
+    planBindObjectActions(content, object);
+}
+
+function planBindObjectActions(content, object) {
+    if (!object) return;
+    content.querySelector("#plan-object-left").onclick = () => { object.rotation = (object.rotation + 270) % 360; planRenderAll(); };
+    content.querySelector("#plan-object-right").onclick = () => { object.rotation = (object.rotation + 90) % 360; planRenderAll(); };
+    content.querySelector("#plan-object-delete").onclick = () => { planState.objects = planState.objects.filter(item => item.id !== object.id); planSelectedObjectId = null; planRenderAll(); };
+}
+
+let deviceDetailEntityId = null;
+
+function deviceDomainLabel(entityId) {
+    const labels = {
+        light: "Lumière", switch: "Interrupteur", media_player: "Lecteur multimédia",
+        climate: "Thermostat", fan: "Ventilateur", cover: "Volet", lock: "Serrure",
+        camera: "Caméra", sensor: "Capteur", binary_sensor: "Capteur"
+    };
+    return labels[entityId.split(".")[0]] || "Appareil";
+}
+
+function deviceMediaImageUrl(value) {
+    if (!value) return "";
+    if (/^https?:\/\//i.test(value)) return value;
+    return `${HA_CONFIG.url}${value.startsWith("/") ? "" : "/"}${value}`;
+}
+
+function deviceSupportsBrightness(attrs) {
+    const modes = attrs.supported_color_modes || [];
+    return attrs.brightness !== undefined || modes.some(mode => mode !== "onoff");
+}
+
+function deviceSupportsColor(attrs) {
+    const modes = attrs.supported_color_modes || [];
+    return modes.some(mode => ["hs", "rgb", "rgbw", "rgbww", "xy"].includes(mode));
+}
+
+function deviceRgbToHex(rgb) {
+    if (!Array.isArray(rgb) || rgb.length < 3) return "#ffffff";
+    return `#${rgb.slice(0, 3).map(value => Math.max(0, Math.min(255, Math.round(value))).toString(16).padStart(2, "0")).join("")}`;
+}
+
+function deviceHexToRgb(hex) {
+    const value = hex.replace("#", "");
+    return [0, 2, 4].map(index => parseInt(value.slice(index, index + 2), 16));
+}
+
+function openDeviceDetail(entityId) {
+    if (!HA_DEVICES[entityId]) return;
+    deviceDetailEntityId = entityId;
+    renderDeviceDetail();
+    const modal = document.getElementById("deviceDetailModal");
+    modal.classList.add("just-opened");
+    modal.classList.add("visible");
+    modal.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+    // Certains écrans tactiles émettent un second clic synthétique après le tap.
+    // La modale ignore brièvement ce clic pour qu'il n'actionne pas l'interrupteur.
+    window.setTimeout(() => modal.classList.remove("just-opened"), 320);
+}
+
+function closeDeviceDetail() {
+    const modal = document.getElementById("deviceDetailModal");
+    modal.classList.remove("visible", "just-opened");
+    modal.setAttribute("aria-hidden", "true");
+    deviceDetailEntityId = null;
+    document.body.style.overflow = "";
+}
+
+function renderDeviceDetail() {
+    if (!deviceDetailEntityId) return;
+    const info = HA_DEVICES[deviceDetailEntityId];
+    const stateData = haStatesFull[deviceDetailEntityId] || { state: haStates[deviceDetailEntityId] || "unknown", attributes: {} };
+    const attrs = stateData.attributes || {};
+    const on = haIsOn(deviceDetailEntityId);
+    const favorite = getFavorites().includes(deviceDetailEntityId);
+    const domain = deviceDetailEntityId.split(".")[0];
+    const placed = planState.objects.find(item => item.kind === "device" && item.entityId === deviceDetailEntityId);
+    const iconKey = placed?.iconKey || planDeviceIconKey(deviceDetailEntityId);
+    const content = document.getElementById("device-detail-content");
+
+    const mediaImage = deviceMediaImageUrl(attrs.entity_picture || attrs.media_image_url);
+    const mediaBlock = domain === "media_player" ? `
+        <div class="device-detail-media">
+            ${mediaImage ? `<img class="device-detail-media-image" src="${planEscape(mediaImage)}" alt="Illustration du média en cours">` : `<div class="device-detail-media-fallback">${PLAN_ICONS.tv}</div>`}
+        </div>
+        ${(attrs.media_title || attrs.media_artist || attrs.app_name) ? `<div class="device-detail-media-copy"><div class="device-detail-media-title">${planEscape(attrs.media_title || attrs.app_name || "Aucun média")}</div><div class="device-detail-media-meta">${planEscape([attrs.media_artist, attrs.media_album_name, attrs.app_name].filter(Boolean).join(" · "))}</div></div>` : ""}
+    ` : "";
+
+    const brightness = Math.round(((attrs.brightness ?? 255) / 255) * 100);
+    const brightnessControl = deviceSupportsBrightness(attrs)
+        ? `<div class="device-control-card"><label class="device-control-label" for="device-brightness"><span>Intensité lumineuse</span><strong id="device-brightness-value">${brightness}%</strong></label><input id="device-brightness" class="device-brightness-slider" type="range" min="1" max="100" value="${brightness}" oninput="document.getElementById('device-brightness-value').textContent=this.value+'%'" onchange="deviceSetBrightness(this.value)"></div>`
+        : "";
+    const colorControl = deviceSupportsColor(attrs)
+        ? `<div class="device-control-card device-color-row"><div><strong>Couleur</strong><div class="plan-editor-muted">Touchez la roue</div></div><input class="device-color-wheel" type="color" value="${deviceRgbToHex(attrs.rgb_color)}" onchange="deviceSetColor(this.value)" aria-label="Choisir la couleur"></div>`
+        : "";
+    const lightControls = domain === "light" ? `
+        <div class="device-light-controls">
+            <div class="device-rocker-wrap"><button class="device-rocker-switch ${on ? "active" : ""}" onclick="deviceDetailToggle()" aria-label="${on ? "Éteindre" : "Allumer"} ${planEscape(info.label)}"><span class="device-rocker-top"></span><span class="device-rocker-bottom"></span></button><span class="device-rocker-mark"></span></div>
+            ${(brightnessControl || colorControl) ? `<div class="device-light-settings">${brightnessControl}${colorControl}</div>` : ""}
+        </div>
+    ` : `<div class="device-light-controls"><button class="device-main-switch ${on ? "active" : ""}" onclick="deviceDetailToggle()">${on ? "Activé" : "Désactivé"}</button></div>`;
+
+    const usefulInfo = [
+        ["État", stateData.state === "on" ? "Activé" : stateData.state === "off" ? "Désactivé" : stateData.state],
+        ["Type", deviceDomainLabel(deviceDetailEntityId)],
+        attrs.battery_level != null ? ["Batterie", `${attrs.battery_level}%`] : null,
+        attrs.current_temperature != null ? ["Température", `${attrs.current_temperature} °C`] : null,
+        attrs.temperature != null ? ["Consigne", `${attrs.temperature} °C`] : null,
+        attrs.volume_level != null ? ["Volume", `${Math.round(attrs.volume_level * 100)}%`] : null,
+        attrs.power != null ? ["Puissance", `${attrs.power} W`] : null,
+        ["Identifiant", deviceDetailEntityId]
+    ].filter(Boolean);
+
+    content.innerHTML = `
+        <header class="device-detail-header">
+            <div class="device-detail-title-wrap">
+                <span class="device-detail-title-icon ${on ? "is-on" : ""}">${PLAN_ICONS[iconKey] || PLAN_ICONS.outlet}</span>
+                <div><h2 id="device-detail-name" class="device-detail-name">${planEscape(info.label)}</h2><div class="device-detail-room">${planEscape(info.room)}</div></div>
+            </div>
+            <div class="device-detail-header-actions">
+                <button class="device-detail-favorite ${favorite ? "active" : ""}" type="button" onclick="deviceDetailToggleFavorite()" aria-label="${favorite ? "Retirer des favoris" : "Ajouter aux favoris"}">${favorite ? ICON_STAR_FILLED : ICON_STAR}</button>
+                <button class="device-detail-delete" type="button" onclick="deviceDetailDelete()" aria-label="Supprimer ${planEscape(info.label)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6.5 7l1 13h9l1-13"/><path d="M10 11v5M14 11v5"/></svg></button>
+            </div>
+        </header>
+        ${mediaBlock}
+        ${lightControls}
+        <div class="device-info-grid">${usefulInfo.map(([label, value]) => `<div class="device-info-item"><div class="device-info-label">${planEscape(label)}</div><div class="device-info-value">${planEscape(value)}</div></div>`).join("")}</div>
+    `;
+}
+
+function deviceDetailToggleFavorite() {
+    if (!deviceDetailEntityId) return;
+    toggleFavorite(deviceDetailEntityId);
+    renderDeviceDetail();
+}
+
+function deviceDetailDelete() {
+    if (!deviceDetailEntityId) return;
+    const entityId = deviceDetailEntityId;
+    const info = HA_DEVICES[entityId];
+    if (!info || !window.confirm(`Supprimer « ${info.label} » du dashboard ?`)) return;
 
     ROOMS.forEach(room => {
-        const card = document.createElement("div");
-        card.className = "weather-card";
-        card.style.marginTop = "20px";
-
-        const title = document.createElement("h2");
-        title.style.marginBottom = "20px";
-        title.style.fontWeight = "bold";
-        title.style.fontSize = "30px";
-        title.textContent = room.name;
-        card.appendChild(title);
-
-        room.devices.forEach(d => {
-            const isFav = getFavorites().includes(d.entity_id);
-            const on = haIsOn(d.entity_id);
-
-            const row = document.createElement("div");
-            row.className = "device";
-            row.innerHTML = `
-                <div class="device-info">
-                    <button class="favorite-btn ${isFav ? "active" : ""}"
-                            onclick="toggleFavorite('${d.entity_id}')" aria-label="${isFav ? "Retirer" : "Ajouter"} ${d.label} des favoris">${isFav ? ICON_STAR_FILLED : ICON_STAR}</button>
-                    <span>${d.label}</span>
-                </div>
-                <button class="toggle ${on ? "active" : ""}"
-                        onclick="haToggle('${d.entity_id}')">${on ? "ON" : "OFF"}</button>
-            `;
-            card.appendChild(row);
-        });
-
-        container.appendChild(card);
+        room.devices = room.devices.filter(device => device.entity_id !== entityId);
     });
+    delete HA_DEVICES[entityId];
+    delete haStates[entityId];
+    delete haStatesFull[entityId];
+
+    planState.objects = planState.objects.filter(object => object.entityId !== entityId);
+    storageSet(PLAN_STORAGE_KEY, planState);
+    storageSet("favorites", getFavorites().filter(id => id !== entityId));
+    storageSet(CUSTOM_DEVICES_KEY, (storageGet(CUSTOM_DEVICES_KEY, []) || []).filter(device => device.entity_id !== entityId));
+
+    const deleted = storageGet(DELETED_DEVICES_KEY, []) || [];
+    if (!deleted.includes(entityId)) deleted.push(entityId);
+    storageSet(DELETED_DEVICES_KEY, deleted);
+
+    const dismissed = storageGet(DISMISSED_DEVICES_KEY, []) || [];
+    if (!dismissed.includes(entityId)) dismissed.push(entityId);
+    storageSet(DISMISSED_DEVICES_KEY, dismissed);
+
+    closeDeviceDetail();
+    planRenderAll();
+    refreshFavoriteList();
+}
+
+function deviceDetailToggle() {
+    if (!deviceDetailEntityId) return;
+    haToggle(deviceDetailEntityId);
+    setTimeout(renderDeviceDetail, 80);
+}
+
+async function deviceLightService(data) {
+    if (!deviceDetailEntityId) return;
+    try {
+        await fetch(`${HA_CONFIG.url}/api/services/light/turn_on`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ entity_id: deviceDetailEntityId, ...data })
+        });
+        haStates[deviceDetailEntityId] = "on";
+        setTimeout(haFetchStates, 450);
+    } catch (err) {
+        console.error("Commande lumière :", err);
+        haShowStatus(`${ICON_ALERT} Commande lumière impossible.`);
+    }
+}
+
+function deviceSetBrightness(value) {
+    deviceLightService({ brightness_pct: Number(value) });
+}
+
+function deviceSetColor(value) {
+    deviceLightService({ rgb_color: deviceHexToRgb(value) });
+}
+
+function planRenderDeviceCards() {
+    const grid = document.getElementById("plan-devices-grid");
+    if (!grid) return;
+    const entries = ROOMS.flatMap(room => room.devices.map(device => ({ ...device, room: room.name })));
+    const active = entries.filter(device => haIsOn(device.entity_id)).length;
+    document.getElementById("plan-devices-summary").textContent = `${active} actif${active > 1 ? "s" : ""} sur ${entries.length}`;
+    grid.innerHTML = entries.map(device => {
+        const on = haIsOn(device.entity_id);
+        const placed = planState.objects.find(item => item.kind === "device" && item.entityId === device.entity_id);
+        const iconKey = placed?.iconKey || planDeviceIconKey(device.entity_id);
+        return `<article class="plan-device-card ${on ? "is-on" : ""}" role="button" tabindex="0" onclick="openDeviceDetail('${device.entity_id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDeviceDetail('${device.entity_id}')}" aria-label="Ouvrir ${planEscape(device.label)}"><div class="plan-device-main"><span class="plan-device-icon">${PLAN_ICONS[iconKey]}</span><div><div class="plan-device-name">${planEscape(device.label)}</div><div class="plan-device-room">${planEscape(device.room)}</div></div></div><button class="toggle ${on ? "active" : ""}" onclick="event.stopPropagation();haToggle('${device.entity_id}')">${on ? "ON" : "OFF"}</button></article>`;
+    }).join("");
+}
+
+function planRenderAll() {
+    planRenderCanvas();
+    planRenderEditor();
+    planRenderDeviceCards();
+    if (deviceDetailEntityId) renderDeviceDetail();
+}
+
+document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && deviceDetailEntityId) closeDeviceDetail();
+});
+
+document.querySelectorAll("[data-plan-tab]").forEach(button => {
+    button.addEventListener("click", () => { planActiveTab = button.dataset.planTab; planSelectedObjectId = null; planRenderEditor(); });
+});
+
+function renderRooms() {
+    planRenderAll();
 }
 
 function allOff() {
     Object.keys(HA_DEVICES).forEach(entityId => {
         if (haStates[entityId] === "on") haToggle(entityId);
     });
+}
+
+// ─── Détection de nouveaux appareils Home Assistant ─────────────────────────
+let detectedDevicesCache = [];
+
+function openDetectDevicesModal() {
+    document.getElementById("detectDevicesModal").classList.add("visible");
+    runDeviceDetection();
+}
+
+function closeDetectDevicesModal() {
+    document.getElementById("detectDevicesModal").classList.remove("visible");
+}
+
+function detectDevicesSetStatus(message, isError) {
+    const el = document.getElementById("detect-devices-status");
+    el.textContent = message || "";
+    el.classList.toggle("transport-error", !!isError);
+    el.classList.toggle("plan-editor-muted", !isError);
+}
+
+async function runDeviceDetection() {
+    document.getElementById("detect-devices-list").innerHTML = "";
+    detectDevicesSetStatus("Recherche en cours...", false);
+
+    try {
+        const response = await fetch(`${HA_CONFIG.url}/api/states`, {
+            headers: { "Content-Type": "application/json" }
+        });
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        const data = await response.json();
+
+        const dismissed = storageGet(DISMISSED_DEVICES_KEY, []) || [];
+        detectedDevicesCache = data.filter(entity =>
+            DETECT_DOMAINS.includes(haDeviceDomain(entity.entity_id)) &&
+            !HA_DEVICES[entity.entity_id] &&
+            !dismissed.includes(entity.entity_id)
+        );
+
+        if (detectedDevicesCache.length === 0) {
+            detectDevicesSetStatus("Aucun nouvel appareil détecté : tous les appareils compatibles connus de Home Assistant sont déjà dans le plan.", false);
+            return;
+        }
+
+        const count = detectedDevicesCache.length;
+        detectDevicesSetStatus(`${count} nouvel${count > 1 ? "s" : ""} appareil${count > 1 ? "s" : ""} détecté${count > 1 ? "s" : ""} :`, false);
+        renderDetectDevicesList();
+
+    } catch (err) {
+        console.error("Détection appareils :", err);
+        detectDevicesSetStatus(`${ICON_ALERT} Impossible de joindre Home Assistant.`, true);
+    }
+}
+
+function renderDetectDevicesList() {
+    const list = document.getElementById("detect-devices-list");
+    const roomNames = ROOMS.map(r => r.name);
+    if (!roomNames.includes("Autres appareils")) roomNames.push("Autres appareils");
+
+    list.innerHTML = detectedDevicesCache.map(entity => {
+        const friendly = entity.attributes?.friendly_name || entity.entity_id;
+        const options = roomNames.map(name => `<option value="${planEscape(name)}">${planEscape(name)}</option>`).join("");
+        return `<div class="detect-device-row" data-entity="${planEscape(entity.entity_id)}">
+            <div>
+                <div class="detect-device-name">${planEscape(friendly)}</div>
+                <div class="detect-device-id">${planEscape(entity.entity_id)}</div>
+            </div>
+            <input type="text" class="detect-device-label" value="${planEscape(friendly)}">
+            <select class="detect-device-room">${options}</select>
+            <div class="detect-device-actions">
+                <button class="detect-add-btn" type="button" onclick="addDetectedDevice('${entity.entity_id}')">+ Ajouter au plan</button>
+                <button class="detect-ignore-btn" type="button" onclick="ignoreDetectedDevice('${entity.entity_id}')">Ignorer</button>
+            </div>
+        </div>`;
+    }).join("");
+}
+
+function detectDevicesRowDone() {
+    if (detectedDevicesCache.length === 0) detectDevicesSetStatus("Tous les appareils détectés ont été traités.", false);
+}
+
+function addDetectedDevice(entityId) {
+    const row = document.querySelector(`.detect-device-row[data-entity="${entityId}"]`);
+    if (!row) return;
+    const label = row.querySelector(".detect-device-label").value.trim() || entityId;
+    const roomName = row.querySelector(".detect-device-room").value;
+
+    const room = getRoomByName(roomName);
+    room.devices.push({ entity_id: entityId, label });
+    HA_DEVICES[entityId] = { label, room: roomName };
+
+    const custom = storageGet(CUSTOM_DEVICES_KEY, []) || [];
+    custom.push({ entity_id: entityId, label, room: roomName });
+    storageSet(CUSTOM_DEVICES_KEY, custom);
+
+    detectedDevicesCache = detectedDevicesCache.filter(entity => entity.entity_id !== entityId);
+    renderDetectDevicesList();
+    detectDevicesRowDone();
+
+    haFetchStates(); // récupère l'état actuel et met à jour la grille des appareils
+}
+
+function ignoreDetectedDevice(entityId) {
+    const dismissed = storageGet(DISMISSED_DEVICES_KEY, []) || [];
+    if (!dismissed.includes(entityId)) {
+        dismissed.push(entityId);
+        storageSet(DISMISSED_DEVICES_KEY, dismissed);
+    }
+    detectedDevicesCache = detectedDevicesCache.filter(entity => entity.entity_id !== entityId);
+    renderDetectDevicesList();
+    detectDevicesRowDone();
 }
 
 haFetchStates();
@@ -4093,34 +4639,45 @@ function refreshFavoriteList() {
         <span class="fav-title" style="color:white">
             ${ICON_STAR} Appareils favoris
         </span>
+        <div class="favorite-device-grid"></div>
     `;
 
     const favorites = getFavorites().filter(id => HA_DEVICES[id]); // ignore favoris obsolètes
+    const grid = container.querySelector(".favorite-device-grid");
 
     if (favorites.length === 0) {
-        container.innerHTML += `
-            <p style="margin-top:20px;color:#94a3b8;">
-                Aucun appareil favori
-            </p>
-        `;
+        grid.innerHTML = `<p class="favorite-empty">Aucun appareil favori</p>`;
         return;
     }
 
     favorites.forEach(entityId => {
         const info = HA_DEVICES[entityId];
         const on = haIsOn(entityId);
-
-        const item = document.createElement("div");
-        item.className = "device";
+        const placed = planState.objects.find(item => item.kind === "device" && item.entityId === entityId);
+        const iconKey = placed?.iconKey || planDeviceIconKey(entityId);
+        const item = document.createElement("article");
+        item.className = `favorite-device-tile ${on ? "is-on" : ""}`;
+        item.setAttribute("role", "button");
+        item.setAttribute("tabindex", "0");
+        item.setAttribute("aria-label", `${on ? "Éteindre" : "Allumer"} ${info.label}`);
         item.innerHTML = `
-            <div class="device-info">
-                <span>${info.label}</span>
-            </div>
-            <button class="toggle ${on ? "active" : ""}"
-                    onclick="haToggle('${entityId}')">${on ? "ON" : "OFF"}</button>
+            <span class="favorite-device-room">${planEscape(info.room)}</span>
+            <div class="favorite-device-icon">${PLAN_ICONS[iconKey] || PLAN_ICONS.outlet}</div>
+            <div class="favorite-device-name">${planEscape(info.label)}</div>
+            <div class="favorite-device-state">${on ? "Allumé" : "Éteint"}</div>
         `;
-
-        container.appendChild(item);
+        item.addEventListener("click", event => {
+            event.preventDefault();
+            event.stopPropagation();
+            haToggle(entityId);
+        });
+        item.addEventListener("keydown", event => {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                haToggle(entityId);
+            }
+        });
+        grid.appendChild(item);
     });
 }
 
