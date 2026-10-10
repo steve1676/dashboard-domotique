@@ -267,6 +267,11 @@ function initDisplaySchedule() {
     document.getElementById("display-schedule-end").value = schedule.end;
     document.getElementById("chk-always-off").checked = schedule.alwaysOff;
     document.getElementById("wake-duration-select").value = String(schedule.wakeDuration);
+
+    // Toujours afficher le dashboard au démarrage, même si le lancement a lieu
+    // hors de la plage horaire ou en mode « toujours éteint ». La veille auto
+    // reprendra après la durée d'inactivité configurée.
+    nightModeSnoozeUntil = Date.now() + (schedule.wakeDuration * 1000);
     checkDisplaySchedule();
 }
 
@@ -291,6 +296,7 @@ function isWithinSchedule(schedule) {
 async function requestWakeLock() {
     try {
         if (!("wakeLock" in navigator)) return;
+        if (wakeLock) return;
         wakeLock = await navigator.wakeLock.request("screen");
     } catch (err) {
         console.error("Wake Lock indisponible :", err);
@@ -364,6 +370,29 @@ function wakeFromNightMode() {
     nightModeSnoozeUntil = Date.now() + (schedule.wakeDuration * 1000);
     checkDisplaySchedule();
 }
+
+let lastDisplayActivityRefresh = 0;
+
+function keepDisplayAwakeWhileUsing() {
+    const now = Date.now();
+    // Les événements pointermove peuvent être très fréquents : une mise à jour
+    // par seconde suffit pour repousser la veille sans charger la tablette.
+    if (now - lastDisplayActivityRefresh < 1000) return;
+    lastDisplayActivityRefresh = now;
+
+    const schedule = getDisplaySchedule();
+    const needsInactivityTimer = schedule.alwaysOff || (schedule.enabled && !isWithinSchedule(schedule));
+    if (!needsInactivityTimer) return;
+
+    nightModeSnoozeUntil = now + (schedule.wakeDuration * 1000);
+    checkDisplaySchedule();
+}
+
+// Toute interaction réelle repousse la veille. Le mouvement du doigt/souris
+// est inclus pour éviter une extinction pendant un réglage ou un déplacement.
+["pointerdown", "pointermove", "touchstart", "keydown", "wheel"].forEach(eventName => {
+    document.addEventListener(eventName, keepDisplayAwakeWhileUsing, { passive: true });
+});
 
 // Le Wake Lock se relâche automatiquement si l'onglet passe en arrière-plan ;
 // on le redemande dès qu'il redevient visible, s'il doit être allumé.
@@ -2683,6 +2712,9 @@ document.querySelectorAll("[data-plan-tab]").forEach(button => {
 });
 
 function renderRooms() {
+    renderBatteryOutletSelect();
+    renderBatteryOutletStatus();
+    evaluateBatteryOutletAutomation();
     // Le polling Home Assistant appelle cette fonction toutes les 5 secondes.
     // En mode édition, ne pas recréer le panneau : remplacer l'input ferait
     // perdre le focus et fermerait le clavier virtuel pendant le renommage.
@@ -2833,6 +2865,166 @@ function renderBatteryLevelSvg(level, charging = false) {
     `;
 }
 
+const BATTERY_OUTLET_AUTOMATION_KEY = "batteryOutletAutomationV1";
+let localDeviceBatteryLevel = null;
+let batteryOutletCommandPending = false;
+let batteryOutletLastCommandAt = 0;
+
+function getBatteryOutletSettings() {
+    return storageGet(BATTERY_OUTLET_AUTOMATION_KEY, {
+        enabled: false,
+        entityId: "",
+        lowThreshold: 20,
+        highThreshold: 80
+    });
+}
+
+function initBatteryOutletAutomationUI() {
+    const settingsPage = document.getElementById("settings");
+    if (!settingsPage || document.getElementById("battery-outlet-automation")) return;
+
+    const section = document.createElement("section");
+    section.id = "battery-outlet-automation";
+    section.className = "weather-card battery-outlet-card";
+    section.innerHTML = `
+        <div class="battery-outlet-heading">
+            <div>
+                <h2>Charge automatique de cet appareil</h2>
+                <p>Commande une prise connectée selon le niveau de batterie de cette tablette.</p>
+            </div>
+            <label class="switch" aria-label="Activer la charge automatique">
+                <input type="checkbox" id="battery-outlet-enabled">
+                <span class="slider"></span>
+            </label>
+        </div>
+        <label class="battery-outlet-field" for="battery-outlet-search">Rechercher une prise connectée</label>
+        <input id="battery-outlet-search" class="battery-outlet-input" type="search" placeholder="Nom de la prise…" autocomplete="off">
+        <select id="battery-outlet-entity" class="battery-outlet-select">
+            <option value="">Détection des prises Home Assistant…</option>
+        </select>
+        <div class="battery-outlet-thresholds">
+            <label class="battery-outlet-field">Allumer à
+                <div class="battery-outlet-number"><input id="battery-outlet-low" type="number" min="5" max="90" step="1"><span>%</span></div>
+            </label>
+            <label class="battery-outlet-field">Éteindre à
+                <div class="battery-outlet-number"><input id="battery-outlet-high" type="number" min="10" max="100" step="1"><span>%</span></div>
+            </label>
+        </div>
+        <div id="battery-outlet-status" class="battery-outlet-status" aria-live="polite"></div>
+    `;
+    settingsPage.appendChild(section);
+
+    const saved = getBatteryOutletSettings();
+    document.getElementById("battery-outlet-enabled").checked = Boolean(saved.enabled);
+    document.getElementById("battery-outlet-low").value = saved.lowThreshold;
+    document.getElementById("battery-outlet-high").value = saved.highThreshold;
+
+    section.querySelectorAll("input, select").forEach(control => {
+        control.addEventListener("change", saveBatteryOutletSettings);
+    });
+    document.getElementById("battery-outlet-search").addEventListener("input", renderBatteryOutletSelect);
+    renderBatteryOutletSelect();
+    renderBatteryOutletStatus();
+}
+
+function getDetectedOutletEntities() {
+    return Object.values(haStatesFull)
+        .filter(entity => {
+            const domain = entity.entity_id.split(".")[0];
+            return domain === "switch" || entity.attributes?.device_class === "outlet";
+        })
+        .map(entity => ({
+            entityId: entity.entity_id,
+            name: entity.attributes?.friendly_name || entity.entity_id,
+            state: entity.state
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name, "fr"));
+}
+
+function renderBatteryOutletSelect() {
+    const select = document.getElementById("battery-outlet-entity");
+    if (!select) return;
+    const saved = getBatteryOutletSettings();
+    const search = (document.getElementById("battery-outlet-search")?.value || "").trim().toLowerCase();
+    const outlets = getDetectedOutletEntities().filter(outlet =>
+        !search || outlet.name.toLowerCase().includes(search) || outlet.entityId.toLowerCase().includes(search)
+    );
+    const currentValue = select.value || saved.entityId;
+    select.innerHTML = `<option value="">Choisir une prise…</option>${outlets.map(outlet =>
+        `<option value="${planEscape(outlet.entityId)}">${planEscape(outlet.name)} · ${planEscape(outlet.state)}</option>`
+    ).join("")}`;
+    if ([...select.options].some(option => option.value === currentValue)) select.value = currentValue;
+}
+
+function saveBatteryOutletSettings() {
+    const enabled = document.getElementById("battery-outlet-enabled")?.checked || false;
+    const entityId = document.getElementById("battery-outlet-entity")?.value || "";
+    const lowThreshold = Math.max(5, Math.min(90, Number(document.getElementById("battery-outlet-low")?.value) || 20));
+    const highThreshold = Math.max(10, Math.min(100, Number(document.getElementById("battery-outlet-high")?.value) || 80));
+    const status = document.getElementById("battery-outlet-status");
+
+    if (lowThreshold >= highThreshold) {
+        status.textContent = "Le seuil d’allumage doit être inférieur au seuil d’extinction.";
+        status.classList.add("error");
+        return;
+    }
+
+    storageSet(BATTERY_OUTLET_AUTOMATION_KEY, { enabled, entityId, lowThreshold, highThreshold });
+    status.classList.remove("error");
+    renderBatteryOutletStatus();
+    evaluateBatteryOutletAutomation();
+}
+
+function renderBatteryOutletStatus(message = "") {
+    const status = document.getElementById("battery-outlet-status");
+    if (!status) return;
+    if (message) { status.textContent = message; return; }
+    const config = getBatteryOutletSettings();
+    if (!config.enabled) { status.textContent = "Automatisation désactivée."; return; }
+    if (!config.entityId) { status.textContent = "Sélectionnez une prise connectée."; return; }
+    const entity = haStatesFull[config.entityId];
+    const levelText = localDeviceBatteryLevel == null ? "batterie indisponible" : `${localDeviceBatteryLevel}%`;
+    status.textContent = `${entity?.attributes?.friendly_name || config.entityId} · ${entity?.state || "état inconnu"} · ${levelText}`;
+}
+
+async function evaluateBatteryOutletAutomation() {
+    const config = getBatteryOutletSettings();
+    if (!config.enabled || !config.entityId || localDeviceBatteryLevel == null || batteryOutletCommandPending) {
+        renderBatteryOutletStatus();
+        return;
+    }
+
+    const entity = haStatesFull[config.entityId];
+    const currentState = entity?.state;
+    let service = null;
+    if (localDeviceBatteryLevel <= config.lowThreshold && currentState !== "on") service = "turn_on";
+    if (localDeviceBatteryLevel >= config.highThreshold && currentState !== "off") service = "turn_off";
+    if (!service) { renderBatteryOutletStatus(); return; }
+
+    // Évite les commandes répétées pendant le délai de remontée d'état Home Assistant.
+    if (Date.now() - batteryOutletLastCommandAt < 30000) return;
+    batteryOutletCommandPending = true;
+    batteryOutletLastCommandAt = Date.now();
+    renderBatteryOutletStatus(service === "turn_on" ? "Allumage de la prise…" : "Extinction de la prise…");
+
+    try {
+        const response = await fetch(`${HA_CONFIG.url}/api/services/switch/${service}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ entity_id: config.entityId })
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        if (entity) entity.state = service === "turn_on" ? "on" : "off";
+        renderBatteryOutletStatus(service === "turn_on" ? "Prise allumée pour commencer la charge." : "Prise éteinte : seuil de charge atteint.");
+    } catch (error) {
+        console.error("Automatisation de la prise :", error);
+        renderBatteryOutletStatus("Impossible de commander la prise.");
+    } finally {
+        batteryOutletCommandPending = false;
+        setTimeout(haFetchStates, 700);
+    }
+}
+
 async function initLocalDeviceBattery() {
     const badge = document.getElementById("local-device-battery");
     if (!badge) return;
@@ -2848,6 +3040,7 @@ async function initLocalDeviceBattery() {
         const updateBadge = () => {
             const level = Math.round(battery.level * 100);
             const charging = battery.charging;
+            localDeviceBatteryLevel = level;
             badge.classList.toggle("low-battery", !charging && level <= BATTERY_THRESHOLD);
             badge.classList.toggle("charging", charging);
             badge.classList.remove("unavailable");
@@ -2856,6 +3049,8 @@ async function initLocalDeviceBattery() {
                 <span>${level}%${charging ? " · En charge" : ""}</span>
             `;
             badge.setAttribute("aria-label", `Batterie de cet appareil : ${level}%${charging ? ", en charge" : ""}`);
+            renderBatteryOutletStatus();
+            evaluateBatteryOutletAutomation();
         };
 
         updateBadge();
@@ -2869,6 +3064,7 @@ async function initLocalDeviceBattery() {
 }
 
 initLocalDeviceBattery();
+initBatteryOutletAutomationUI();
 
 function getPhones() {
     return storageGet("phones_config", []);
