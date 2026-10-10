@@ -475,6 +475,39 @@ body {
     grid-template-columns: minmax(0, 1.55fr) minmax(250px, .45fr);
 }
 
+.house-plan-scroll {
+    min-width: 0;
+    overflow: hidden;
+    border-radius: 24px;
+}
+
+.plan-view-layout.editing .house-plan-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 10px;
+    scrollbar-color: #66758b #172235;
+    scrollbar-width: auto;
+}
+
+.plan-view-layout.editing .house-plan-scroll::-webkit-scrollbar {
+    height: 13px;
+}
+
+.plan-view-layout.editing .house-plan-scroll::-webkit-scrollbar-track {
+    border-radius: 999px;
+    background: #172235;
+}
+
+.plan-view-layout.editing .house-plan-scroll::-webkit-scrollbar-thumb {
+    border: 3px solid #172235;
+    border-radius: 999px;
+    background: #66758b;
+}
+
+.plan-view-layout.editing .house-plan {
+    min-width: 900px;
+}
+
 .house-plan {
     position: relative;
     height: 520px;
@@ -3250,4 +3283,12 @@ body {
     .infotrafic-row-date {
         display: none;
     }
+}
+/* Prévisions météo : cartes vitrées sans image de fond. */
+.forecast-item {
+    background: rgba(17, 24, 39, 0.34) !important;
+    background-image: none !important;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    -webkit-backdrop-filter: blur(14px) saturate(125%);
+    backdrop-filter: blur(14px) saturate(125%);
 }

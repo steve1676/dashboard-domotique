@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Domotique</title>
-    <link rel="stylesheet" href="style.css?v=20260831-2">
+    <link rel="stylesheet" href="style.css?v=20261010-1">
 </head>
 
 <body>
@@ -194,7 +194,9 @@
     <div id="ha-status" class="transport-error" style="display:none;"></div>
 
     <div id="rooms-container" class="plan-view-layout">
-        <div id="house-plan" class="house-plan" aria-label="Plan de la maison"></div>
+        <div class="house-plan-scroll">
+            <div id="house-plan" class="house-plan" aria-label="Plan de la maison"></div>
+        </div>
         <aside id="plan-editor-panel" class="plan-editor-panel" hidden>
             <div class="plan-editor-tabs" role="tablist">
                 <button type="button" data-plan-tab="rooms" class="active">Pièces</button>
@@ -578,7 +580,7 @@
 
 <!-- Dézippage du GTFS Naolib dans le navigateur (ordre réel des arrêts) -->
 <script src="https://cdn.jsdelivr.net/npm/fflate@0.8.3/umd/index.js"></script>
-<script src="script.js?v=20260831-3"></script>
+<script src="script.js?v=20260831-4"></script>
 
 </body>
 </html>
