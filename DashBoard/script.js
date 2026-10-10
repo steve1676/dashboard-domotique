@@ -2820,6 +2820,19 @@ const BATTERY_THRESHOLD = 15;
 
 // Batterie de l'appareil qui exécute directement le dashboard (tablette, PC…).
 // L'API est mise à jour par événements : aucun polling supplémentaire.
+function renderBatteryLevelSvg(level, charging = false) {
+    const safeLevel = Math.max(0, Math.min(100, Math.round(level)));
+    const fillWidth = 14 * safeLevel / 100;
+    return `
+        <svg class="battery-level-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <rect class="battery-level-outline" x="2.5" y="6" width="17" height="12" rx="2.5"></rect>
+            <path class="battery-level-terminal" d="M21 10v4"></path>
+            <rect class="battery-level-fill" x="4" y="7.5" width="${fillWidth}" height="9" rx="1.5"></rect>
+            ${charging ? '<path class="battery-level-bolt" d="M12 7.5l-3 5h3l-1 4 4-6h-3z"></path>' : ''}
+        </svg>
+    `;
+}
+
 async function initLocalDeviceBattery() {
     const badge = document.getElementById("local-device-battery");
     if (!badge) return;
@@ -2839,11 +2852,7 @@ async function initLocalDeviceBattery() {
             badge.classList.toggle("charging", charging);
             badge.classList.remove("unavailable");
             badge.innerHTML = `
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <rect x="3" y="6" width="16" height="12" rx="2"></rect>
-                    <path d="M21 10v4"></path>
-                    ${charging ? '<path d="M11 8l-3 5h3l-1 3 4-6h-3z"></path>' : ''}
-                </svg>
+                ${renderBatteryLevelSvg(level, charging)}
                 <span>${level}%${charging ? " · En charge" : ""}</span>
             `;
             badge.setAttribute("aria-label", `Batterie de cet appareil : ${level}%${charging ? ", en charge" : ""}`);

@@ -3319,6 +3319,24 @@ body {
     stroke-linejoin: round;
 }
 
+.battery-level-icon .battery-level-fill {
+    fill: currentColor;
+    stroke: none;
+    opacity: .85;
+    transition: width .35s ease;
+}
+
+.battery-level-icon .battery-level-outline,
+.battery-level-icon .battery-level-terminal {
+    fill: none;
+    stroke: currentColor;
+}
+
+.battery-level-icon .battery-level-bolt {
+    fill: #111827;
+    stroke: #111827;
+}
+
 .settings-device-battery.charging {
     background: rgba(34, 197, 94, .2);
     color: #86efac;
