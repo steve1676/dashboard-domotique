@@ -2683,6 +2683,13 @@ document.querySelectorAll("[data-plan-tab]").forEach(button => {
 });
 
 function renderRooms() {
+    // Le polling Home Assistant appelle cette fonction toutes les 5 secondes.
+    // En mode édition, ne pas recréer le panneau : remplacer l'input ferait
+    // perdre le focus et fermerait le clavier virtuel pendant le renommage.
+    if (planEditMode) {
+        planRenderDeviceCards();
+        return;
+    }
     planRenderAll();
 }
 
@@ -2810,6 +2817,49 @@ haInterval = setInterval(haFetchStates, 5000);
 // ─── Batterie téléphones (via Home Assistant / app Companion) ───────────────
 
 const BATTERY_THRESHOLD = 15;
+
+// Batterie de l'appareil qui exécute directement le dashboard (tablette, PC…).
+// L'API est mise à jour par événements : aucun polling supplémentaire.
+async function initLocalDeviceBattery() {
+    const badge = document.getElementById("local-device-battery");
+    if (!badge) return;
+
+    if (typeof navigator.getBattery !== "function") {
+        badge.classList.add("unavailable");
+        badge.textContent = "Batterie de cet appareil : indisponible";
+        return;
+    }
+
+    try {
+        const battery = await navigator.getBattery();
+        const updateBadge = () => {
+            const level = Math.round(battery.level * 100);
+            const charging = battery.charging;
+            badge.classList.toggle("low-battery", !charging && level <= BATTERY_THRESHOLD);
+            badge.classList.toggle("charging", charging);
+            badge.classList.remove("unavailable");
+            badge.innerHTML = `
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="3" y="6" width="16" height="12" rx="2"></rect>
+                    <path d="M21 10v4"></path>
+                    ${charging ? '<path d="M11 8l-3 5h3l-1 3 4-6h-3z"></path>' : ''}
+                </svg>
+                <span>${level}%${charging ? " · En charge" : ""}</span>
+            `;
+            badge.setAttribute("aria-label", `Batterie de cet appareil : ${level}%${charging ? ", en charge" : ""}`);
+        };
+
+        updateBadge();
+        battery.addEventListener("levelchange", updateBadge);
+        battery.addEventListener("chargingchange", updateBadge);
+    } catch (error) {
+        console.warn("Batterie locale indisponible :", error);
+        badge.classList.add("unavailable");
+        badge.textContent = "Batterie de cet appareil : indisponible";
+    }
+}
+
+initLocalDeviceBattery();
 
 function getPhones() {
     return storageGet("phones_config", []);

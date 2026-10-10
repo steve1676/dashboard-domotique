@@ -3292,3 +3292,47 @@ body {
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
 }
+#settings {
+    position: relative;
+}
+
+.settings-device-battery {
+    position: absolute;
+    top: 42px;
+    right: 40px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 45%;
+    margin: 0;
+    font-size: .92rem;
+}
+
+.settings-device-battery svg {
+    flex: 0 0 auto;
+    width: 21px;
+    height: 21px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.settings-device-battery.charging {
+    background: rgba(34, 197, 94, .2);
+    color: #86efac;
+}
+
+.settings-device-battery.unavailable {
+    color: #94a3b8;
+}
+
+@media (max-width: 650px) {
+    .settings-device-battery {
+        position: static;
+        max-width: 100%;
+        width: fit-content;
+        margin: 14px 0 4px;
+    }
+}

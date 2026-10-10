@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Domotique</title>
-    <link rel="stylesheet" href="style.css?v=20261010-2">
+    <link rel="stylesheet" href="style.css?v=20261010-3">
 </head>
 
 <body>
@@ -235,6 +235,9 @@
 
 <!-- ── Page Paramètres ── -->
 <div id="settings" class="page container" style="display:none;">
+    <div id="local-device-battery" class="battery-badge settings-device-battery" aria-live="polite">
+        Batterie de cet appareil : détection…
+    </div>
     <h1><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-inline-title"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg> Paramètres</h1>
     <p>Configuration du dashboard.</p>
     <div class="weather-card" style="margin-top: 30px;">
@@ -580,7 +583,7 @@
 
 <!-- Dézippage du GTFS Naolib dans le navigateur (ordre réel des arrêts) -->
 <script src="https://cdn.jsdelivr.net/npm/fflate@0.8.3/umd/index.js"></script>
-<script src="script.js?v=20260831-4"></script>
+<script src="script.js?v=20261010-3"></script>
 
 </body>
 </html>
