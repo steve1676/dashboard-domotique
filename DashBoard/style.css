@@ -3286,9 +3286,9 @@ body {
 }
 /* Prévisions météo : cartes vitrées sans image de fond. */
 .forecast-item {
-    background: rgba(17, 24, 39, 0.34) !important;
+    background: linear-gradient(145deg, rgba(31, 41, 55, 0.82), rgba(17, 24, 39, 0.72)) !important;
     background-image: none !important;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    -webkit-backdrop-filter: blur(14px) saturate(125%);
-    backdrop-filter: blur(14px) saturate(125%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
 }
