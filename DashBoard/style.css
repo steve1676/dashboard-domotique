@@ -3354,3 +3354,123 @@ body {
         margin: 14px 0 4px;
     }
 }
+.battery-outlet-card {
+    margin-top: 30px;
+    cursor: default;
+}
+
+.battery-outlet-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 20px;
+}
+
+.battery-outlet-heading h2 {
+    margin: 0 0 6px;
+}
+
+.battery-outlet-heading p {
+    margin: 0;
+    color: #94a3b8;
+    font-size: .9rem;
+}
+
+.battery-outlet-field {
+    display: block;
+    color: #cbd5e1;
+    font-size: .86rem;
+}
+
+.battery-outlet-input,
+.battery-outlet-select,
+.battery-outlet-number input {
+    width: 100%;
+    border: 1px solid #3b4a61;
+    border-radius: 11px;
+    background: #111827;
+    color: #fff;
+    font: inherit;
+}
+
+.battery-outlet-input,
+.battery-outlet-select {
+    min-height: 46px;
+    margin-top: 7px;
+    padding: 10px 12px;
+}
+
+.battery-outlet-select {
+    margin-top: 9px;
+}
+
+.battery-outlet-thresholds {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.battery-outlet-number {
+    position: relative;
+    margin-top: 7px;
+}
+
+.battery-outlet-number input {
+    min-height: 46px;
+    padding: 10px 38px 10px 12px;
+}
+
+.battery-outlet-number span {
+    position: absolute;
+    top: 50%;
+    right: 13px;
+    color: #94a3b8;
+    transform: translateY(-50%);
+}
+
+.battery-outlet-status {
+    min-height: 20px;
+    margin-top: 15px;
+    color: #94a3b8;
+    font-size: .84rem;
+}
+
+.battery-outlet-status.error {
+    color: #fca5a5;
+}
+
+@media (max-width: 560px) {
+    .battery-outlet-heading { align-items: center; }
+    .battery-outlet-thresholds { grid-template-columns: 1fr; }
+}
+
+/* Paramètres : navigation latérale et panneau arrondi. */
+.settings-header { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:28px; }
+.settings-header h1 { font-size:clamp(1.7rem, 4vw, 2.6rem); margin:0; }
+#settings .settings-device-battery { position:static; flex-shrink:0; width:auto; max-width:none; margin:0; border:2px solid #64748b; border-radius:10px; padding:6px 12px; }
+.settings-layout { display:grid; grid-template-columns:145px minmax(0,1fr); align-items:start; }
+.settings-tabs { display:flex; flex-direction:column; padding-top:16px; }
+.settings-tabs button { color:#94a3b8; background:#192334; border:1px solid #374151; border-right:0; border-radius:16px 0 0 16px; padding:18px 52px 18px 16px; margin-right:-36px; position:relative; z-index:0; font:inherit; font-weight:700; text-align:left; cursor:pointer; margin-bottom:6px; min-height:56px; }
+.settings-tabs button[aria-selected="true"] { color:#fff; background:#263449; box-shadow:inset 4px 0 #60a5fa; }
+.settings-tabs button:focus-visible { outline:2px solid #93c5fd; outline-offset:-4px; }
+.settings-content { position:relative; z-index:1; background:#192334; border:1px solid #374151; border-radius:36px; padding:28px; min-height:560px; min-width:0; }
+.settings-content [hidden] { display:none !important; }
+#settings .settings-content .weather-card { margin:0 !important; padding:0; background:transparent; border:0; border-radius:0; box-shadow:none; cursor:default; }
+#settings .settings-content .weather-card + .weather-card { margin-top:30px !important; padding-top:26px; border-top:0; }
+.settings-content h2 { font-size:1.2rem; }
+.settings-content .phones-title { margin-bottom:20px; }
+.settings-content .phone-add-row > * { min-width:0; }
+.settings-content input, .settings-content select { max-width:100%; }
+@media(max-width:650px) {
+    .settings-header { gap:8px; margin-bottom:22px; }
+    #settings .settings-device-battery { padding:6px 8px; font-size:.85rem; gap:4px; }
+    .settings-layout { grid-template-columns:100px minmax(0,1fr); }
+    .settings-tabs button { padding:16px 36px 16px 10px; margin-right:-26px; font-size:.88rem; }
+    .settings-content { padding:22px 16px; border-radius:26px; min-height:540px; }
+    .settings-content .phone-add-row { flex-direction:column; align-items:stretch; }
+    .settings-content .phone-add-row > div { min-width:0 !important; }
+    .settings-content .battery-outlet-heading { flex-wrap:wrap; }
+    .settings-content .battery-outlet-thresholds { grid-template-columns:1fr; }
+}

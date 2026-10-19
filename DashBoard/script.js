@@ -2912,7 +2912,7 @@ function initBatteryOutletAutomationUI() {
         </div>
         <div id="battery-outlet-status" class="battery-outlet-status" aria-live="polite"></div>
     `;
-    settingsPage.appendChild(section);
+    document.getElementById("settings-general").appendChild(section);
 
     const saved = getBatteryOutletSettings();
     document.getElementById("battery-outlet-enabled").checked = Boolean(saved.enabled);
@@ -3031,7 +3031,8 @@ async function initLocalDeviceBattery() {
 
     if (typeof navigator.getBattery !== "function") {
         badge.classList.add("unavailable");
-        badge.textContent = "Batterie de cet appareil : indisponible";
+        badge.textContent = "— %";
+        badge.setAttribute("aria-label", "Batterie de cet appareil : indisponible");
         return;
     }
 
@@ -3046,7 +3047,7 @@ async function initLocalDeviceBattery() {
             badge.classList.remove("unavailable");
             badge.innerHTML = `
                 ${renderBatteryLevelSvg(level, charging)}
-                <span>${level}%${charging ? " · En charge" : ""}</span>
+                <span>${level}%</span>
             `;
             badge.setAttribute("aria-label", `Batterie de cet appareil : ${level}%${charging ? ", en charge" : ""}`);
             renderBatteryOutletStatus();
@@ -3059,7 +3060,8 @@ async function initLocalDeviceBattery() {
     } catch (error) {
         console.warn("Batterie locale indisponible :", error);
         badge.classList.add("unavailable");
-        badge.textContent = "Batterie de cet appareil : indisponible";
+        badge.textContent = "— %";
+        badge.setAttribute("aria-label", "Batterie de cet appareil : indisponible");
     }
 }
 
@@ -5082,3 +5084,23 @@ startMirror = function () {
     if (swapMode) return;
     _startMirror();
 };
+
+// Navigation des catégories de paramètres, y compris au clavier.
+function selectSettingsTab(category) {
+    document.querySelectorAll('.settings-tabs [role="tab"]').forEach(tab => {
+        const selected = tab.id === `settings-tab-${category}`;
+        tab.setAttribute('aria-selected', String(selected));
+        tab.tabIndex = selected ? 0 : -1;
+        document.getElementById(tab.getAttribute('aria-controls')).hidden = !selected;
+    });
+}
+document.querySelector('.settings-tabs').addEventListener('keydown', event => {
+    const tabs = Array.from(document.querySelectorAll('.settings-tabs [role="tab"]'));
+    const index = tabs.indexOf(event.target);
+    if (index < 0 || !['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 :
+        (index + (event.key === 'ArrowDown' ? 1 : -1) + tabs.length) % tabs.length;
+    tabs[next].click();
+    tabs[next].focus();
+});
