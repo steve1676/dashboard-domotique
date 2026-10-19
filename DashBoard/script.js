@@ -71,6 +71,9 @@ function openWidgetModal(section) {
     document.querySelectorAll('.widget-modal-section').forEach(el => el.classList.remove('visible'));
     document.getElementById('modal-' + section).classList.add('visible');
     document.getElementById('widgetModal').classList.add('visible');
+    document.getElementById('widgetModal').classList.toggle('atmosphere-modal', section === 'meteo');
+    if (section === 'meteo') { atmosphereView = 'hours'; atmosphereSelection = 0; renderAtmosphere(); }
+    document.getElementById('mainModalClose').focus();
 
     if (section === 'transport') {
         showTransportView('home');
@@ -81,24 +84,15 @@ function openWidgetModal(section) {
 }
 
 function closeWidgetModal() {
-    document.getElementById('widgetModal').classList.remove('visible');
+    const overlay = document.getElementById('widgetModal');
+    const wasWeather = overlay.classList.contains('atmosphere-modal');
+    overlay.classList.remove('visible', 'atmosphere-modal');
+    if (wasWeather) document.getElementById('widget-meteo').focus();
 }
 
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeWidgetModal();
 });
-
-function getWeatherIcon(code, hour = new Date().getHours()) {
-    const isNight = hour < 7 || hour >= 21;
-
-    if ([0].includes(code))                         return isNight ? "🌕" : "☀️";
-    if ([1, 2, 3].includes(code))                   return isNight ? "☁️" : "⛅";
-    if ([45, 48].includes(code))                    return "🌫️";
-    if ([51, 53, 55, 61, 63, 65].includes(code))    return "🌧️";
-    if ([71, 73, 75, 77].includes(code))            return "❄️";
-    if ([95, 96, 99].includes(code))                return "⛈️";
-    return "☁️";
-}
 
 async function getWeather(lat, lon) {
     const loader  = document.getElementById("weather-loader");
@@ -109,53 +103,16 @@ async function getWeather(lat, lon) {
 
     try {
         const response = await fetch(
-            `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code&hourly=temperature_2m,weather_code`
+            `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,is_day&hourly=temperature_2m,weather_code,apparent_temperature,precipitation_probability,wind_speed_10m,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,sunset,precipitation_probability_max,wind_speed_10m_max&timezone=auto&forecast_days=4`
         );
+        if (!response.ok) throw new Error("Prévisions indisponibles");
         const data = await response.json();
 
-        const tempText = Math.round(data.current.temperature_2m) + "°C";
-        const iconText = getWeatherIcon(data.current.weather_code);
-
-        document.getElementById("temp").textContent      = tempText;
-        document.getElementById("tempModal").textContent = tempText;
-        document.getElementById("feels").textContent     = Math.round(data.current.apparent_temperature);
-        document.getElementById("humidity").textContent  = data.current.relative_humidity_2m;
-        document.getElementById("weatherIcon").textContent      = iconText;
-        document.getElementById("weatherIconModal").textContent = iconText;
-        applyWeatherBackground(data.current.weather_code);
-
-        const forecastContainer = document.getElementById("forecast");
-        const currentHour = new Date().getHours();
-
-        const totalHours = data.hourly.temperature_2m.length;
-        const maxHours = Math.min(totalHours, currentHour + 24);
-        // On construit le HTML dans une simple chaîne, puis on l'injecte une
-        // seule fois — "innerHTML +=" dans une boucle reconstruit et
-        // reparse TOUT le contenu déjà généré à chaque itération (au lieu
-        // de juste ajouter le nouvel élément), ce qui devient très lourd
-        // sur du matériel faible avec 24 itérations et une image de fond
-        // par élément.
-        let forecastHtml = "";
-        for (let i = 1; currentHour + i < maxHours; i++) {
-            const hour = (currentHour + i) % 24;
-            const temp = Math.round(data.hourly.temperature_2m[currentHour + i]);
-            const hCode = data.hourly.weather_code[currentHour + i];
-            const hIcon = getWeatherIcon(hCode, hour);
-            const hBg   = getWeatherImage(hCode, hour);
-            const dayMark = hour === 0 ? `<div class="forecast-day">demain</div>` : "";
-            forecastHtml += `
-                <div class="forecast-item" style="background-image:url('${hBg}')">
-                    ${dayMark}
-                    <div class="forecast-hour">${hour}h</div>
-                    <div class="forecast-icon">${hIcon}</div>
-                    <div class="forecast-temp">${temp}°</div>
-                </div>`;
-        }
-        forecastContainer.innerHTML = forecastHtml;
+        updateAtmosphere(data);
 
     } catch (err) {
         console.error("Météo :", err);
-        document.getElementById("temp").textContent = "⚠️";
+        document.getElementById("atmo-widget-label").textContent = atmosphereData ? "Dernières prévisions conservées" : "Météo indisponible";
 
     } finally {
         loader.classList.remove("visible");
@@ -197,10 +154,11 @@ async function updateLocation(latitude, longitude) {
 
     getWeather(latitude, longitude);
 
-    const cityEl = document.getElementById("city");
+    const cityEl = document.getElementById("atmo-city");
     cityEl.textContent = " Localisation...";
     const name = await getCityName(latitude, longitude);
     cityEl.textContent =  name;
+    document.getElementById("atmo-widget-city").textContent = name;
 
     // Rafraîchit la météo toutes les 10 min pour la même position
     clearInterval(weatherInterval);
@@ -216,7 +174,8 @@ navigator.geolocation.getCurrentPosition(
     error => {
         console.error(error);
         getWeather(47.2172, -1.5534);
-        document.getElementById("city").textContent = "Nantes";
+        document.getElementById("atmo-city").textContent = "Nantes";
+        document.getElementById("atmo-widget-city").textContent = "Nantes";
     },
     { enableHighAccuracy: false, maximumAge: 30 * 60000, timeout: 10000 }
 );
@@ -4801,71 +4760,6 @@ updateChromecast();
 
 // ─── Fond dynamique météo ────────────────────────────────────────────────────
 // Images Unsplash : libres de droits, sans restriction de hotlink
-
-const WEATHER_IMAGES = {
-    "clear-day":    "weather-images/clear-day.jpg",
-    "clear-night":  "weather-images/clear-night.jpg",
-    "partly-day":   "weather-images/partly-day.jpg",
-    "partly-night": "weather-images/partly-night.jpg",
-    "cloudy-day":   "weather-images/cloudy-day.jpg",
-    "cloudy-night": "weather-images/cloudy-night.jpg",
-    "fog-day":      "weather-images/fog-day.jpg",
-    "fog-night":    "weather-images/fog-night.jpg",
-    "drizzle-day":  "weather-images/drizzle-day.jpg",
-    "drizzle-night":"weather-images/drizzle-night.jpg",
-    "rain-day":     "weather-images/rain-day.jpg",
-    "rain-night":   "weather-images/rain-night.jpg",
-    "snow-day":     "weather-images/snow-day.jpg",
-    "snow-night":   "weather-images/snow-night.jpg",
-    "storm":        "weather-images/storm.jpg",
-};
-
-function getWeatherImage(code, hour = new Date().getHours()) {
-    const isNight = hour < 7 || hour >= 21;
-    const t = isNight ? "night" : "day";
-
-    if (code === 0)
-        return WEATHER_IMAGES["clear-" + t];
-    if ([1, 2].includes(code))
-        return WEATHER_IMAGES["partly-" + t];
-    if (code === 3)
-        return WEATHER_IMAGES["cloudy-" + t];
-    if ([45, 48].includes(code))
-        return WEATHER_IMAGES["fog-" + t];
-    if ([51, 53, 55].includes(code))
-        return WEATHER_IMAGES["drizzle-" + t];
-    if ([61, 63, 65].includes(code))
-        return WEATHER_IMAGES["rain-" + t];
-    if ([71, 73, 75, 77].includes(code))
-        return WEATHER_IMAGES["snow-" + t];
-    if ([95, 96, 99].includes(code))
-        return WEATHER_IMAGES["storm"];
-
-    return WEATHER_IMAGES["cloudy-" + t];
-}
-
-function applyWeatherBackground(code) {
-    const card  = document.getElementById("widget-meteo");
-    const modal = document.getElementById("modal-meteo");
-    const url   = getWeatherImage(code);
-
-    const img = new Image();
-    img.onload = () => {
-        [card, modal].forEach(el => {
-            el.style.backgroundImage    = "url('" + url + "')";
-            el.style.backgroundSize     = "cover";
-            el.style.backgroundPosition = "center";
-            el.style.animation          = "none";
-        });
-    };
-    img.onerror = () => {
-        [card, modal].forEach(el => {
-            el.style.backgroundImage = "none";
-            el.style.background      = "#1f2937";
-        });
-    };
-    img.src = url;
-}
 
 //--------Favorits--------------------------------------------------------------
 

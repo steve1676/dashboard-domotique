@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Domotique</title>
-    <link rel="stylesheet" href="style.css?v=20261010-6">
+    <link rel="stylesheet" href="style.css?v=20261019-atmosphere-10">
 </head>
 
 <body>
@@ -25,22 +25,18 @@
     <div class="top-row">
 
         <!-- Météo -->
-        <div id="widget-meteo" class="weather-card reorder-widget" data-widget="meteo" onclick="openWidgetModal('meteo')">
-
-            <div id="weather-loader" class="weather-loader-wrap">
-                <span class="loader"></span>
-            </div>
-
+        <div id="widget-meteo" class="weather-card reorder-widget" data-widget="meteo" data-atmosphere="sun" role="button" tabindex="0" aria-label="Ouvrir les prévisions météo" aria-haspopup="dialog" onclick="openWidgetModal('meteo')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openWidgetModal('meteo');}">
+            <div id="weather-loader" class="weather-loader-wrap"><span class="loader"></span></div>
             <div id="weather-content" class="weather-content loading">
-
-                <!-- Toujours visible -->
-                <div class="main-weather">
-                    <div id="weatherIcon" class="weather-icon">☀️</div>
-                    <div id="temp" class="temperature">--</div>
+                <span id="atmo-widget-city" hidden>Votre météo</span>
+                <div class="atmo-main">
+                    <div class="atmo-widget-current">
+                        <div class="atmo-widget-reading"><div id="atmo-widget-temp" class="temperature">—</div><h2 id="atmo-widget-label">Chargement de la météo…</h2></div>
+                        <div class="atmo-widget-art" aria-hidden="true"><div class="atmo-sky"><div class="atmo-orb"></div><div class="atmo-cloud"></div><div class="atmo-drops">╱ ╱ ╱</div></div></div>
+                    </div>
+                    <div class="atmo-widget-footer"><span id="atmo-widget-feels">Ressenti —</span><span id="atmo-widget-limits">↓ — / ↑ —</span></div>
                 </div>
-
             </div>
-
         </div>
 
         <!-- Transports -->
@@ -377,25 +373,24 @@
     <div class="widget-modal">
         <button id="mainModalClose" class="widget-modal-close" onclick="closeWidgetModal()" aria-label="Fermer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-btn"><path d="M9.16998 14.83L14.83 9.17004"/><path d="M14.83 14.83L9.16998 9.17004"/><path d="M9 22H15C20 22 22 20 22 15V9C22 4 20 2 15 2H9C4 2 2 4 2 9V15C2 20 4 22 9 22Z"/></svg></button>
 
-        <!-- Détail Météo -->
-        <div id="modal-meteo" class="widget-modal-section">
-
-            <div class="main-weather" style="justify-content:center;">
-                <div id="weatherIconModal" class="weather-icon">☀️</div>
-                <div id="tempModal" class="temperature">--</div>
-            </div>
-
-            <div id="city" class="city" style="margin-top:20px;">
-                Localisation...
-            </div>
-
-            <div class="details">
-                <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-inline-sm"><path d="M10 13.5a4 4 0 1 0 4 0v-8.5a2 2 0 0 0 -4 0v8.5" /><path d="M10 9l4 0" /></svg> Ressenti : <span id="feels">--</span>°C</div>
-                <div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-inline-sm"><path d="M7.502 19.423c2.602 2.105 6.396 2.105 8.998 0c2.603 -2.105 3.324 -5.718 1.729 -8.633l-5.612 -9.15a1.199 1.199 0 0 0 -1.230 -.001l-5.615 9.151c-1.595 2.915 -.876 6.529 1.73 8.633z" /></svg> Humidité : <span id="humidity">--</span>%</div>
-            </div>
-
-            <div id="forecast" class="forecast"></div>
-
+        <!-- Prévisions Atmosphère -->
+        <div id="modal-meteo" class="widget-modal-section" role="dialog" aria-modal="true" aria-label="Prévisions météo Atmosphère">
+            <div id="atmo-popup" data-atmosphere="sun">                <header class="atmo-header"><span id="atmo-city">Votre météo</span></header>
+                <div class="atmo-sky" aria-hidden="true"><div class="atmo-orb"></div><div class="atmo-cloud"></div><div class="atmo-drops">╱ ╱ ╱</div></div>
+                <div class="atmo-main">
+                    <p id="atmo-caption">En ce moment</p>
+                    <div class="atmo-current"><div id="temp" class="temperature">—</div></div>
+                    <h2 id="atmo-label">Chargement de la météo…</h2>
+                    <p id="atmo-feels">Ressenti — · Min — / Max —</p>
+                </div>
+                <div class="atmo-tabs" aria-label="Période météo">
+                    <button type="button" data-atmo-view="hours" aria-pressed="true">Prochaines heures</button>
+                    <button type="button" data-atmo-view="days" aria-pressed="false">Sur 4 jours</button>
+                </div>
+                <div id="atmo-periods" class="atmo-periods"></div>
+                <p id="atmo-detail" class="atmo-detail" aria-live="polite"></p>
+                <div class="atmo-metrics"><div>Coucher du soleil<strong id="atmo-sunset">—</strong></div><div>Vent<strong id="atmo-wind">—</strong></div><div>Pluie<strong id="atmo-rain">—</strong></div></div>
+</div>
         </div>
 
         <!-- Détail Transport -->
@@ -593,7 +588,12 @@
 
 <!-- Dézippage du GTFS Naolib dans le navigateur (ordre réel des arrêts) -->
 <script src="https://cdn.jsdelivr.net/npm/fflate@0.8.3/umd/index.js"></script>
-<script src="script.js?v=20261010-7"></script>
+<script src="atmosphere.js?v=20261019-11"></script>
+<script src="script.js?v=20261019-atmosphere-2"></script>
 
 </body>
 </html>
+
+
+
+
