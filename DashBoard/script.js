@@ -2493,6 +2493,7 @@ function deviceHexToRgb(hex) {
 function openDeviceDetail(entityId) {
     if (!HA_DEVICES[entityId]) return;
     deviceDetailEntityId = entityId;
+    lightColorState = null;
     renderDeviceDetail();
     const modal = document.getElementById("deviceDetailModal");
     modal.classList.add("just-opened");
@@ -2536,13 +2537,13 @@ function renderDeviceDetail() {
     const brightnessControl = deviceSupportsBrightness(attrs)
         ? `<div class="device-control-card"><label class="device-control-label" for="device-brightness"><span>Intensité lumineuse</span><strong id="device-brightness-value">${brightness}%</strong></label><input id="device-brightness" class="device-brightness-slider" type="range" min="1" max="100" value="${brightness}" oninput="document.getElementById('device-brightness-value').textContent=this.value+'%'" onchange="deviceSetBrightness(this.value)"></div>`
         : "";
-    const colorControl = deviceSupportsColor(attrs)
-        ? `<div class="device-control-card device-color-row"><div><strong>Couleur</strong><div class="plan-editor-muted">Touchez la roue</div></div><input class="device-color-wheel" type="color" value="${deviceRgbToHex(attrs.rgb_color)}" onchange="deviceSetColor(this.value)" aria-label="Choisir la couleur"></div>`
+    const colorControl = deviceSupportsColor(attrs) || (attrs.supported_color_modes || []).includes("color_temp")
+        ? '<div id="device-inline-color"></div>'
         : "";
     const lightControls = domain === "light" ? `
         <div class="device-light-controls">
             <div class="device-rocker-wrap"><button class="device-rocker-switch ${on ? "active" : ""}" onclick="deviceDetailToggle()" aria-label="${on ? "Éteindre" : "Allumer"} ${planEscape(info.label)}"><span class="device-rocker-top"></span><span class="device-rocker-bottom"></span></button><span class="device-rocker-mark"></span></div>
-            ${(brightnessControl || colorControl) ? `<div class="device-light-settings">${brightnessControl}${colorControl}</div>` : ""}
+            ${(brightnessControl || colorControl) ? `<div class="device-light-settings">${colorControl || brightnessControl}</div>` : ""}
         </div>
     ` : `<div class="device-light-controls"><button class="device-main-switch ${on ? "active" : ""}" onclick="deviceDetailToggle()">${on ? "Activé" : "Désactivé"}</button></div>`;
 
@@ -2572,6 +2573,7 @@ function renderDeviceDetail() {
         ${lightControls}
         <div class="device-info-grid">${usefulInfo.map(([label, value]) => `<div class="device-info-item"><div class="device-info-label">${planEscape(label)}</div><div class="device-info-value">${planEscape(value)}</div></div>`).join("")}</div>
     `;
+    if (colorControl && domain === "light") mountLightColor();
 }
 
 function deviceDetailToggleFavorite() {

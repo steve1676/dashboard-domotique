@@ -1161,6 +1161,10 @@ body {
     cursor: pointer;
 }
 
+.device-color-row { color:inherit; font:inherit; text-align:left; cursor:pointer; width:100%; }
+.device-color-row .plan-editor-muted { display:block; }
+.device-color-preview { position:relative; display:block; flex-shrink:0; }
+.device-color-preview::after { content:""; position:absolute; inset:9px; border-radius:50%; background:var(--device-selected-color,#fff); }
 .device-color-wheel::-webkit-color-swatch-wrapper { padding: 9px; }
 .device-color-wheel::-webkit-color-swatch { border: 0; border-radius: 50%; }
 .device-color-wheel::-moz-color-swatch { border: 0; border-radius: 50%; }

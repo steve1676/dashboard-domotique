@@ -1,0 +1,39 @@
+#light-color-dialog{box-sizing:border-box;width:min(690px,calc(100% - 24px));max-height:calc(100dvh - 32px);overflow:auto;padding:28px;border:1px solid #2c4262;border-radius:28px;background:#1d2a3d;color:#f4f6ff;box-shadow:0 24px 80px #0008;font-family:inherit}
+#light-color-dialog::backdrop{background:#020817b8}
+#light-color-dialog *{box-sizing:border-box}
+#light-color-dialog [hidden]{display:none!important}
+.lc-header{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:24px}
+.lc-header h2{margin:0;font-family:Georgia,serif;font-size:30px;font-weight:400}
+.lc-header p{margin:6px 0 0;color:#b7c6dc}
+#light-color-dialog button{font:inherit;color:inherit;background:#ffffff0c;border:1px solid #ffffff26;border-radius:13px;padding:11px 15px;min-height:44px;cursor:pointer}
+#light-color-dialog .lc-close{font-size:26px;line-height:1;min-width:44px}
+.lc-layout{display:grid;grid-template-columns:1.2fr 1fr;gap:26px;align-items:center}
+.lc-wheel{position:relative;width:100%;aspect-ratio:1;touch-action:none}
+.lc-hue,.lc-temp{position:absolute;border-radius:50%;cursor:crosshair}
+.lc-hue{inset:0;background:conic-gradient(red,#ff0,#0f0,#0ff,#00f,#f0f,red);mask:radial-gradient(circle,transparent 56%,#000 56.5%)}
+.lc-temp{inset:19%;background:conic-gradient(#ffb535 0deg,#fff1c8 120deg,#eefaff 200deg,#6bc6ff 270deg,#6bc6ff 360deg);mask:radial-gradient(circle,transparent 51%,#000 52%)}
+.lc-dot{position:absolute;width:28px;height:28px;border:3px solid #fff;border-radius:50%;transform:translate(-50%,-50%);pointer-events:none;box-shadow:0 2px 12px #0008}
+.lc-temp-dot{background:#ffe1a1}
+.lc-core{position:absolute;inset:39%;border-radius:50%;background:var(--lc-color);box-shadow:0 0 40px var(--lc-color);opacity:var(--lc-intensity);pointer-events:none}
+.lc-controls{display:grid;gap:22px;min-width:0}
+.lc-controls label{display:block;color:#d6e1f5;font-size:14px}
+.lc-controls output{float:right;color:#fff;font-variant-numeric:tabular-nums}
+.lc-controls input{display:block;width:100%;margin:10px 0 0;min-height:28px;accent-color:#a580ff}
+#lc-temp{accent-color:#ffc66c}
+.lc-modes{display:flex;gap:8px;margin-top:24px}
+.lc-modes button{flex:1}
+#light-color-dialog button[aria-pressed=true]{background:#7441df;border-color:#a581ff}
+.lc-preview{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px;min-height:100px;margin-top:22px;padding:16px;border-radius:18px;background:radial-gradient(ellipse at 50% 0%,color-mix(in srgb,var(--lc-color) calc(var(--lc-intensity)*100%),transparent),transparent 75%),#060e1b;color:#d2dced;font-size:12px}
+#light-color-dialog button:focus-visible,#light-color-dialog input:focus-visible,.device-color-row:focus-visible{outline:3px solid #d6c1ff;outline-offset:4px}
+@media(max-width:520px){#light-color-dialog{padding:22px 18px}.lc-layout{grid-template-columns:1fr;gap:20px}.lc-wheel{max-width:270px;margin:auto}.lc-controls{gap:12px}.lc-modes{flex-wrap:wrap}.lc-preview{min-height:75px}}
+
+/* Panneau intégré dans la fiche de l’ampoule. */
+#light-color-dialog{width:100%;max-height:none;overflow:visible;margin:0;padding:20px;box-shadow:none;border-radius:20px}
+#device-inline-color{grid-column:1/-1;min-width:0}
+.device-light-settings:has(#device-inline-color){grid-template-columns:minmax(0,1fr)}
+#light-color-dialog .lc-header{margin-bottom:16px}
+#light-color-dialog .lc-header h2{font-size:24px}
+#light-color-dialog .lc-header p{display:none}
+#light-color-dialog .lc-layout{grid-template-columns:minmax(130px,1fr) minmax(120px,1fr);gap:18px}
+#light-color-dialog .lc-preview{min-height:70px}
+@media(max-width:540px){#light-color-dialog .lc-layout{grid-template-columns:1fr}#light-color-dialog{padding:16px}.lc-wheel{max-width:240px}}
