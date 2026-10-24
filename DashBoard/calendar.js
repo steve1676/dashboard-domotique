@@ -25,10 +25,11 @@ function calEventsFor(day) { return calendarState.events.filter(e => calOnDay(e,
 
 function calendarRender() {
     const now = new Date();
-    document.getElementById('calendar-today').textContent = calDate(now, {weekday:'short', day:'numeric', month:'long'});
     const upcoming = calendarState.events.filter(e => e.end > now).sort((a,b) => a.start-b.start);
     const next = upcoming[0];
-    document.getElementById('calendar-next').innerHTML = next ? `<span class="cal-pill">${calEscape(calDate(next.start,{weekday:'long',day:'numeric',month:'long'}))} · ${calEscape(next.allDay ? 'Toute la journée' : next.start.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}))}</span><h3 class="cal-hero">${calEscape(next.title)}</h3><p class="cal-muted">${calEscape(calTime(next))}${next.location ? ' · '+calEscape(next.location) : ''}</p>${upcoming[1] ? `<div class="cal-next-line"><span class="cal-muted">Ensuite · ${calEscape(calDate(upcoming[1].start,{day:'numeric',month:'short'}))} · ${calEscape(calTime(upcoming[1]))}</span><strong>${calEscape(upcoming[1].title)}</strong><span aria-hidden="true">→</span></div>` : ''}${calendarState.message ? `<p class="cal-muted">${calEscape(calendarState.message)}</p>` : ''}` : `<p class="cal-empty">${calEscape(calendarState.message || 'Aucun rendez-vous dans les 90 prochains jours.')}</p>`;
+    const dayLabel = date => +calDay(date)===+calDay(now) ? 'Aujourd’hui' : +calDay(date)===+calAdd(now,1) ? 'Demain' : calDate(date,{day:'numeric',month:'short'});
+    document.getElementById('calendar-today').textContent = next ? dayLabel(next.start) : 'Agenda';
+    document.getElementById('calendar-next').innerHTML = next ? `<p class="cal-widget-time">${calEscape(calTime(next))}</p><h3 class="cal-hero" title="${calEscape(next.title)}">${calEscape(next.title)}</h3>${next.location ? `<p class="cal-muted cal-widget-location" title="${calEscape(next.location)}">${calEscape(next.location)}</p>` : ''}<div class="cal-next-line"><span class="cal-muted">${upcoming[1] ? `Ensuite · ${calEscape(dayLabel(upcoming[1].start))} · ${calEscape(upcoming[1].allDay ? 'Toute la journée' : upcoming[1].start.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}))}` : 'Voir mon agenda'}</span><span aria-hidden="true">↗</span></div>${calendarState.message ? `<p class="cal-muted cal-widget-message">${calEscape(calendarState.message)}</p>` : ''}` : `<p class="cal-empty">${calEscape(calendarState.message || 'Aucun rendez-vous dans les 90 prochains jours.')}</p>`;
     const month = calendarState.view !== 'three';
     document.getElementById('cal-view-name').textContent = month ? 'Mois et rendez-vous' : 'Trois jours';
     const toggle = document.getElementById('cal-switch');
@@ -137,7 +138,7 @@ function calendarConnectionStatus(message) {
 }
 function calendarConfigure() {
     openWidgetModal('calendar-settings');
-    calendarIdentity().catch(error=>calendarConnectionStatus(error.message));
+    if (!window.dashboardAndroidCalendar) calendarIdentity().catch(error=>calendarConnectionStatus(error.message));
 }
 function calendarIdentity() {
     if(window.google?.accounts?.oauth2)return Promise.resolve();
@@ -150,10 +151,17 @@ function calendarIdentity() {
 async function calendarConnect() {
     const status=document.getElementById('calendar-status');
     try {
+        const source=googleCalendarUrl(document.getElementById('calendar-source').value);
+        if (window.dashboardAndroidCalendar) {
+            storageSet('google_calendar',source);
+            calendarConnectionStatus('Ouverture de l’écran Google Android…');
+            window.location.href='dashboard-google://connect';
+            return;
+        }
+        if (window.location.protocol==='file:') throw new Error('Ouvrez le dashboard en HTTPS pour connecter Google Agenda. La copie locale ne permet pas la connexion Google.');
         const client=document.getElementById('calendar-client').value.trim();
         if(!client)throw new Error('Renseignez l’identifiant client OAuth Google.');
         if(!window.google?.accounts?.oauth2){await calendarIdentity();calendarConnectionStatus('Google est prêt. Cliquez à nouveau sur Connecter Google Agenda dans les paramètres.');return;}
-        const source=googleCalendarUrl(document.getElementById('calendar-source').value);
         const tokenClient=google.accounts.oauth2.initTokenClient({client_id:client,scope:'https://www.googleapis.com/auth/calendar.events.readonly',callback:response=>{
             if(response.error || !response.access_token){calendarConnectionStatus('Connexion Google refusée : '+(response.error_description || response.error || 'autorisation non reçue'));return;}
             calendarState.token=response.access_token;calendarState.expiry=Date.now()+Number(response.expires_in)*1000;
@@ -162,5 +170,15 @@ async function calendarConnect() {
         tokenClient.requestAccessToken();
     }catch(error){calendarConnectionStatus(error.message);}
 }
+window.calendarAndroidResult = function(response) {
+    if (response.error || !response.accessToken) {
+        calendarConnectionStatus(response.error || 'Google n’a pas renvoyé d’autorisation.');
+        return;
+    }
+    calendarState.token=response.accessToken;
+    calendarState.expiry=Date.now()+Math.min(Number(response.expiresIn)||3500,3500)*1000;
+    document.getElementById('calendar-status').textContent='Google Agenda connecté via Android, en lecture seule.';
+    calendarLoad();
+};
 renderGoogleCalendar();
 setInterval(()=>calendarLoad(),5*60*1000);

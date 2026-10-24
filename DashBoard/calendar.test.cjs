@@ -24,5 +24,14 @@ function run(s){return vm.runInContext(s,context)}
  await run('calendarLoad()');assert.equal(calls,2);assert.equal(run('calendarState.events.length'),1);
  context.fetch=async()=>({ok:false,status:403});await run('calendarLoad()');assert.match(run('calendarState.message'),/inaccessible/);assert.equal(run('calendarState.events.length'),0);
  run('clearGoogleCalendar()');assert.equal(saved.google_calendar,'');assert.equal(run('calendarState.token'),'');
- console.log('Calendar: views, navigation, exclusive all-day end, escaping, pagination, API errors and removal passed.');
+ context.window.dashboardAndroidCalendar=true;context.window.location={protocol:'https:',href:''};
+ nodes.get('calendar-source').value='test@example.com';
+ await run('calendarConnect()');assert.equal(context.window.location.href,'dashboard-google://connect');
+ assert.equal(saved.google_calendar.includes('test%40example.com'),true);
+ context.window.calendarAndroidResult({error:'Connexion annulée'});assert.match(run('calendarState.message'),/annulée/);
+ context.fetch=async()=>({ok:true,json:async()=>({items:[]})});
+ context.window.calendarAndroidResult({accessToken:'test-native-token',expiresIn:3500});
+ assert.equal(run('calendarState.token'),'test-native-token');
+ assert.equal(Object.values(saved).includes('test-native-token'),false);
+ console.log('Calendar: views, navigation, exclusive all-day end, escaping, pagination, errors, removal and Android authorization passed.');
 })().catch(error=>{console.error(error);process.exitCode=1});

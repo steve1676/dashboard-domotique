@@ -7,7 +7,7 @@
     <title>Dashboard Domotique</title>
     <link rel="stylesheet" href="style.css?v=20261023-inline-ring">
     <link rel="stylesheet" href="light-color.css?v=20261023-inline-ring-2">
-    <link rel="stylesheet" href="calendar.css?v=20261024-centered">
+    <link rel="stylesheet" href="calendar.css?v=20261024-mini">
 </head>
 
 <body>
@@ -495,6 +495,7 @@
                 <input id="calendar-source" type="text" placeholder="https://calendar.google.com/calendar/embed?src=…" required>
                 <p>Google Agenda → Paramètres → votre agenda → Intégrer l’agenda. Collez le lien, le code iframe ou l’identifiant.</p>
                 <label for="calendar-client">Identifiant client OAuth Google (agenda privé)</label>
+                <p>Dans l’application Android mise à jour, utilisez directement « Connecter Google Agenda » : l’écran Google s’ouvre hors du dashboard. L’identifiant client ci-dessous sert à la version navigateur.</p>
                 <input id="calendar-client" type="text" placeholder="…apps.googleusercontent.com">
                 <button type="button" onclick="calendarConnect()">Connecter Google Agenda</button>
                 <label for="calendar-api-key">Clé API Google (facultatif, pour un agenda public)</label>
@@ -619,7 +620,7 @@
 <script src="atmosphere.js?v=20261019-11"></script>
 <script src="script.js?v=20261024-calendar-views"></script>
 
-<script src="calendar.js?v=20261024-settings-popup"></script>
+<script src="calendar.js?v=20261024-mini"></script>
 <script src="light-color.js?v=20261023-inline-ring"></script>
 </body>
 </html>
