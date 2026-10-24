@@ -3257,6 +3257,7 @@ function stopMirror() {
 // ─── Widgets de l'Accueil ────────────────────────────────────────────────────
 
 const WIDGETS = [
+    { widgetId: 'widget-calendar', checkId: 'chk-calendar' },
     { widgetId: 'widget-meteo',     checkId: 'chk-meteo'     },
     { widgetId: 'widget-transport', checkId: 'chk-transport'  },
     { widgetId: 'widget-miroir',    checkId: 'chk-miroir'     },
@@ -3286,6 +3287,25 @@ function toggleWidget(widgetId, visible) {
 
 initWidgetToggles();
 
+function googleCalendarUrl(value) {
+    let source = value.trim();
+    if (source.startsWith('<')) {
+        source = new DOMParser().parseFromString(source, 'text/html').querySelector('iframe')?.getAttribute('src') || '';
+    }
+    let url;
+    if (/^https:\/\//i.test(source)) {
+        url = new URL(source);
+        if (url.origin !== 'https://calendar.google.com' || url.pathname !== '/calendar/embed' || !url.searchParams.get('src')) throw new Error('Utilisez le lien d’intégration Google Agenda contenant « src= ».');
+    } else {
+        if (!/^[^\s<>]+@[^\s<>]+$/.test(source)) throw new Error('Collez un lien d’intégration ou un identifiant d’agenda valide.');
+        url = new URL('https://calendar.google.com/calendar/embed');
+        url.searchParams.set('src', source);
+    }
+    url.searchParams.set('mode', 'AGENDA');
+    url.searchParams.set('hl', 'fr');
+    if (!url.searchParams.has('ctz')) url.searchParams.set('ctz', 'Europe/Paris');
+    return url.href;
+}
 
 // ─── Spotify ────────────────────────────────────────────────────────────────
 
