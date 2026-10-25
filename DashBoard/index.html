@@ -7,7 +7,7 @@
     <title>Dashboard Domotique</title>
     <link rel="stylesheet" href="style.css?v=20261023-inline-ring">
     <link rel="stylesheet" href="light-color.css?v=20261023-inline-ring-2">
-    <link rel="stylesheet" href="calendar.css?v=20261024-mini">
+    <link rel="stylesheet" href="calendar.css?v=20261025-google-visibility">
 </head>
 
 <body>
@@ -50,7 +50,7 @@
         </div>
 
         <section id="widget-calendar" class="calendar-card reorder-widget" data-widget="calendar" aria-labelledby="calendar-title" role="button" tabindex="0" aria-haspopup="dialog" onclick="calendarOpen()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();calendarOpen();}">
-            <div class="calendar-heading"><h2 id="calendar-title">À venir</h2><span id="calendar-today" class="cal-muted"></span></div>
+            <div id="calendar-widget-heading" class="calendar-heading"><h2 id="calendar-title">Google Agenda</h2><span id="calendar-today" class="cal-muted"></span></div>
             <div id="calendar-next" aria-live="polite"></div>
         </section>
 
@@ -490,7 +490,12 @@
 
         <!-- Réglages Spotify -->
         <div id="modal-calendar-settings" class="widget-modal-section calendar-settings" role="dialog" aria-modal="true" aria-label="Réglages Google Agenda">
-            <h2 class="transport-title" style="margin-bottom:20px;">Google Agenda</h2><form id="calendar-config" onsubmit="saveGoogleCalendar(event)">
+            <h2 class="transport-title" style="margin-bottom:20px;">Google Agenda</h2>
+            <div id="calendar-google-toggle" class="widget-item">
+                <span id="calendar-google-label" class="widget-label">Afficher les événements Google</span>
+                <label class="switch"><input type="checkbox" id="calendar-show-google" aria-labelledby="calendar-google-label" onchange="calendarToggleGoogle(this.checked)"><span class="slider"></span></label>
+            </div>
+            <form id="calendar-config" onsubmit="saveGoogleCalendar(event)">
                 <label for="calendar-source">Lien d’intégration ou identifiant de l’agenda</label>
                 <input id="calendar-source" type="text" placeholder="https://calendar.google.com/calendar/embed?src=…" required>
                 <p>Google Agenda → Paramètres → votre agenda → Intégrer l’agenda. Collez le lien, le code iframe ou l’identifiant.</p>
@@ -620,7 +625,7 @@
 <script src="atmosphere.js?v=20261019-11"></script>
 <script src="script.js?v=20261024-calendar-views"></script>
 
-<script src="calendar.js?v=20261024-mini"></script>
+<script src="calendar.js?v=20261025-empty-section"></script>
 <script src="light-color.js?v=20261023-inline-ring"></script>
 </body>
 </html>

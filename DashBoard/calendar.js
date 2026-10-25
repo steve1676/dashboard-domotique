@@ -21,22 +21,44 @@ function calEvent(raw) {
 function calOnDay(event, day) { return event.start < calAdd(day, 1) && event.end > calDay(day); }
 function calTime(event) { const time = d => d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' }); return event.allDay ? 'Toute la journée' : `${time(event.start)} – ${time(event.end)}`; }
 function calEventMarkup(event) { return `<article class="cal-event"><time>${calEscape(calTime(event))}</time><h3>${calEscape(event.title)}</h3>${event.location ? `<p class="cal-muted">${calEscape(event.location)}</p>` : ''}</article>`; }
-function calEventsFor(day) { return calendarState.events.filter(e => calOnDay(e, day)); }
+function calendarGoogleVisible() { return storageGet('calendar_show_google', true) !== false; }
+function calVisibleEvents() { return calendarGoogleVisible() ? calendarState.events : []; }
+function calEventsFor(day) { return calVisibleEvents().filter(e => calOnDay(e, day)); }
+function calendarToggleGoogle(visible) {
+    storageSet('calendar_show_google', visible);
+    document.getElementById('calendar-show-google').checked = visible;
+    calendarRender();
+}
+
+function calEmptyUpcoming() {
+    return '<section class="cal-upcoming" aria-label="Rendez-vous suivant"><h4>À venir</h4><p class="cal-muted">Aucun rendez-vous à venir</p></section>';
+}
+
+function calWidgetMarkup(next, following, dayLabel) {
+    const time = event => event.allDay ? 'Toute la journée' : event.start.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    const location = event => event.location ? `<p class="cal-muted cal-widget-location" title="${calEscape(event.location)}">${calEscape(event.location)}</p>` : '';
+    return `<div class="cal-featured"><div class="cal-stamp" aria-hidden="true"><span>${calEscape(calDate(next.start,{month:'short'}))}</span><strong>${next.start.getDate()}</strong></div><div class="cal-featured-text"><p class="cal-widget-time">${calEscape(dayLabel(next.start))} · ${calEscape(time(next))}</p><h3 class="cal-hero" title="${calEscape(next.title)}">${calEscape(next.title)}</h3>${location(next)}</div><svg class="cal-widget-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></div>${following ? `<section class="cal-upcoming" aria-label="Rendez-vous suivant"><h4>À venir</h4><div class="cal-upcoming-row"><time>${calEscape(dayLabel(following.start))}<br>${calEscape(time(following))}</time><div><strong title="${calEscape(following.title)}">${calEscape(following.title)}</strong>${location(following)}</div></div></section>` : calEmptyUpcoming()}${calendarState.message ? `<p class="cal-muted cal-widget-message">${calEscape(calendarState.message)}</p>` : ''}`;
+}
+
+function calEmptyWidget(now) {
+    return `<div class="cal-featured"><div class="cal-stamp" aria-hidden="true"><span>${calEscape(calDate(now,{month:'short'}))}</span><strong>${now.getDate()}</strong></div><div class="cal-featured-text"><p class="cal-widget-time">${calEscape(calDate(now,{weekday:'long'}))}</p><h3 class="cal-hero">Mon calendrier</h3><p class="cal-muted cal-widget-location">Voir le calendrier</p></div><svg class="cal-widget-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></div>` + calEmptyUpcoming();
+}
 
 function calendarRender() {
     const now = new Date();
-    const upcoming = calendarState.events.filter(e => e.end > now).sort((a,b) => a.start-b.start);
+    const upcoming = calVisibleEvents().filter(e => e.end > now).sort((a,b) => a.start-b.start);
     const next = upcoming[0];
     const dayLabel = date => +calDay(date)===+calDay(now) ? 'Aujourd’hui' : +calDay(date)===+calAdd(now,1) ? 'Demain' : calDate(date,{day:'numeric',month:'short'});
     document.getElementById('calendar-today').textContent = next ? dayLabel(next.start) : 'Agenda';
-    document.getElementById('calendar-next').innerHTML = next ? `<p class="cal-widget-time">${calEscape(calTime(next))}</p><h3 class="cal-hero" title="${calEscape(next.title)}">${calEscape(next.title)}</h3>${next.location ? `<p class="cal-muted cal-widget-location" title="${calEscape(next.location)}">${calEscape(next.location)}</p>` : ''}<div class="cal-next-line"><span class="cal-muted">${upcoming[1] ? `Ensuite · ${calEscape(dayLabel(upcoming[1].start))} · ${calEscape(upcoming[1].allDay ? 'Toute la journée' : upcoming[1].start.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}))}` : 'Voir mon agenda'}</span><span aria-hidden="true">↗</span></div>${calendarState.message ? `<p class="cal-muted cal-widget-message">${calEscape(calendarState.message)}</p>` : ''}` : `<p class="cal-empty">${calEscape(calendarState.message || 'Aucun rendez-vous dans les 90 prochains jours.')}</p>`;
+    document.getElementById('calendar-widget-heading').hidden = true;
+    document.getElementById('calendar-next').innerHTML = next ? calWidgetMarkup(next, upcoming[1], dayLabel) : calEmptyWidget(now);
     const month = calendarState.view !== 'three';
     document.getElementById('cal-view-name').textContent = month ? 'Mois et rendez-vous' : 'Trois jours';
     const toggle = document.getElementById('cal-switch');
     toggle.setAttribute('aria-label', month ? 'Afficher Trois jours' : 'Afficher Mois et rendez-vous');
     toggle.title = toggle.getAttribute('aria-label');
     toggle.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">${month ? '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16M15 4v16"/>' : '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4M7 14h2M11 14h2M15 14h2M7 17h2M11 17h2"/>'}</svg>`;
-    document.getElementById('cal-popup-status').textContent = calendarState.message;
+    document.getElementById('cal-popup-status').textContent = calendarGoogleVisible() ? calendarState.message : '';
     const anchor = calendarState.anchor;
     const content = document.getElementById('cal-content');
     if (month) {
@@ -67,7 +89,8 @@ async function calendarLoad() {
     const key = storageGet('calendar_api_key','');
     if (!source || (!key && (!calendarState.token || Date.now() >= calendarState.expiry))) {
         calendarState.events = [];
-        calendarState.message = !source ? 'Configurez votre agenda dans les paramètres.' : 'Connectez Google Agenda dans les paramètres pour afficher vos rendez-vous.';
+        calendarState.message = '';
+        document.getElementById('calendar-status').textContent = 'Calendrier disponible. Connectez Google Agenda pour importer vos rendez-vous.';
         calendarRender(); return;
     }
     calendarState.message = 'Chargement de l’agenda…'; calendarRender();
@@ -108,6 +131,7 @@ function calendarSwitch() { calendarState.view=calendarState.view==='three'?'mon
 function calendarMove(direction) { const a=calendarState.anchor; calendarState.anchor=calendarState.view==='three'?calAdd(a,direction*3):new Date(a.getFullYear(),a.getMonth()+direction,1); calendarState.selected=calDay(calendarState.anchor); calendarLoad(); }
 function calendarToday() { calendarState.anchor=new Date();calendarState.selected=new Date();calendarLoad(); }
 function renderGoogleCalendar() {
+    document.getElementById('calendar-show-google').checked=calendarGoogleVisible();
     document.getElementById('calendar-source').value=storageGet('google_calendar','');
     document.getElementById('calendar-client').value=storageGet('calendar_client','');
     document.getElementById('calendar-api-key').value=storageGet('calendar_api_key','');
