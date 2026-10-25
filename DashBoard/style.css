@@ -2064,22 +2064,6 @@ body {
 }
 
 /* ── Ligne météo + transports + miroir : 2 cases par ligne ── */
-.calendar-card {
-    grid-column: 1 / -1;
-    min-width: 0;
-    padding: 20px;
-    border-radius: 20px;
-    background: #1f2937;
-    color: #f1f5f9;
-}
-.calendar-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
-.calendar-heading h2 { margin: 0; font-size: 1.2rem; }
-.calendar-card button { border: 1px solid #64748b; border-radius: 10px; padding: 9px 14px; background: #334155; color: #fff; cursor: pointer; }
-.calendar-card input { display: block; box-sizing: border-box; width: 100%; margin: 10px 0; padding: 12px; border: 1px solid #64748b; border-radius: 10px; background: #0f172a; color: #fff; }
-.calendar-card p { font-size: .9rem; line-height: 1.5; color: #cbd5e1; }
-#calendar-frame { width: 100%; height: 520px; border: 0; border-radius: 12px; background: #fff; }
-.calendar-card [hidden] { display: none !important; }
-
 .top-row {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -3605,7 +3589,3 @@ body {
 #atmo-popup[data-atmosphere="night"] .atmo-metrics { border-color:#a9c8ec30; }
 #atmo-popup[data-atmosphere="night"] .atmo-periods button[aria-pressed="true"] { background:#bfdcff18;border-color:#bed9fa45; }
 #widgetModal.atmosphere-modal:has(#atmo-popup[data-atmosphere="night"]) .widget-modal-close { color:#e3edff;background:transparent; }
-.calendar-settings { margin: 12px 0 20px; }
-.calendar-settings input { box-sizing: border-box; width: 100%; padding: 12px; margin: 10px 0; }
-.calendar-settings p { line-height: 1.5; font-size: .9rem; }
-.calendar-settings button, #chk-calendar { margin: 4px; }

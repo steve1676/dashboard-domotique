@@ -1,5 +1,5 @@
 // Vues personnalisées Google Agenda. Le jeton OAuth reste en mémoire.
-const calendarState = { events: [], view: storageGet('calendar_view', 'month'), anchor: new Date(), selected: new Date(), token: '', expiry: 0, message: '', request: 0, controller: null };
+const calendarState = { events: [], source: '', view: storageGet('calendar_view', 'month'), anchor: new Date(), selected: new Date(), token: '', expiry: 0, message: '', request: 0, controller: null };
 const calendarDialog = document.createElement('dialog');
 calendarDialog.id = 'calendar-dialog';
 calendarDialog.setAttribute('aria-labelledby', 'cal-dialog-title');
@@ -10,6 +10,21 @@ calendarDialog.addEventListener('close', () => document.getElementById('widget-c
 
 function calEscape(value) { return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function calDate(date, options) { return date.toLocaleDateString('fr-FR', options); }
+function calZone() {
+    try {
+        const source = storageGet('google_calendar','');
+        const zone = source ? new URL(googleCalendarUrl(source)).searchParams.get('ctz') : Intl.DateTimeFormat().resolvedOptions().timeZone;
+        new Intl.DateTimeFormat('fr-FR',{timeZone:zone}).format();
+        return zone;
+    } catch (_) { return Intl.DateTimeFormat().resolvedOptions().timeZone; }
+}
+function calZonedDay(instant) {
+    const parts = new Intl.DateTimeFormat('en-US',{timeZone:calZone(),year:'numeric',month:'numeric',day:'numeric'}).formatToParts(instant);
+    const part = name => Number(parts.find(p=>p.type===name).value);
+    return new Date(part('year'),part('month')-1,part('day'));
+}
+function calEventDay(event) { return event.allDay ? calDay(event.start) : calZonedDay(event.start); }
+function calStartTime(event) { return event.allDay ? 'Toute la journée' : event.start.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',timeZone:calZone()}); }
 function calDay(date) { return new Date(date.getFullYear(), date.getMonth(), date.getDate()); }
 function calAdd(date, days) { const result = calDay(date); result.setDate(result.getDate() + days); return result; }
 function calEvent(raw) {
@@ -18,8 +33,11 @@ function calEvent(raw) {
     const end = new Date(raw.end?.dateTime || (raw.end?.date ? raw.end.date + 'T00:00:00' : NaN));
     return { title: raw.summary || 'Sans titre', location: raw.location || '', start, end, allDay };
 }
-function calOnDay(event, day) { return event.start < calAdd(day, 1) && event.end > calDay(day); }
-function calTime(event) { const time = d => d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' }); return event.allDay ? 'Toute la journée' : `${time(event.start)} – ${time(event.end)}`; }
+function calOnDay(event, day) {
+    if (event.allDay) return event.start < calAdd(day,1) && event.end > calDay(day);
+    return calZonedDay(event.start) <= calDay(day) && calZonedDay(new Date(+event.end-1)) >= calDay(day);
+}
+function calTime(event) { const time = d => d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit',timeZone:calZone() }); return event.allDay ? 'Toute la journée' : `${time(event.start)} – ${time(event.end)}`; }
 function calEventMarkup(event) { return `<article class="cal-event"><time>${calEscape(calTime(event))}</time><h3>${calEscape(event.title)}</h3>${event.location ? `<p class="cal-muted">${calEscape(event.location)}</p>` : ''}</article>`; }
 function calendarGoogleVisible() { return storageGet('calendar_show_google', true) !== false; }
 function calVisibleEvents() { return calendarGoogleVisible() ? calendarState.events : []; }
@@ -35,23 +53,24 @@ function calEmptyUpcoming() {
 }
 
 function calWidgetMarkup(next, following, dayLabel) {
-    const time = event => event.allDay ? 'Toute la journée' : event.start.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    const time = calStartTime;
+    const nextDay = calEventDay(next);
     const location = event => event.location ? `<p class="cal-muted cal-widget-location" title="${calEscape(event.location)}">${calEscape(event.location)}</p>` : '';
-    return `<div class="cal-featured"><div class="cal-stamp" aria-hidden="true"><span>${calEscape(calDate(next.start,{month:'short'}))}</span><strong>${next.start.getDate()}</strong></div><div class="cal-featured-text"><p class="cal-widget-time">${calEscape(dayLabel(next.start))} · ${calEscape(time(next))}</p><h3 class="cal-hero" title="${calEscape(next.title)}">${calEscape(next.title)}</h3>${location(next)}</div><svg class="cal-widget-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></div>${following ? `<section class="cal-upcoming" aria-label="Rendez-vous suivant"><h4>À venir</h4><div class="cal-upcoming-row"><time>${calEscape(dayLabel(following.start))}<br>${calEscape(time(following))}</time><div><strong title="${calEscape(following.title)}">${calEscape(following.title)}</strong>${location(following)}</div></div></section>` : calEmptyUpcoming()}${calendarState.message ? `<p class="cal-muted cal-widget-message">${calEscape(calendarState.message)}</p>` : ''}`;
+    return `<div class="cal-featured"><div class="cal-stamp" aria-hidden="true"><strong>${nextDay.getDate()}</strong><span>${calEscape(calDate(nextDay,{month:'short'}))}</span></div><div class="cal-featured-text"><p class="cal-widget-time">${calEscape(dayLabel(nextDay))} · ${calEscape(time(next))}</p><h3 class="cal-hero" title="${calEscape(next.title)}">${calEscape(next.title)}</h3>${location(next)}</div><svg class="cal-widget-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></div>${following ? `<section class="cal-upcoming" aria-label="Rendez-vous suivant"><h4>À venir</h4><div class="cal-upcoming-row"><time>${calEscape(dayLabel(calEventDay(following)))}<br>${calEscape(time(following))}</time><div><strong title="${calEscape(following.title)}">${calEscape(following.title)}</strong>${location(following)}</div></div></section>` : calEmptyUpcoming()}${calendarState.message ? `<p class="cal-muted cal-widget-message">${calEscape(calendarState.message)}</p>` : ''}`;
 }
 
 function calEmptyWidget(now) {
-    return `<div class="cal-featured"><div class="cal-stamp" aria-hidden="true"><span>${calEscape(calDate(now,{month:'short'}))}</span><strong>${now.getDate()}</strong></div><div class="cal-featured-text"><p class="cal-widget-time">${calEscape(calDate(now,{weekday:'long'}))}</p><h3 class="cal-hero">Mon calendrier</h3><p class="cal-muted cal-widget-location">Voir le calendrier</p></div><svg class="cal-widget-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></div>` + calEmptyUpcoming();
+    return `<div class="cal-featured"><div class="cal-stamp" aria-hidden="true"><strong>${now.getDate()}</strong><span>${calEscape(calDate(now,{month:'short'}))}</span></div><div class="cal-featured-text"><h3 class="cal-hero">Mon calendrier</h3><p class="cal-muted cal-widget-location">Voir le calendrier</p></div><svg class="cal-widget-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></div>` + calEmptyUpcoming();
 }
 
 function calendarRender() {
     const now = new Date();
-    const upcoming = calVisibleEvents().filter(e => e.end > now).sort((a,b) => a.start-b.start);
+    const today = calZonedDay(now);
+    const upcoming = calVisibleEvents().filter(e => e.allDay ? e.end > today : e.end > now).sort((a,b) => a.start-b.start);
     const next = upcoming[0];
-    const dayLabel = date => +calDay(date)===+calDay(now) ? 'Aujourd’hui' : +calDay(date)===+calAdd(now,1) ? 'Demain' : calDate(date,{day:'numeric',month:'short'});
-    document.getElementById('calendar-today').textContent = next ? dayLabel(next.start) : 'Agenda';
-    document.getElementById('calendar-widget-heading').hidden = true;
-    document.getElementById('calendar-next').innerHTML = next ? calWidgetMarkup(next, upcoming[1], dayLabel) : calEmptyWidget(now);
+    const dayLabel = date => +calDay(date)===+today ? 'Aujourd’hui' : +calDay(date)===+calAdd(today,1) ? 'Demain' : calDate(date,{day:'numeric',month:'short'});
+    const syncMessage = calendarGoogleVisible() ? calendarState.message : '';
+    document.getElementById('calendar-next').innerHTML = (next ? calWidgetMarkup(next, upcoming[1], dayLabel) : calEmptyWidget(today)) + (syncMessage && !next ? `<p class="cal-widget-message" role="status">${calEscape(syncMessage)}</p>` : '');
     const month = calendarState.view !== 'three';
     document.getElementById('cal-view-name').textContent = month ? 'Mois et rendez-vous' : 'Trois jours';
     const toggle = document.getElementById('cal-switch');
@@ -61,6 +80,7 @@ function calendarRender() {
     document.getElementById('cal-popup-status').textContent = calendarGoogleVisible() ? calendarState.message : '';
     const anchor = calendarState.anchor;
     const content = document.getElementById('cal-content');
+    const focusedDay = content.contains?.(document.activeElement) ? document.activeElement?.dataset?.day : null;
     if (month) {
         document.getElementById('cal-period').textContent = calDate(anchor,{month:'long',year:'numeric'});
         const first = new Date(anchor.getFullYear(),anchor.getMonth(),1);
@@ -70,11 +90,12 @@ function calendarRender() {
         for(let d=1;d<=count;d++) {
             const date = new Date(anchor.getFullYear(),anchor.getMonth(),d);
             const selected = +date === +calDay(calendarState.selected);
-            grid += `<button type="button" class="cal-date${selected?' selected':''}${+date===+calDay(now)?' today':''}" data-day="${d}" aria-pressed="${selected}" aria-label="${calEscape(calDate(date,{weekday:'long',day:'numeric',month:'long'}))}, ${calEventsFor(date).length} rendez-vous">${d}<span class="cal-dot">${calEventsFor(date).length ? '•' : ''}</span></button>`;
+            grid += `<button type="button" class="cal-date${selected?' selected':''}${+date===+today?' today':''}" data-day="${d}" aria-pressed="${selected}" aria-label="${calEscape(calDate(date,{weekday:'long',day:'numeric',month:'long'}))}, ${calEventsFor(date).length} rendez-vous">${d}<span class="cal-dot">${calEventsFor(date).length ? '•' : ''}</span></button>`;
         }
         const events = calEventsFor(calendarState.selected);
         content.innerHTML = `<div class="cal-month-layout"><div class="cal-grid">${grid}</div><section class="cal-day-detail"><h3>${calEscape(calDate(calendarState.selected,{weekday:'long',day:'numeric'}))}</h3>${events.map(calEventMarkup).join('') || '<p class="cal-muted">Aucun rendez-vous ce jour.</p>'}</section></div>`;
         content.querySelectorAll('[data-day]').forEach(button => button.onclick = () => {calendarState.selected = new Date(anchor.getFullYear(),anchor.getMonth(),Number(button.dataset.day)); calendarRender();});
+        if (focusedDay) content.querySelector(`[data-day="${focusedDay}"]`)?.focus({preventScroll:true});
     } else {
         document.getElementById('cal-period').textContent = `${calDate(anchor,{day:'numeric',month:'short'})} – ${calDate(calAdd(anchor,2),{day:'numeric',month:'short',year:'numeric'})}`;
         content.innerHTML = `<div class="cal-three">${[0,1,2].map(offset=>{const day=calAdd(anchor,offset);const events=calEventsFor(day);return `<section><header class="cal-day-heading"><span class="cal-muted">${calEscape(calDate(day,{weekday:'long'}))}</span><strong>${day.getDate()}</strong><span class="cal-muted">${calEscape(calDate(day,{month:'long'}))}</span></header>${events.map(calEventMarkup).join('') || '<p class="cal-muted">Aucun rendez-vous</p>'}</section>`;}).join('')}</div>`;
@@ -87,16 +108,24 @@ async function calendarLoad() {
     const controller = calendarState.controller = new AbortController();
     const source = storageGet('google_calendar','');
     const key = storageGet('calendar_api_key','');
-    if (!source || (!key && (!calendarState.token || Date.now() >= calendarState.expiry))) {
+    if (source !== calendarState.source) {
         calendarState.events = [];
+        calendarState.source = source;
+    }
+    if (!source) {
         calendarState.message = '';
         document.getElementById('calendar-status').textContent = 'Calendrier disponible. Connectez Google Agenda pour importer vos rendez-vous.';
+        calendarRender(); return;
+    }
+    if (!key && (!calendarState.token || Date.now() >= calendarState.expiry)) {
+        calendarState.message = calendarState.events.length ? 'Connexion Google expirée. Derniers rendez-vous conservés ; reconnectez-vous pour les actualiser.' : 'Connectez Google Agenda pour importer vos rendez-vous.';
+        document.getElementById('calendar-status').textContent=calendarState.message;
         calendarRender(); return;
     }
     calendarState.message = 'Chargement de l’agenda…'; calendarRender();
     try {
         const config = new URL(googleCalendarUrl(source));
-        const today = calDay(new Date());
+        const today = calZonedDay(new Date());
         const first = new Date(calendarState.anchor.getFullYear(), calendarState.anchor.getMonth(), 1);
         const end = new Date(calendarState.anchor.getFullYear(), calendarState.anchor.getMonth()+1,1);
         const min = new Date(Math.min(+first,+today));
@@ -107,13 +136,19 @@ async function calendarLoad() {
             let page = '';
             do {
                 const url = new URL(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(id)}/events`);
-                const params = {timeMin:min.toISOString(),timeMax:max.toISOString(),singleEvents:'true',orderBy:'startTime',maxResults:'2500'};
+                // Marge d'un jour : couvre les décalages de fuseau entre la tablette et l'agenda.
+                const params = {timeMin:calAdd(min,-1).toISOString(),timeMax:calAdd(max,1).toISOString(),singleEvents:'true',orderBy:'startTime',maxResults:'2500'};
                 if (!headers.Authorization) params.key=key;
+                params.timeZone=calZone();
                 if(page) params.pageToken=page;
                 url.search = new URLSearchParams(params);
+                const timeout = setTimeout(()=>controller.abort(),20000);
+                let data;
+                try {
                 const response = await fetch(url,{headers,signal:controller.signal});
                 if(!response.ok) throw new Error(response.status===401 ? 'Connexion Google expirée. Reconnectez-vous dans les paramètres.' : 'Agenda inaccessible. Vérifiez la connexion Google ou la clé API et les droits de partage dans les paramètres.');
-                const data = await response.json();
+                data = await response.json();
+                } finally { clearTimeout(timeout); }
                 result.push(...(data.items||[]).filter(e=>e.status!=='cancelled').map(calEvent).filter(e=>Number.isFinite(+e.start)&&Number.isFinite(+e.end)));
                 page=data.nextPageToken||'';
             } while(page);
@@ -122,14 +157,15 @@ async function calendarLoad() {
         calendarState.events=result.sort((a,b)=>a.start-b.start); calendarState.message='';
     } catch(error) {
         if(request!==calendarState.request)return;
-        calendarState.events=[]; calendarState.message=error.message;
+        calendarState.message=(error.name==='AbortError' ? 'Le chargement de l’agenda a dépassé le délai.' : error.message) + (calendarState.events.length ? ' Derniers rendez-vous conservés, non actualisés.' : '');
     }
+    document.getElementById('calendar-status').textContent=calendarState.message || 'Agenda synchronisé.';
     calendarRender();
 }
 function calendarOpen() { calendarRender(); if(!calendarDialog.open)calendarDialog.showModal(); }
 function calendarSwitch() { calendarState.view=calendarState.view==='three'?'month':'three'; storageSet('calendar_view',calendarState.view); calendarRender(); calendarLoad(); }
 function calendarMove(direction) { const a=calendarState.anchor; calendarState.anchor=calendarState.view==='three'?calAdd(a,direction*3):new Date(a.getFullYear(),a.getMonth()+direction,1); calendarState.selected=calDay(calendarState.anchor); calendarLoad(); }
-function calendarToday() { calendarState.anchor=new Date();calendarState.selected=new Date();calendarLoad(); }
+function calendarToday() { calendarState.anchor=calZonedDay(new Date());calendarState.selected=calDay(calendarState.anchor);calendarLoad(); }
 function renderGoogleCalendar() {
     document.getElementById('calendar-show-google').checked=calendarGoogleVisible();
     document.getElementById('calendar-source').value=storageGet('google_calendar','');
@@ -149,6 +185,9 @@ function saveGoogleCalendar(event) {
     } catch(error) {document.getElementById('calendar-status').textContent=error.message;}
 }
 function clearGoogleCalendar() {
+    calendarState.controller?.abort();
+    calendarState.request++;
+    calendarState.events=[];
     ['google_calendar','calendar_client','calendar_api_key'].forEach(key=>storageSet(key,''));
     calendarState.token='';calendarState.expiry=0;
     renderGoogleCalendar();
@@ -204,5 +243,10 @@ window.calendarAndroidResult = function(response) {
     document.getElementById('calendar-status').textContent='Google Agenda connecté via Android, en lecture seule.';
     calendarLoad();
 };
+calendarState.anchor=calZonedDay(new Date());
+calendarState.selected=calDay(calendarState.anchor);
 renderGoogleCalendar();
-setInterval(()=>calendarLoad(),5*60*1000);
+let calendarInterval = null;
+function calendarPausePolling() { clearInterval(calendarInterval); calendarInterval=null; calendarState.controller?.abort();calendarState.request++; }
+function calendarResumePolling() { if(calendarInterval!==null)return;calendarInterval=setInterval(()=>calendarLoad(),5*60*1000);calendarLoad(); }
+if (typeof backgroundPollingPaused === 'undefined' || !backgroundPollingPaused) calendarInterval=setInterval(()=>calendarLoad(),5*60*1000);

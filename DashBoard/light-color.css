@@ -6,7 +6,6 @@
 .lc-header h2{margin:0;font-family:Georgia,serif;font-size:30px;font-weight:400}
 .lc-header p{margin:6px 0 0;color:#b7c6dc}
 #light-color-dialog button{font:inherit;color:inherit;background:#ffffff0c;border:1px solid #ffffff26;border-radius:13px;padding:11px 15px;min-height:44px;cursor:pointer}
-#light-color-dialog .lc-close{font-size:26px;line-height:1;min-width:44px}
 .lc-layout{display:grid;grid-template-columns:1.2fr 1fr;gap:26px;align-items:center}
 .lc-wheel{position:relative;width:100%;aspect-ratio:1;touch-action:none}
 .lc-hue,.lc-temp{position:absolute;border-radius:50%;cursor:crosshair}

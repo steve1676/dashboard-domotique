@@ -5,9 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Domotique</title>
-    <link rel="stylesheet" href="style.css?v=20261023-inline-ring">
-    <link rel="stylesheet" href="light-color.css?v=20261023-inline-ring-2">
-    <link rel="stylesheet" href="calendar.css?v=20261025-google-visibility">
+    <link rel="stylesheet" href="style.css?v=20261025-audit">
+    <link rel="stylesheet" href="light-color.css?v=20261025-audit">
+    <link rel="stylesheet" href="calendar.css?v=20261025-audit">
 </head>
 
 <body>
@@ -49,8 +49,7 @@
             </div>
         </div>
 
-        <section id="widget-calendar" class="calendar-card reorder-widget" data-widget="calendar" aria-labelledby="calendar-title" role="button" tabindex="0" aria-haspopup="dialog" onclick="calendarOpen()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();calendarOpen();}">
-            <div id="calendar-widget-heading" class="calendar-heading"><h2 id="calendar-title">Google Agenda</h2><span id="calendar-today" class="cal-muted"></span></div>
+        <section id="widget-calendar" class="calendar-card reorder-widget" data-widget="calendar" aria-label="Ouvrir le calendrier" role="button" tabindex="0" aria-haspopup="dialog" onclick="calendarOpen()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();calendarOpen();}">
             <div id="calendar-next" aria-live="polite"></div>
         </section>
 
@@ -620,13 +619,11 @@
 <!-- ── Overlay Mode Nuit (écran noir, tap pour réveiller) ── -->
 <div id="nightOverlay" class="night-overlay" onclick="wakeFromNightMode()"></div>
 
-<!-- Dézippage du GTFS Naolib dans le navigateur (ordre réel des arrêts) -->
-<script src="https://cdn.jsdelivr.net/npm/fflate@0.8.3/umd/index.js"></script>
 <script src="atmosphere.js?v=20261019-11"></script>
-<script src="script.js?v=20261024-calendar-views"></script>
+<script src="script.js?v=20261025-audit"></script>
 
-<script src="calendar.js?v=20261025-empty-section"></script>
-<script src="light-color.js?v=20261023-inline-ring"></script>
+<script src="calendar.js?v=20261025-audit"></script>
+<script src="light-color.js?v=20261025-audit"></script>
 </body>
 </html>
 

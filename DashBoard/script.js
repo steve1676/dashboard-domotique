@@ -162,7 +162,7 @@ async function updateLocation(latitude, longitude) {
 
     // Rafraîchit la météo toutes les 10 min pour la même position
     clearInterval(weatherInterval);
-    weatherInterval = setInterval(() => getWeather(latitude, longitude), 600000);
+    if (!backgroundPollingPaused) weatherInterval = setInterval(() => getWeather(latitude, longitude), 600000);
 }
 
 // Une seule lecture de position à faible précision : suffisant pour la météo
@@ -173,7 +173,7 @@ navigator.geolocation.getCurrentPosition(
     position => updateLocation(position.coords.latitude, position.coords.longitude),
     error => {
         console.error(error);
-        getWeather(47.2172, -1.5534);
+        updateLocation(47.2172, -1.5534);
         document.getElementById("atmo-city").textContent = "Nantes";
         document.getElementById("atmo-widget-city").textContent = "Nantes";
     },
@@ -278,6 +278,9 @@ function pauseBackgroundPolling() {
     clearInterval(infotraficInterval);
     clearInterval(phoneSelectInterval);
     clearInterval(spotifyInterval);
+    clearInterval(weatherInterval);
+    weatherInterval = null;
+    if (typeof calendarPausePolling === 'function') calendarPausePolling();
 }
 
 function resumeBackgroundPolling() {
@@ -294,6 +297,11 @@ function resumeBackgroundPolling() {
     haFetchStates();
     updateTransports();
     updateInfotrafic();
+    if (lastLat !== null && lastLon !== null) {
+        getWeather(lastLat,lastLon);
+        weatherInterval=setInterval(()=>getWeather(lastLat,lastLon),600000);
+    }
+    if (typeof calendarResumePolling === 'function') calendarResumePolling();
 }
 
 function checkDisplaySchedule() {
@@ -1883,31 +1891,6 @@ initNearbyLines().then(() => {
 
 const NAOLIB_INFOTRAFIC_URL = "https://plan.naolib.fr/api/infotrafic";
 
-function stripHtmlToText(html) {
-    if (!html) return "";
-    return html
-        // Remplace les saut de lignes HTML et fermetures de bloc par des retours à la ligne
-        .replace(/<br\s*\/?>/gi, "\n")
-        .replace(/<\/(p|div|li|h[1-6])>/gi, "\n")
-        // Remplace les balises de fin d'élément par un espace pour éviter le texte collé
-        .replace(/<[^>]+>/g, " ")
-        // Nettoie les espaces et retours à la ligne multiples
-        .replace(/[ \t]+/g, " ")
-        .replace(/\n\s*\n/g, "\n")
-        .trim();
-}
-
-// Fonction pour formater proprement les dates si fournies sous forme brute
-function formatInfotraficDate(dateStr) {
-    if (!dateStr) return "";
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr; // si la date est déjà une chaîne de texte
-    
-    const dateFormatted = d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
-    const timeFormatted = d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
-    return `${dateFormatted} à ${timeFormatted}`;
-}
-
 // Fonction utilitaire pour nettoyer le texte HTML de la description
 function cleanAlertContent(html) {
     if (!html) return "Aucun détail disponible.";
@@ -2480,16 +2463,6 @@ function deviceSupportsColor(attrs) {
     return modes.some(mode => ["hs", "rgb", "rgbw", "rgbww", "xy"].includes(mode));
 }
 
-function deviceRgbToHex(rgb) {
-    if (!Array.isArray(rgb) || rgb.length < 3) return "#ffffff";
-    return `#${rgb.slice(0, 3).map(value => Math.max(0, Math.min(255, Math.round(value))).toString(16).padStart(2, "0")).join("")}`;
-}
-
-function deviceHexToRgb(hex) {
-    const value = hex.replace("#", "");
-    return [0, 2, 4].map(index => parseInt(value.slice(index, index + 2), 16));
-}
-
 function openDeviceDetail(entityId) {
     if (!HA_DEVICES[entityId]) return;
     deviceDetailEntityId = entityId;
@@ -2637,10 +2610,6 @@ async function deviceLightService(data) {
 
 function deviceSetBrightness(value) {
     deviceLightService({ brightness_pct: Number(value) });
-}
-
-function deviceSetColor(value) {
-    deviceLightService({ rgb_color: deviceHexToRgb(value) });
 }
 
 function planRenderDeviceCards() {
@@ -3326,8 +3295,13 @@ let spotifyRecTimer = null;
 function spotifyRandomString(length) {
     const possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     let text = "";
-    for (let i = 0; i < length; i++) {
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    while (text.length < length) {
+        const bytes=window.crypto.getRandomValues(new Uint8Array(length));
+        for (const byte of bytes) {
+            if(byte>=248)continue;
+            text+=possible[byte%possible.length];
+            if(text.length===length)break;
+        }
     }
     return text;
 }
@@ -3358,6 +3332,7 @@ function spotifyBase64Url(buffer) {
 // propre à sa tentative (via un `state` aléatoire), pour que deux connexions
 // concurrentes ne s'écrasent plus.
 const SPOTIFY_VERIFIER_KEY_PREFIX = "spotify_code_verifier_";
+const SPOTIFY_ANDROID_REDIRECT_URI = 'com.steve.dashboard.spotify://callback';
 const SPOTIFY_VERIFIER_MAX_AGE = 10 * 60 * 1000; // 10 min : largement le temps d'un login, purge les tentatives abandonnées
 
 function spotifyCleanupStaleVerifiers() {
@@ -3379,13 +3354,15 @@ let spotifyLoginInFlight = false; // évite aussi un double déclenchement dans 
 async function spotifyLogin() {
     if (spotifyLoginInFlight) return;
     spotifyLoginInFlight = true;
+    try {
     spotifyCleanupStaleVerifiers();
 
     const verifier  = spotifyRandomString(64);
     const state     = spotifyRandomString(16);
     const challenge = spotifyBase64Url(await spotifySha256(verifier));
 
-    localStorage.setItem(SPOTIFY_VERIFIER_KEY_PREFIX + state, JSON.stringify({ verifier, ts: Date.now() }));
+    const redirectUri = window.dashboardAndroidSpotify ? SPOTIFY_ANDROID_REDIRECT_URI : SPOTIFY_REDIRECT_URI;
+    localStorage.setItem(SPOTIFY_VERIFIER_KEY_PREFIX + state, JSON.stringify({ verifier, ts: Date.now(), redirectUri }));
 
     const params = new URLSearchParams({
         response_type: "code",
@@ -3393,49 +3370,59 @@ async function spotifyLogin() {
         scope: SPOTIFY_SCOPES,
         code_challenge_method: "S256",
         code_challenge: challenge,
-        redirect_uri: SPOTIFY_REDIRECT_URI,
+        redirect_uri: redirectUri,
         state
     });
 
     window.location.href = `https://accounts.spotify.com/authorize?${params.toString()}`;
+    } catch(error) {
+        const status=document.getElementById('spotifySettingsStatus');
+        if(status)status.textContent='Connexion Spotify impossible. Réessayez.';
+        console.error('Spotify connexion :',error);
+    } finally { spotifyLoginInFlight=false; }
+}
+
+function spotifyConsumeVerifier(state) {
+    if (!state) throw new Error('Retour Spotify sans état de connexion.');
+    const key=SPOTIFY_VERIFIER_KEY_PREFIX+state;
+    const raw=localStorage.getItem(key);
+    localStorage.removeItem(key);
+    const saved=raw ? JSON.parse(raw) : null;
+    if (!saved?.verifier || !saved.ts || Date.now()-saved.ts>SPOTIFY_VERIFIER_MAX_AGE || saved.ts>Date.now()) throw new Error('Connexion Spotify expirée ou lancée dans un autre navigateur. Recommencez depuis le dashboard.');
+    const redirectUri=saved.redirectUri || SPOTIFY_REDIRECT_URI;
+    if (![SPOTIFY_REDIRECT_URI,SPOTIFY_ANDROID_REDIRECT_URI].includes(redirectUri)) throw new Error('Retour Spotify non autorisé.');
+    return {verifier:saved.verifier,redirectUri};
 }
 
 async function spotifyHandleRedirect() {
     const params = new URLSearchParams(window.location.search);
     const code  = params.get("code");
     const state = params.get("state");
-    if (!code) return;
-
-    let verifier = null;
-    if (state) {
-        const key = SPOTIFY_VERIFIER_KEY_PREFIX + state;
-        const raw = localStorage.getItem(key);
-        localStorage.removeItem(key); // usage unique : jamais réutilisé après ce point
-        if (raw) {
-            try { verifier = JSON.parse(raw).verifier; } catch { /* ignore */ }
-        }
-    }
-    if (!verifier) verifier = localStorage.getItem("spotify_code_verifier"); // repli pour un lien de connexion généré avant cette correction
+    if (!code && !params.has('error')) return;
 
     try {
+        const {verifier,redirectUri}=spotifyConsumeVerifier(state);
+        if(params.has('error'))throw new Error('Connexion Spotify annulée ou refusée.');
         const response = await fetch("https://accounts.spotify.com/api/token", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
             body: new URLSearchParams({
                 grant_type: "authorization_code",
                 code,
-                redirect_uri: SPOTIFY_REDIRECT_URI,
+                redirect_uri: redirectUri,
                 client_id: SPOTIFY_CLIENT_ID,
                 code_verifier: verifier
             })
         });
 
         const data = await response.json();
-        if (data.access_token) spotifySaveTokens(data);
-        else console.error("Spotify auth : pas d'access_token dans la réponse", data);
+        if (response.ok && data.access_token) spotifySaveTokens(data);
+        else throw new Error('Spotify a refusé la connexion. Vérifiez les adresses de retour autorisées.');
 
     } catch (err) {
         console.error("Spotify auth :", err);
+        const status=document.getElementById('spotifySettingsStatus');
+        if(status)status.textContent=err.message;
     }
 
     // Nettoie l'URL (retire ?code=...&state=...)
