@@ -3178,6 +3178,10 @@ phoneSelectInterval = setInterval(refreshPhoneEntitySelect, 30000); // détecte 
 // ─── Navigation ─────────────────────────────────────────────────────────────
 
 function showPage(pageId, button) {
+    if (pageId !== "home") {
+        homeTapCount = 0;
+        cancelWidgetSelection();
+    }
     document.querySelectorAll(".page").forEach(page => {
         page.style.display = "none";
     });
@@ -3252,6 +3256,7 @@ function toggleWidget(widgetId, visible) {
     const saved = storageGet('widgets_visibility', {});
     saved[widgetId] = visible;
     storageSet('widgets_visibility', saved);
+    requestAnimationFrame(() => layoutWidgetGrid(false));
 }
 
 initWidgetToggles();
@@ -4792,33 +4797,48 @@ function toggleFavorite(entityId) {
 }
 
 function refreshFavoriteList() {
-
-    const container = document.querySelector(".fav");
-
-    container.innerHTML = `
-        <span class="fav-title" style="color:white">
-            ${ICON_STAR} Appareils favoris
-        </span>
-        <div class="favorite-device-grid"></div>
-    `;
-
-    const favorites = getFavorites().filter(id => HA_DEVICES[id]); // ignore favoris obsolètes
-    const grid = container.querySelector(".favorite-device-grid");
-
-    if (favorites.length === 0) {
-        grid.innerHTML = `<p class="favorite-empty">Aucun appareil favori</p>`;
-        return;
-    }
-
+    const container = document.querySelector("#home .top-row");
+    if (!container) return;
+    const favorites = getFavorites().filter(id => HA_DEVICES[id]);
+    container.querySelectorAll(".favorite-device-tile").forEach(item => {
+        if (!favorites.includes(item.dataset.entityId)) {
+            if (selectedWidget === item) {
+                if (widgetDrag?.widget === item) finishWidgetDrag(false);
+                selectedWidget = null;
+                if (swapMode) updateWidgetSizeControls();
+            }
+            item.remove();
+        }
+    });
     favorites.forEach(entityId => {
         const info = HA_DEVICES[entityId];
         const on = haIsOn(entityId);
         const placed = planState.objects.find(item => item.kind === "device" && item.entityId === entityId);
         const iconKey = placed?.iconKey || planDeviceIconKey(entityId);
-        const item = document.createElement("article");
-        item.className = `favorite-device-tile ${on ? "is-on" : ""}`;
-        item.setAttribute("role", "button");
-        item.setAttribute("tabindex", "0");
+        let item = [...container.querySelectorAll(".favorite-device-tile")].find(el => el.dataset.entityId === entityId);
+        if (!item) {
+            item = document.createElement("article");
+            item.className = "favorite-device-tile reorder-widget";
+            item.dataset.entityId = entityId;
+            item.dataset.widget = `device:${entityId}`;
+            item.setAttribute("role", "button");
+            item.setAttribute("tabindex", "0");
+            item.addEventListener("click", event => {
+                if (swapMode) return;
+                event.preventDefault();
+                event.stopPropagation();
+                haToggle(entityId);
+            });
+            item.addEventListener("keydown", event => {
+                if (!swapMode && (event.key === "Enter" || event.key === " ")) {
+                    event.preventDefault();
+                    haToggle(entityId);
+                }
+            });
+            container.appendChild(item);
+            registerHomeWidget(item);
+        }
+        item.classList.toggle("is-on", on);
         item.setAttribute("aria-label", `${on ? "Éteindre" : "Allumer"} ${info.label}`);
         item.innerHTML = `
             <span class="favorite-device-room">${planEscape(info.room)}</span>
@@ -4826,26 +4846,20 @@ function refreshFavoriteList() {
             <div class="favorite-device-name">${planEscape(info.label)}</div>
             <div class="favorite-device-state">${on ? "Allumé" : "Éteint"}</div>
         `;
-        item.addEventListener("click", event => {
-            event.preventDefault();
-            event.stopPropagation();
-            haToggle(entityId);
-        });
-        item.addEventListener("keydown", event => {
-            if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                haToggle(entityId);
-            }
-        });
-        grid.appendChild(item);
     });
+    layoutWidgetGrid(true);
 }
 
-// ─── Réorganisation des widgets (appui long 5s + tap pour échanger) ─────────
+// ─── Réorganisation des widgets depuis le bouton Accueil ─────────
 
 const WIDGET_ORDER_KEY = "widgetOrder";
-const LONG_PRESS_DURATION = 5000;  // 5 secondes
-const MOVE_CANCEL_THRESHOLD = 10;  // px de tolérance avant d'annuler l'appui long
+const WIDGET_SIZE_KEY = "widgetSizes";
+const WIDGET_LAYOUT_KEY = "widgetFullCanvasV1";
+let widgetDrag = null;
+let widgetPositions = {};
+const HOME_TAP_WINDOW = 1200;
+let homeTapCount = 0;
+let homeTapStarted = 0;
 
 let selectedWidget = null;
 let swapMode = false;
@@ -4875,29 +4889,61 @@ function getSwapBanner() {
         banner.id = "reorderBanner";
         banner.className = "reorder-banner";
         banner.innerHTML = `
-            <span>👆 Touchez le widget avec lequel l'échanger</span>
-            <button onclick="cancelWidgetSelection()">${ICON_X} Annuler</button>
+            <span id="widgetEditHint" aria-live="polite">Glissez un widget pour le placer · grille 5 px · repères aimantés</span>
+            <div class="widget-size-actions" role="group" aria-label="Taille du widget sélectionné">
+                <button type="button" data-size="standard" onclick="setSelectedWidgetSize('standard')" disabled>Standard</button>
+                <button type="button" data-size="compact" onclick="setSelectedWidgetSize('compact')" disabled>Compact · ½</button>
+            </div>
+            <button onclick="cancelWidgetSelection()">Terminer</button>
         `;
         document.body.appendChild(banner);
     }
     return banner;
 }
 
+function updateWidgetSizeControls() {
+    const banner = getSwapBanner();
+    banner.querySelectorAll("[data-size]").forEach(button => {
+        button.disabled = !selectedWidget;
+        button.setAttribute("aria-pressed", String(!!selectedWidget &&
+            (selectedWidget.dataset.size || "standard") === button.dataset.size));
+    });
+}
+
+function setSelectedWidgetSize(size) {
+    if (!swapMode || !selectedWidget || !["standard", "compact"].includes(size)) return;
+    selectedWidget.dataset.size = size;
+    const sizes = {};
+    document.querySelectorAll(".reorder-widget").forEach(widget => {
+        sizes[widget.dataset.widget] = widget.dataset.size || "standard";
+    });
+    storageSet(WIDGET_SIZE_KEY, sizes);
+    layoutWidgetGrid(true);
+    updateWidgetSizeControls();
+}
+
 function selectWidgetForSwap(widget) {
+    if (selectedWidget) selectedWidget.classList.remove("selected-for-swap");
     selectedWidget = widget;
     swapMode = true;
     widget.classList.add("selected-for-swap");
     document.querySelector(".top-row").classList.add("swap-mode");
     getSwapBanner().classList.add("visible");
+    updateWidgetSizeControls();
     if (navigator.vibrate) navigator.vibrate(60);
 }
 
 function cancelWidgetSelection() {
+    if (widgetDrag) finishWidgetDrag(false);
     if (selectedWidget) selectedWidget.classList.remove("selected-for-swap");
     selectedWidget = null;
     swapMode = false;
     const container = document.querySelector(".top-row");
-    if (container) container.classList.remove("swap-mode");
+    if (container) {
+        container.classList.remove("swap-mode");
+        clearWidgetGuides();
+        updateWidgetCanvas();
+    }
     const banner = document.getElementById("reorderBanner");
     if (banner) banner.classList.remove("visible");
 }
@@ -4911,65 +4957,219 @@ function swapWidgets(a, b) {
     parent.removeChild(placeholder);
 }
 
+function widgetGridColumns() {
+    const width = document.querySelector(".top-row").clientWidth;
+    return width >= 850 ? 4 : width >= 480 ? 2 : 1;
+}
+
+function widgetHeight(widget) {
+    return widget.dataset.size === "compact" ? 82.5 : 185;
+}
+
+function widgetPositionFree(widget, x, y, positions = widgetPositions, gap = 0) {
+    const container = document.querySelector(".top-row");
+    const width = widget.offsetWidth;
+    const height = widgetHeight(widget);
+    if (x < 0 || y < 0 || x + width > container.clientWidth + .5) return false;
+    return Object.entries(positions).every(([key, p]) => {
+        const other = document.querySelector(`[data-widget="${key}"]`);
+        if (!other || other === widget || other.style.display === "none") return true;
+        return x + width + gap <= p.x + .1 || x >= p.x + other.offsetWidth + gap - .1 ||
+            y + height + gap <= p.y + .1 || y >= p.y + widgetHeight(other) + gap - .1;
+    });
+}
+
+function saveWidgetLayout() {
+    const layouts = storageGet(WIDGET_LAYOUT_KEY, {}) || {};
+    layouts[widgetGridColumns()] = widgetPositions;
+    storageSet(WIDGET_LAYOUT_KEY, layouts);
+}
+
+function updateWidgetCanvas() {
+    const container = document.querySelector(".top-row");
+    const bottom = Math.max(185, ...Object.entries(widgetPositions).map(([key, p]) => {
+        const widget = container.querySelector(`[data-widget="${key}"]`);
+        return widget && widget.style.display !== "none" ? p.y + widgetHeight(widget) : 0;
+    }));
+    container.style.height = `${bottom + (swapMode ? 230 : 0)}px`;
+}
+
+function layoutWidgetGrid(save) {
+    if (widgetDrag) return;
+    const container = document.querySelector(".top-row");
+    if (!container.clientWidth) return;
+    container.classList.add("free-widget-layout");
+    container.style.setProperty("--widget-width", `${(container.clientWidth - (widgetGridColumns() - 1) * 20) / widgetGridColumns()}px`);
+    const layouts = storageGet(WIDGET_LAYOUT_KEY, {}) || {};
+    let saved = layouts[widgetGridColumns()];
+    if (!saved) {
+        const previous = (storageGet("widgetFreeLayoutV1", {}) || {})[widgetGridColumns()] || {};
+        saved = Object.fromEntries(Object.entries(previous).map(([key,p]) => [key,{x:p.x,y:p.y+310}]));
+    }
+    saved = {...saved};
+    if (!saved.clock) saved.clock = {x:0,y:0};
+    if (!saved.battery) {
+        const battery = document.getElementById("widget-battery");
+        saved.battery = container.clientWidth >= 760 ? {x:container.clientWidth-battery.offsetWidth,y:25} : {x:0,y:205};
+    }
+    const widgets = [...container.querySelectorAll(".reorder-widget")];
+    widgetPositions = {};
+    for (const widget of widgets) {
+        const p = saved[widget.dataset.widget];
+        if (p && Number.isFinite(p.x) && Number.isFinite(p.y) && widgetPositionFree(widget, p.x, p.y)) {
+            widgetPositions[widget.dataset.widget] = {x: p.x, y: p.y};
+        }
+    }
+    for (const widget of widgets) {
+        const key = widget.dataset.widget;
+        if (!widgetPositions[key]) {
+            let x = 0, y = 0;
+            while (!widgetPositionFree(widget, x, y, widgetPositions, 20)) {
+                if (x + 2 * widget.offsetWidth + 20 <= container.clientWidth + .5) x += widget.offsetWidth + 20;
+                else { x = 0; y += 5; }
+            }
+            widgetPositions[key] = {x, y};
+        }
+        widget.style.left = `${widgetPositions[key].x}px`;
+        widget.style.top = `${widgetPositions[key].y}px`;
+        widget.style.gridRow = "";
+        widget.style.gridColumn = "";
+    }
+    if (save) saveWidgetLayout();
+    updateWidgetCanvas();
+}
+
+function clearWidgetGuides() {
+    document.querySelectorAll(".widget-position-guide").forEach(guide => guide.remove());
+}
+
+function snapWidgetPosition(widget, x, y) {
+    const container = widget.parentElement;
+    const width = widget.offsetWidth, height = widgetHeight(widget);
+    const maxX = Math.max(0, container.clientWidth - width);
+    const xs = [{value: 0, line: 0}, {value: maxX, line: container.clientWidth}];
+    const ys = [{value: 0, line: 0}];
+    for (const [key, p] of Object.entries(widgetPositions)) {
+        const other = container.querySelector(`[data-widget="${key}"]`);
+        if (other === widget || !other || other.style.display === "none") continue;
+        const w = other.offsetWidth, h = widgetHeight(other);
+        xs.push({value:p.x,line:p.x}, {value:p.x+w-width,line:p.x+w},
+            {value:p.x+w+20,line:p.x+w+20}, {value:p.x-width-20,line:p.x-20});
+        ys.push({value:p.y,line:p.y}, {value:p.y+h-height,line:p.y+h},
+            {value:p.y+h+20,line:p.y+h+20}, {value:p.y-height-20,line:p.y-20});
+    }
+    function snap(value, candidates) {
+        const best = candidates.reduce((a,b) => Math.abs(b.value-value)<Math.abs(a.value-value)?b:a);
+        return Math.abs(best.value-value)<=7 ? best : {value:Math.round(value/5)*5};
+    }
+    const sx=snap(x,xs), sy=snap(y,ys);
+    clearWidgetGuides();
+    for (const [axis, point] of [["x",sx],["y",sy]]) {
+        if (point.line === undefined) continue;
+        const guide=document.createElement("div");
+        guide.className=`widget-position-guide guide-${axis}`;
+        guide.style[axis === "x" ? "left" : "top"]=`${point.line}px`;
+        container.appendChild(guide);
+    }
+    return {x:Math.max(0,Math.min(maxX,sx.value)), y:Math.max(0,sy.value)};
+}
+
+function finishWidgetDrag(commit) {
+    if (!widgetDrag) return;
+    const drag=widgetDrag;
+    widgetDrag=null;
+    const valid=commit && widgetPositionFree(drag.widget,drag.next.x,drag.next.y);
+    const p=valid ? drag.next : drag.origin;
+    widgetPositions[drag.widget.dataset.widget]={...p};
+    drag.widget.style.left=`${p.x}px`;
+    drag.widget.style.top=`${p.y}px`;
+    drag.widget.classList.remove("widget-dragging","widget-drop-invalid");
+    if (drag.widget.hasPointerCapture(drag.pointerId)) drag.widget.releasePointerCapture(drag.pointerId);
+    clearWidgetGuides();
+    if (valid) saveWidgetLayout();
+    updateWidgetCanvas();
+}
+
+function initWidgetDrag(widget) {
+    widget.addEventListener("pointerdown", event => {
+        if (!swapMode || event.button !== 0 || widgetDrag) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        selectWidgetForSwap(widget);
+        const origin={...widgetPositions[widget.dataset.widget]};
+        widgetDrag={widget,origin,next:origin,pointerId:event.pointerId,startX:event.clientX,startY:event.clientY,scrollY:window.scrollY};
+        widget.setPointerCapture(event.pointerId);
+        widget.classList.add("widget-dragging");
+    },true);
+    widget.addEventListener("pointermove", event => {
+        if (!widgetDrag || widgetDrag.widget !== widget) return;
+        const drag=widgetDrag;
+        drag.next=snapWidgetPosition(widget,drag.origin.x+event.clientX-drag.startX,
+            drag.origin.y+event.clientY-drag.startY+window.scrollY-drag.scrollY);
+        widget.style.left=`${drag.next.x}px`;
+        widget.style.top=`${drag.next.y}px`;
+        widget.classList.toggle("widget-drop-invalid",!widgetPositionFree(widget,drag.next.x,drag.next.y));
+        const container=widget.parentElement;
+        container.style.height=`${Math.max(container.clientHeight,drag.next.y+widgetHeight(widget)+150)}px`;
+        if (event.clientY > window.innerHeight-90) window.scrollBy(0,12);
+        else if (event.clientY < 70) window.scrollBy(0,-12);
+    });
+    widget.addEventListener("pointerup", () => { if (widgetDrag?.widget === widget) finishWidgetDrag(true); });
+    widget.addEventListener("pointercancel", () => { if (widgetDrag?.widget === widget) finishWidgetDrag(false); });
+    widget.addEventListener("lostpointercapture", () => { if (widgetDrag?.widget === widget) finishWidgetDrag(false); });
+}
+
+function handleHomeNavigation(button) {
+    showPage("home", button);
+    layoutWidgetGrid(false);
+    if (swapMode) return;
+    const now = performance.now();
+    if (!homeTapCount || now - homeTapStarted > HOME_TAP_WINDOW) {
+        homeTapCount = 0;
+        homeTapStarted = now;
+    }
+    if (++homeTapCount === 3) {
+        homeTapCount = 0;
+        const dialog = document.getElementById("homeEditDialog");
+        if (!dialog.open) dialog.showModal();
+    }
+}
+
+function startWidgetReorder() {
+    document.getElementById("homeEditDialog").close();
+    swapMode = true;
+    document.querySelector(".top-row").classList.add("swap-mode");
+    getSwapBanner().classList.add("visible");
+    layoutWidgetGrid(true);
+    updateWidgetSizeControls();
+}
+
+function registerHomeWidget(widget) {
+    if (widget.dataset.reorderReady) return;
+    widget.dataset.reorderReady = "true";
+    const sizes = storageGet(WIDGET_SIZE_KEY, {});
+    widget.dataset.size = sizes?.[widget.dataset.widget] === "compact" ||
+        (widget.dataset.widget === "battery" && !sizes?.battery) ? "compact" : "standard";
+    initWidgetDrag(widget);
+    function handleSelection(event) {
+        if (!swapMode) return;
+        if (event.type === "keydown" && !["Enter", " "].includes(event.key)) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        selectWidgetForSwap(widget);
+    }
+    widget.addEventListener("click", handleSelection, true);
+    widget.addEventListener("keydown", handleSelection, true);
+}
+
 function initWidgetReorder() {
     applySavedWidgetOrder();
-
-    document.querySelectorAll(".reorder-widget").forEach(widget => {
-        let longPressTimer = null;
-        let startX = 0, startY = 0;
-        let suppressClick = false;
-
-        const clearTimer = () => {
-            if (longPressTimer) {
-                clearTimeout(longPressTimer);
-                longPressTimer = null;
-            }
-        };
-
-        widget.addEventListener("pointerdown", (e) => {
-            if (swapMode) return; // en mode échange, on attend un simple tap (voir "click")
-
-            startX = e.clientX;
-            startY = e.clientY;
-
-            longPressTimer = setTimeout(() => {
-                longPressTimer = null;
-                suppressClick = true; // ignore le click qui suivra le relâchement
-                selectWidgetForSwap(widget);
-            }, LONG_PRESS_DURATION);
-        });
-
-        widget.addEventListener("pointermove", (e) => {
-            if (longPressTimer && Math.hypot(e.clientX - startX, e.clientY - startY) > MOVE_CANCEL_THRESHOLD) {
-                clearTimer();
-            }
-        });
-
-        widget.addEventListener("pointerup", clearTimer);
-        widget.addEventListener("pointercancel", clearTimer);
-
-        widget.addEventListener("click", (e) => {
-            if (suppressClick) {
-                suppressClick = false;
-                e.preventDefault();
-                e.stopPropagation();
-                return;
-            }
-
-            if (!swapMode) return;
-
-            e.preventDefault();
-            e.stopPropagation();
-
-            if (widget === selectedWidget) {
-                cancelWidgetSelection(); // retap sur le widget sélectionné = annuler
-                return;
-            }
-
-            swapWidgets(selectedWidget, widget);
-            saveWidgetOrder();
-            cancelWidgetSelection();
-        }, true); // capture: s'exécute avant les onclick inline (openWidgetModal, startMirror...)
+    document.querySelectorAll(".reorder-widget").forEach(registerHomeWidget);
+    refreshFavoriteList();
+    layoutWidgetGrid(false);
+    window.addEventListener("resize", () => layoutWidgetGrid(false));
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape" && swapMode) cancelWidgetSelection();
     });
 }
 

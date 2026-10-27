@@ -1313,9 +1313,11 @@ body {
     transform: scale(1.02);
 }
 
-/* ── Réorganisation des widgets (appui long 5s + tap pour échanger) ── */
-.reorder-widget {
-    touch-action: none;
+/* ── Réorganisation des widgets depuis le bouton Accueil ── */
+.top-row.swap-mode .reorder-widget {
+    outline: 2px dashed #94a3b8;
+    outline-offset: 3px;
+    cursor: pointer;
 }
 
 .reorder-widget.selected-for-swap {
@@ -1357,7 +1359,37 @@ body {
 
 .reorder-banner.visible {
     display: flex;
+    width: max-content;
+    max-width: calc(100% - 24px);
 }
+
+#homeEditDialog {
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    width: min(420px, calc(100% - 32px));
+    padding: 26px;
+    border: 1px solid #475569;
+    border-radius: 22px;
+    background: #1f2937;
+    color: #f1f5f9;
+    font: inherit;
+    box-shadow: 0 16px 60px #0007;
+}
+#homeEditDialog::backdrop { background: #020617b3; }
+#homeEditTitle { margin: 0 0 24px; font-size: 1.1rem; line-height: 1.5; }
+.home-edit-actions { display: flex; justify-content: flex-end; gap: 12px; }
+.home-edit-actions button {
+    min-height: 44px;
+    padding: 10px 18px;
+    border: 1px solid #64748b;
+    border-radius: 12px;
+    background: #334155;
+    color: white;
+    font: inherit;
+    cursor: pointer;
+}
+.home-edit-actions .home-edit-confirm { background: #15803d; border-color: #15803d; }
 
 .reorder-banner button {
     background: #22c55e;
@@ -2065,10 +2097,29 @@ body {
 
 /* ── Ligne météo + transports + miroir : 2 cases par ligne ── */
 .top-row {
+    --widget-height: 185px; /* Hauteur de la carte météo : contenu et marges inclus. */
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: var(--widget-height);
     gap: 20px;
     margin-bottom: 30px;
+}
+
+#home .top-row > .reorder-widget {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    height: var(--widget-height);
+    min-height: 0;
+    max-height: var(--widget-height);
+    margin-bottom: 0;
+    align-self: stretch;
+    overflow: hidden;
+}
+
+/* Les listes restent consultables sans agrandir les cartes. */
+#home .top-row > :is(.transport-card, .calendar-card) {
+    overflow-y: auto;
 }
 
 .top-row .weather-card {
@@ -3589,3 +3640,132 @@ body {
 #atmo-popup[data-atmosphere="night"] .atmo-metrics { border-color:#a9c8ec30; }
 #atmo-popup[data-atmosphere="night"] .atmo-periods button[aria-pressed="true"] { background:#bfdcff18;border-color:#bed9fa45; }
 #widgetModal.atmosphere-modal:has(#atmo-popup[data-atmosphere="night"]) .widget-modal-close { color:#e3edff;background:transparent; }
+/* Deux cartes compactes de 82,5 px + 20 px = une carte de 185 px. */
+#home .top-row {
+    grid-auto-rows: 82px;
+    grid-auto-flow: row dense;
+}
+#home .top-row > .reorder-widget { grid-row: span 2; }
+#home .top-row > .reorder-widget[data-size="compact"] {
+    --widget-height: 82.5px;
+    grid-row: span 1;
+    border-radius: 20px;
+}
+.reorder-banner { flex-wrap: wrap; justify-content: center; }
+.reorder-banner > span { flex: 1 1 220px; }
+.widget-size-actions { display: flex; gap: 6px; }
+.widget-size-actions button { background: #334155; }
+.widget-size-actions button[aria-pressed="true"] { background: #15803d; outline: 2px solid #86efac; }
+.widget-size-actions button:disabled { opacity: .4; cursor: default; }
+
+/* Météo : température et illustration sur une seule ligne, dégradé conservé. */
+#home #widget-meteo[data-size="compact"] { padding: 12px 16px; }
+#widget-meteo[data-size="compact"] .atmo-widget-footer { display: none; }
+#widget-meteo[data-size="compact"] .temperature { font-size: 38px; letter-spacing: -2px; }
+#widget-meteo[data-size="compact"] h2 { font-size: 12px; margin-top: 2px; }
+#widget-meteo[data-size="compact"] .atmo-widget-art { width: 65px; height: 55px; }
+#widget-meteo[data-size="compact"] .atmo-widget-art .atmo-sky { transform: scale(.42); }
+
+/* Transport : petites pastilles de passage, couleurs des lignes conservées. */
+#home #widget-transport[data-size="compact"] {
+    padding: 8px 12px;
+    --transport-card-size: 52px;
+    --transport-card-value-size: 18px;
+    --transport-card-line-size: 9px;
+    --transport-card-unit-size: 9px;
+    --transport-card-rt-size: 10px;
+}
+#widget-transport[data-size="compact"] .transport-title { font-size: 11px; margin-bottom: 4px; }
+#widget-transport[data-size="compact"] .transport-title .icon-inline { width: 12px; height: 12px; }
+#widget-transport[data-size="compact"] .transport-card-line { top: 3px; left: 4px; }
+#widget-transport[data-size="compact"] .transport-card-rt { top: 3px; right: 4px; }
+#widget-transport[data-size="compact"] :is(.transport-card-dircount, .transport-estimated-approach) { display: none; }
+#widget-transport[data-size="compact"] .has-estimated-approach :is(.transport-card-value,.transport-card-unit) { transform: none; }
+#widget-transport[data-size="compact"] .transport-cards { padding-bottom: 0; }
+
+/* Agenda : date bleue à gauche, prochain rendez-vous à droite. */
+#home #widget-calendar[data-size="compact"] { padding: 12px; justify-content: center; }
+#widget-calendar[data-size="compact"] .cal-upcoming { display: none; }
+#widget-calendar[data-size="compact"] .cal-featured { grid-template-columns: 42px minmax(0,1fr) 12px; gap: 9px; }
+#widget-calendar[data-size="compact"] .cal-stamp { padding: 5px 2px; }
+#widget-calendar[data-size="compact"] .cal-stamp strong { font-size: 23px; }
+#widget-calendar[data-size="compact"] .cal-hero { font-size: 13px; -webkit-line-clamp: 1; margin: 3px 0; }
+#widget-calendar[data-size="compact"] .cal-widget-location { display: none; }
+#widget-calendar[data-size="compact"] .cal-widget-message { font-size: 11px; margin-top: 0; }
+#home #widget-miroir[data-size="compact"] { padding: 12px; }
+#widget-miroir[data-size="compact"] > span { font-size: 22px !important; }
+
+/* Musique et cinéma : visuel en fond, titre et lecture au premier plan. */
+#home .reorder-widget[data-size="compact"] .spotify-overlay { padding: 12px; }
+.reorder-widget[data-size="compact"] .spotify-player { flex-direction: row; gap: 8px; }
+.reorder-widget[data-size="compact"] .spotify-track { flex: 1; min-width: 0; text-align: left; }
+.reorder-widget[data-size="compact"] .spotify-title { font-size: 14px; }
+.reorder-widget[data-size="compact"] .spotify-artist { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.reorder-widget[data-size="compact"] .spotify-controls { gap: 0; }
+.reorder-widget[data-size="compact"] .spotify-controls button { width: 40px; height: 40px; }
+.reorder-widget[data-size="compact"] .spotify-controls button:first-child,
+.reorder-widget[data-size="compact"] .spotify-controls button:last-child { display: none; }
+.reorder-widget[data-size="compact"] .chromecast-poster { width: calc(100% + 24px); height: calc(100% + 24px); margin: -12px; padding: 10px 12px; justify-content: center; gap: 3px; }
+.reorder-widget[data-size="compact"] :is(.chromecast-poster-badge,.chromecast-poster-nav) { display: none !important; }
+.reorder-widget[data-size="compact"] .chromecast-poster-tap { margin: 0; }
+.reorder-widget[data-size="compact"] .chromecast-poster-title { font-size: 14px; -webkit-line-clamp: 1; }
+.reorder-widget[data-size="compact"] .chromecast-poster-meta { font-size: 10px; }
+.reorder-widget[data-size="compact"] .chromecast-poster-empty { gap: 4px; }
+.reorder-widget[data-size="compact"] .chromecast-poster-empty-icon { font-size: 20px; }
+.reorder-widget[data-size="compact"] .chromecast-poster-empty-cta { font-size: 11px; }
+.reorder-widget[data-size="compact"] .spotify-login button { font-size: 12px; padding: 10px 12px; }
+
+/* Placement libre : quadrillage fin et repères pendant le déplacement. */
+#home .top-row.free-widget-layout { display: block; position: relative; padding: 0; }
+#home .top-row.free-widget-layout > .reorder-widget {
+    position: absolute; width: var(--widget-width); margin: 0; grid-area: auto;
+}
+#home .top-row.free-widget-layout.swap-mode {
+    background-image: linear-gradient(to right,#94a3b826 1px,transparent 1px),linear-gradient(to bottom,#94a3b826 1px,transparent 1px);
+    background-size: 5px 5px;
+    border-radius: 4px;
+}
+#home .top-row.swap-mode > .reorder-widget { touch-action: none; cursor: grab; user-select: none; }
+#home .top-row.swap-mode .selected-for-swap { animation: none; }
+#home .top-row.swap-mode .widget-dragging { z-index: 30; cursor: grabbing; box-shadow: 0 12px 35px #0007; opacity: .85; }
+#home .top-row.swap-mode .widget-drop-invalid { outline-color: #fb7185; }
+.widget-position-guide { position: absolute; pointer-events: none; z-index: 40; background: #86efac; }
+.widget-position-guide.guide-x { top: 0; bottom: 0; width: 1px; }
+.widget-position-guide.guide-y { left: 0; right: 0; height: 1px; }
+
+/* Une seule surface pour les widgets et les appareils épinglés. */
+#home.container { display: block; }
+#home .top-row { width: 100%; }
+#home .top-row.swap-mode { min-height: calc(100dvh - 280px); }
+#home .favorite-device-tile { display: flex; flex-direction: column; justify-content: flex-end; padding: 18px; }
+#home .favorite-device-tile:hover { transform: none; }
+#home .favorite-device-tile .favorite-device-icon { width: 54px; height: 54px; margin: 0 0 auto; }
+#home .favorite-device-tile .favorite-device-room { max-width: calc(100% - 90px); }
+#home .favorite-device-tile[data-size="compact"] { padding: 12px 14px 12px 66px; justify-content: center; }
+#home .favorite-device-tile[data-size="compact"] .favorite-device-icon { position: absolute; left: 14px; top: 22px; width: 38px; height: 38px; margin: 0; }
+#home .favorite-device-tile[data-size="compact"] .favorite-device-room { position: static; align-self: flex-start; max-width: 100%; padding: 0; font-size: 10px; background: none; margin-bottom: 3px; }
+#home .favorite-device-tile[data-size="compact"] .favorite-device-name { font-size: 13px; }
+#home .favorite-device-tile[data-size="compact"] .favorite-device-state { font-size: 11px; }
+
+/* L'horloge et les batteries appartiennent à la même surface libre. */
+#home.container { width: 100%; margin: auto; }
+#home .top-row.free-widget-layout { min-height: calc(100dvh - 80px); margin: 0; }
+#home .top-row.free-widget-layout > #widget-clock {
+    width: min(460px, 100%); padding: 12px 20px; overflow: hidden;
+    background: transparent; border-radius: 20px;
+}
+#home #widget-clock #time { font-size: clamp(64px, 9vw, 112px); line-height: 1.15; }
+#home #widget-clock #date { font-size: clamp(20px, 3vw, 32px); line-height: 1.3; margin-top: 8px; }
+#home #widget-clock[data-size="compact"] { padding: 5px 16px; }
+#home #widget-clock[data-size="compact"] #time { font-size: 42px; line-height: 1.1; }
+#home #widget-clock[data-size="compact"] #date { font-size: 18px; margin-top: 3px; }
+#home .top-row.free-widget-layout > #widget-battery {
+    width: min(280px, 100%); padding: 12px; display: flex;
+    align-items: center; justify-content: center; border-radius: 20px;
+    background: transparent; overflow: auto;
+}
+#home #widget-battery .battery-badges { justify-content: center; max-width: 100%; }
+#home #widget-battery .battery-badge { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+#home #widget-battery:has(.battery-badges:empty)::after { content: "Aucune batterie configurée"; font-size: 12px; color: #94a3b8; }
+#home #widget-battery:has(.battery-badges:empty) { visibility: hidden; }
+#home .swap-mode #widget-battery:has(.battery-badges:empty) { visibility: visible; }
