@@ -3769,3 +3769,35 @@ body {
 #home #widget-battery:has(.battery-badges:empty)::after { content: "Aucune batterie configurée"; font-size: 12px; color: #94a3b8; }
 #home #widget-battery:has(.battery-badges:empty) { visibility: hidden; }
 #home .swap-mode #widget-battery:has(.battery-badges:empty) { visibility: visible; }
+
+/* Formats fixes de l'horloge et formats automatiques des batteries. */
+#home .top-row.free-widget-layout > #widget-clock {
+    width: var(--widget-width); padding: 16px 12px;
+    display: flex; flex-direction: column; justify-content: center;
+}
+#home #widget-clock #time { font-size: 50px; line-height: 1.1; letter-spacing: -2px; white-space: nowrap; }
+#home #widget-clock #date { font-size: 18px; line-height: 1.35; margin-top: 10px; overflow-wrap: anywhere; }
+#home .top-row.free-widget-layout > #widget-battery { width: var(--widget-width); }
+#home .top-row.free-widget-layout > #widget-battery[data-size="compact"] { width: var(--widget-width); padding: 6px; }
+#home #widget-battery[data-size="compact"] .battery-badge {
+    font-size: 18px; padding: 6px 4px; border-radius: 12px;
+    white-space: normal; text-align: center; overflow-wrap: anywhere;
+}
+#home #widget-battery[data-size="standard"] .battery-badges { width: 100%; flex-direction: column; align-items: stretch; }
+#home #widget-battery[data-size="standard"] .battery-badge { font-size: 21px; padding: 7px 8px; }
+
+/* Typographie ajustée à la surface réelle de l'horloge. */
+#home .top-row > .reorder-widget.widget-visually-selected,
+#home .top-row.swap-mode > .reorder-widget.selected-for-swap {
+    outline: 3px solid #22c55e;
+    outline-offset: -3px;
+}
+#home .top-row.swap-mode > .reorder-widget.widget-drop-invalid {
+    outline-color: #fb7185;
+}
+#home .top-row.free-widget-layout > #widget-clock { padding: 8px; }
+#home #widget-clock #time { flex: none; line-height: 1; letter-spacing: -.045em; }
+#home #widget-clock #date {
+    flex: none; line-height: 1.15; margin-top: 6px;
+    overflow-wrap: normal; text-wrap: balance;
+}

@@ -51,14 +51,42 @@ function storageSet(key, value) {
 
 // ─── Horloge ────────────────────────────────────────────────────────────────
 
+function fitClockText() {
+    const widget = document.getElementById("widget-clock");
+    const time = document.getElementById("time");
+    const date = document.getElementById("date");
+    if (!widget || !widget.clientWidth || !widget.clientHeight) return;
+    const style = getComputedStyle(widget);
+    const width = widget.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+    const height = widget.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+    const gap = parseFloat(getComputedStyle(date).marginTop) || 0;
+    let low = 1, high = height;
+    function apply(size) {
+        time.style.fontSize = `${size}px`;
+        date.style.fontSize = `${size * .28}px`;
+    }
+    // Cherche la plus grande typographie qui tient en largeur et en hauteur.
+    for (let step = 0; step < 12; step++) {
+        const size = (low + high) / 2;
+        apply(size);
+        const fits = time.scrollWidth <= width + .1 && date.scrollWidth <= width + .1 &&
+            time.getBoundingClientRect().height + date.getBoundingClientRect().height + gap <= height;
+        if (fits) low = size;
+        else high = size;
+    }
+    apply(Math.floor(low * 10) / 10);
+}
+
 function updateClock() {
     const now = new Date();
-
-    document.getElementById("time").textContent =
-        now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
-
-    document.getElementById("date").textContent =
-        now.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+    const time = document.getElementById("time");
+    const date = document.getElementById("date");
+    const timeText = now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+    const dateText = now.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+    if (time.textContent === timeText && date.textContent === dateText) return;
+    time.textContent = timeText;
+    date.textContent = dateText;
+    requestAnimationFrame(fitClockText);
 }
 
 setInterval(updateClock, 1000);
@@ -3140,6 +3168,17 @@ function renderBatteryBadges() {
     if (!container) return;
 
     const phones = getPhones();
+    const batteryWidget = document.getElementById("widget-battery");
+    if (batteryWidget) {
+        const size = phones.length > 1 ? "standard" : "compact";
+        const changed = batteryWidget.dataset.size !== size;
+        batteryWidget.dataset.size = size;
+        if (changed) requestAnimationFrame(() => {
+            if (widgetDrag) finishWidgetDrag(false);
+            layoutWidgetGrid(true);
+            if (swapMode) updateWidgetSizeControls();
+        });
+    }
     if (phones.length === 0) {
         container.innerHTML = "";
         return;
@@ -4904,14 +4943,14 @@ function getSwapBanner() {
 function updateWidgetSizeControls() {
     const banner = getSwapBanner();
     banner.querySelectorAll("[data-size]").forEach(button => {
-        button.disabled = !selectedWidget;
+        button.disabled = !selectedWidget || ["clock", "battery"].includes(selectedWidget.dataset.widget);
         button.setAttribute("aria-pressed", String(!!selectedWidget &&
             (selectedWidget.dataset.size || "standard") === button.dataset.size));
     });
 }
 
 function setSelectedWidgetSize(size) {
-    if (!swapMode || !selectedWidget || !["standard", "compact"].includes(size)) return;
+    if (!swapMode || !selectedWidget || ["clock", "battery"].includes(selectedWidget.dataset.widget) || !["standard", "compact"].includes(size)) return;
     selectedWidget.dataset.size = size;
     const sizes = {};
     document.querySelectorAll(".reorder-widget").forEach(widget => {
@@ -4923,6 +4962,7 @@ function setSelectedWidgetSize(size) {
 }
 
 function selectWidgetForSwap(widget) {
+    highlightHomeWidget(widget);
     if (selectedWidget) selectedWidget.classList.remove("selected-for-swap");
     selectedWidget = widget;
     swapMode = true;
@@ -5150,6 +5190,8 @@ function registerHomeWidget(widget) {
     const sizes = storageGet(WIDGET_SIZE_KEY, {});
     widget.dataset.size = sizes?.[widget.dataset.widget] === "compact" ||
         (widget.dataset.widget === "battery" && !sizes?.battery) ? "compact" : "standard";
+    if (widget.dataset.widget === "clock") widget.dataset.size = "standard";
+    if (widget.dataset.widget === "battery") widget.dataset.size = getPhones().length > 1 ? "standard" : "compact";
     initWidgetDrag(widget);
     function handleSelection(event) {
         if (!swapMode) return;
@@ -5162,18 +5204,34 @@ function registerHomeWidget(widget) {
     widget.addEventListener("keydown", handleSelection, true);
 }
 
+function highlightHomeWidget(target) {
+    const widget = target.closest("#home .top-row > .reorder-widget");
+    document.querySelectorAll("#home .widget-visually-selected").forEach(item => {
+        if (item !== widget) item.classList.remove("widget-visually-selected");
+    });
+    if (widget) widget.classList.add("widget-visually-selected");
+}
+
 function initWidgetReorder() {
     applySavedWidgetOrder();
     document.querySelectorAll(".reorder-widget").forEach(registerHomeWidget);
     refreshFavoriteList();
     layoutWidgetGrid(false);
     window.addEventListener("resize", () => layoutWidgetGrid(false));
+    document.addEventListener("pointerdown", event => highlightHomeWidget(event.target), true);
+    document.addEventListener("click", event => highlightHomeWidget(event.target), true);
+    document.addEventListener("keydown", event => {
+        if (event.key === "Enter" || event.key === " ") highlightHomeWidget(event.target);
+    }, true);
     document.addEventListener("keydown", event => {
         if (event.key === "Escape" && swapMode) cancelWidgetSelection();
     });
 }
 
 initWidgetReorder();
+const clockSizeObserver = new ResizeObserver(() => fitClockText());
+clockSizeObserver.observe(document.getElementById("widget-clock"));
+if (document.fonts) document.fonts.ready.then(fitClockText);
 
 // Empêche l'ouverture des widgets (météo/transport/miroir) pendant le mode échange
 const _openWidgetModal = openWidgetModal;
