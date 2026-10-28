@@ -3838,6 +3838,7 @@ body {
     overflow-wrap: anywhere;
 }
 #spotifyCard[data-size="compact"] .spotify-controls button:last-child { display: inline-block; }
+#spotifyCard[data-size="compact"] #spotifyPlayer .spotify-controls { display: none; }
 #spotifyCard[data-size="compact"] #spotifyPlayPause { background: #def3e5; color: #16482f; }
 #spotifyCard[data-size="compact"] .spotify-controls button:last-child { background: transparent; }
 #spotifyCard[data-size="compact"] #spotifyIdle {
