@@ -3269,22 +3269,21 @@ function stopMirror() {
 // ─── Widgets de l'Accueil ────────────────────────────────────────────────────
 
 const WIDGETS = [
-    { widgetId: 'widget-calendar', checkId: 'chk-calendar' },
-    { widgetId: 'widget-meteo',     checkId: 'chk-meteo'     },
-    { widgetId: 'widget-transport', checkId: 'chk-transport'  },
-    { widgetId: 'widget-miroir',    checkId: 'chk-miroir'     },
-    { widgetId: 'spotifyCard',      checkId: 'chk-spotify'    },
-    { widgetId: 'chromecastCard',   checkId: 'chk-chromecast' },
+    { widgetId: 'widget-battery', name: 'Batterie' },
+    { widgetId: 'widget-calendar', name: 'Agenda' },
+    { widgetId: 'widget-meteo', name: 'Météo' },
+    { widgetId: 'widget-transport', name: 'Transport' },
+    { widgetId: 'widget-miroir', name: 'Miroir' },
+    { widgetId: 'spotifyCard', name: 'Spotify' },
+    { widgetId: 'chromecastCard', name: 'Chromecast' },
 ];
 
 function initWidgetToggles() {
     const saved = storageGet('widgets_visibility', {});
-    WIDGETS.forEach(({ widgetId, checkId }) => {
+    WIDGETS.forEach(({ widgetId }) => {
         const visible = saved[widgetId] !== false; // true par défaut
         const el  = document.getElementById(widgetId);
-        const chk = document.getElementById(checkId);
         if (el)  el.style.display  = visible ? '' : 'none';
-        if (chk) chk.checked       = visible;
     });
 }
 
@@ -4928,12 +4927,13 @@ function getSwapBanner() {
         banner.id = "reorderBanner";
         banner.className = "reorder-banner";
         banner.innerHTML = `
-            <span id="widgetEditHint" aria-live="polite">Glissez un widget pour le placer · grille 5 px · repères aimantés</span>
+            <button type="button" onclick="openAddWidgetDialog()">+ Ajouter un widget</button>
             <div class="widget-size-actions" role="group" aria-label="Taille du widget sélectionné">
                 <button type="button" data-size="standard" onclick="setSelectedWidgetSize('standard')" disabled>Standard</button>
                 <button type="button" data-size="compact" onclick="setSelectedWidgetSize('compact')" disabled>Compact · ½</button>
             </div>
             <button onclick="cancelWidgetSelection()">Terminer</button>
+            <button type="button" aria-label="Aide du mode déplacement" title="Aide du mode déplacement" onclick="openWidgetHelpDialog()">?</button>
         `;
         document.body.appendChild(banner);
     }
@@ -4947,6 +4947,121 @@ function updateWidgetSizeControls() {
         button.setAttribute("aria-pressed", String(!!selectedWidget &&
             (selectedWidget.dataset.size || "standard") === button.dataset.size));
     });
+}
+
+function openWidgetHelpDialog() {
+    if (!swapMode) return;
+    let dialog = document.getElementById("widgetHelpDialog");
+    if (!dialog) {
+        dialog = document.createElement("dialog");
+        dialog.id = "widgetHelpDialog";
+        dialog.setAttribute("aria-labelledby", "widgetHelpTitle");
+        dialog.innerHTML = `
+            <div class="add-widget-header">
+                <h2 id="widgetHelpTitle">Utiliser le mode déplacement</h2>
+                <button type="button" aria-label="Fermer l’aide" onclick="this.closest('dialog').close()">×</button>
+            </div>
+            <ul class="widget-help-instructions">
+                <li><strong>Déplacer :</strong> maintenez un widget avec le doigt ou la souris, puis glissez-le à l’endroit souhaité.</li>
+                <li><strong>Aligner :</strong> les widgets suivent une grille de 5 px et des repères aimantés facilitent leur alignement.</li>
+                <li><strong>Éviter les chevauchements :</strong> si la position est occupée, le widget revient à son point de départ lorsque vous le relâchez.</li>
+                <li><strong>Changer la taille :</strong> sélectionnez un widget, puis choisissez « Standard » ou « Compact · ½ ». Ces tailles ne sont pas modifiables pour l’horloge et les batteries.</li>
+                <li><strong>Ajouter ou retirer :</strong> ouvrez « Ajouter un widget », puis utilisez « + Ajouter » ou « − Retirer » dans la liste.</li>
+                <li><strong>Terminer :</strong> appuyez sur « Terminer » pour quitter le mode déplacement. Vos modifications sont sauvegardées automatiquement.</li>
+            </ul>`;
+        dialog.addEventListener("click", event => {
+            const bounds = dialog.getBoundingClientRect();
+            if (event.target === dialog && (event.clientX < bounds.left || event.clientX > bounds.right ||
+                event.clientY < bounds.top || event.clientY > bounds.bottom)) dialog.close();
+        });
+        document.body.appendChild(dialog);
+    }
+    if (!dialog.open) dialog.showModal();
+}
+
+function createWidgetCatalogIcon(widgetId) {
+    const icon = document.createElement("span");
+    icon.className = "widget-catalog-icon";
+    icon.setAttribute("aria-hidden", "true");
+    if (widgetId === "chromecastCard") {
+        icon.innerHTML = `<svg viewBox="0 0 40 40" fill="none"><rect x="3" y="5" width="34" height="25" rx="4" stroke="#93c5fd" stroke-width="2"/><path d="M15 35h10M20 30v5" stroke="#93c5fd" stroke-width="2" stroke-linecap="round"/><g transform="translate(10 8) scale(.83)"><path fill="#4285F4" d="M21.6 12.23c0-.71-.06-1.39-.18-2.05H12v3.88h5.38a4.6 4.6 0 0 1-2 3.02v2.51h3.24c1.9-1.75 2.98-4.33 2.98-7.36Z"/><path fill="#34A853" d="M12 22c2.7 0 4.96-.9 6.62-2.41l-3.24-2.51c-.9.6-2.05.97-3.38.97-2.6 0-4.81-1.76-5.6-4.12H3.05v2.59A10 10 0 0 0 12 22Z"/><path fill="#FBBC05" d="M6.4 13.93a6 6 0 0 1 0-3.86V7.48H3.05a10 10 0 0 0 0 9.04l3.35-2.59Z"/><path fill="#EA4335" d="M12 5.95c1.47 0 2.79.5 3.82 1.49l2.87-2.87A9.6 9.6 0 0 0 12 2a10 10 0 0 0-8.95 5.48l3.35 2.59C7.19 7.71 9.4 5.95 12 5.95Z"/></g></svg>`;
+    } else if (widgetId === "spotifyCard") {
+        const logo = document.querySelector("#spotifyPlayerModalBadge svg");
+        if (logo) icon.appendChild(logo.cloneNode(true));
+    } else if (widgetId === "widget-battery") {
+        icon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="#86efac" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="18" height="12" rx="3"/><path d="M23 10v4M11 8l-3 5h5l-3 4"/></svg>`;
+    } else {
+        const labels = {"widget-calendar": "Agenda", "widget-meteo": "Météo", "widget-miroir": "Miroir", "widget-transport": "Transport"};
+        const label = [...document.querySelectorAll("#settings-widgets .widget-label")].find(item => item.textContent.trim().startsWith(labels[widgetId]));
+        const svg = label?.querySelector("svg");
+        if (svg) icon.appendChild(svg.cloneNode(true));
+    }
+    icon.dataset.widgetId = widgetId;
+    return icon;
+}
+
+function openAddWidgetDialog() {
+    if (!swapMode) return;
+    let dialog = document.getElementById("addWidgetDialog");
+    if (!dialog) {
+        dialog = document.createElement("dialog");
+        dialog.id = "addWidgetDialog";
+        dialog.setAttribute("aria-labelledby", "addWidgetTitle");
+        dialog.innerHTML = `
+            <div class="add-widget-header">
+                <h2 id="addWidgetTitle">Ajouter un widget</h2>
+                <button type="button" aria-label="Fermer" onclick="this.closest('dialog').close()">×</button>
+            </div>
+            <div class="add-widget-list"></div>`;
+        dialog.addEventListener("click", event => {
+            const bounds = dialog.getBoundingClientRect();
+            if (event.target === dialog && (event.clientX < bounds.left || event.clientX > bounds.right ||
+                event.clientY < bounds.top || event.clientY > bounds.bottom)) dialog.close();
+        });
+        document.body.appendChild(dialog);
+    }
+    const list = dialog.querySelector(".add-widget-list");
+    list.replaceChildren();
+    const sortedWidgets = [...WIDGETS].sort((a, b) => a.name.localeCompare(b.name, "fr", {sensitivity: "base"}));
+    sortedWidgets.forEach(({widgetId, name: widgetName}) => {
+        const widget = document.getElementById(widgetId);
+        if (!widget) return;
+        const present = widget.style.display !== "none";
+        const button = document.createElement("button");
+        button.type = "button";
+        button.dataset.widgetId = widgetId;
+        const name = document.createElement("span");
+        name.className = "widget-catalog-name";
+        name.textContent = widgetName;
+        const status = document.createElement("span");
+        status.className = "add-widget-status";
+        status.textContent = present ? "− Retirer" : "+ Ajouter";
+        button.classList.toggle("widget-present", present);
+        button.setAttribute("aria-label", `${present ? "Retirer" : "Ajouter"} ${name.textContent}`);
+        button.append(createWidgetCatalogIcon(widgetId), name, status);
+        button.addEventListener("click", () => {
+            if (present) {
+                if (widgetDrag?.widget === widget) finishWidgetDrag(false);
+                if (selectedWidget === widget) {
+                    widget.classList.remove("selected-for-swap", "widget-visually-selected");
+                    selectedWidget = null;
+                    updateWidgetSizeControls();
+                }
+                toggleWidget(widgetId, false);
+                layoutWidgetGrid(true);
+                openAddWidgetDialog();
+                [...list.querySelectorAll("button")].find(item => item.dataset.widgetId === widgetId)?.focus();
+                return;
+            }
+            toggleWidget(widgetId, true);
+            layoutWidgetGrid(true);
+            selectWidgetForSwap(widget);
+            dialog.close();
+            widget.scrollIntoView({block: "center", behavior: "smooth"});
+        });
+        list.appendChild(button);
+    });
+    if (!dialog.open) dialog.showModal();
 }
 
 function setSelectedWidgetSize(size) {
@@ -4974,10 +5089,15 @@ function selectWidgetForSwap(widget) {
 }
 
 function cancelWidgetSelection() {
+    document.getElementById("addWidgetDialog")?.close();
+    document.getElementById("widgetHelpDialog")?.close();
     if (widgetDrag) finishWidgetDrag(false);
     if (selectedWidget) selectedWidget.classList.remove("selected-for-swap");
     selectedWidget = null;
     swapMode = false;
+    document.querySelectorAll("#home .widget-visually-selected").forEach(widget => {
+        widget.classList.remove("widget-visually-selected");
+    });
     const container = document.querySelector(".top-row");
     if (container) {
         container.classList.remove("swap-mode");
@@ -5205,7 +5325,7 @@ function registerHomeWidget(widget) {
 }
 
 function highlightHomeWidget(target) {
-    const widget = target.closest("#home .top-row > .reorder-widget");
+    const widget = swapMode ? target.closest("#home .top-row > .reorder-widget") : null;
     document.querySelectorAll("#home .widget-visually-selected").forEach(item => {
         if (item !== widget) item.classList.remove("widget-visually-selected");
     });
@@ -5224,7 +5344,7 @@ function initWidgetReorder() {
         if (event.key === "Enter" || event.key === " ") highlightHomeWidget(event.target);
     }, true);
     document.addEventListener("keydown", event => {
-        if (event.key === "Escape" && swapMode) cancelWidgetSelection();
+        if (event.key === "Escape" && swapMode && !document.getElementById("addWidgetDialog")?.open && !document.getElementById("widgetHelpDialog")?.open) cancelWidgetSelection();
     });
 }
 
