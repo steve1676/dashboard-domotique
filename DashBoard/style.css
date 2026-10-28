@@ -3754,6 +3754,65 @@ body {
 .reorder-widget[data-size="compact"] .chromecast-poster-empty-cta { font-size: 11px; }
 .reorder-widget[data-size="compact"] .spotify-login button { font-size: 12px; padding: 10px 12px; }
 
+/* Spotify demi-taille : pochette entière à gauche, fondu puis contenu à droite. */
+#spotifyCard[data-size="compact"] {
+    --spotify-compact-green: #195d40;
+    --spotify-compact-art: var(--widget-height, 82.5px);
+    container-type: inline-size;
+    background: var(--spotify-compact-green);
+}
+#spotifyCard[data-size="compact"] #spotifyBgBlur { display: none; }
+#spotifyCard[data-size="compact"] #spotifyAlbumArt {
+    inset: 0 auto 0 0;
+    width: var(--spotify-compact-art);
+    background-position: left center;
+    filter: none;
+}
+#spotifyCard[data-size="compact"] #spotifyAlbumArt::after {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 100%;
+    width: 42px;
+    background-image: inherit;
+    background-size: var(--spotify-compact-art) 100%;
+    background-position: right center;
+    -webkit-mask-image: linear-gradient(90deg, #000, transparent);
+    mask-image: linear-gradient(90deg, #000, transparent);
+    pointer-events: none;
+}
+#home #spotifyCard[data-size="compact"] .spotify-overlay {
+    padding: 0;
+    background: none;
+}
+#spotifyCard[data-size="compact"] #spotifyPlayer {
+    box-sizing: border-box;
+    padding: 10px 12px 10px calc(var(--spotify-compact-art) + 45px);
+    gap: 8px;
+}
+#spotifyCard[data-size="compact"] .spotify-controls { flex: 0 0 auto; gap: 2px; }
+#spotifyCard[data-size="compact"] .spotify-controls button:last-child { display: inline-block; }
+#spotifyCard[data-size="compact"] #spotifyPlayPause { background: #def3e5; color: #16482f; }
+#spotifyCard[data-size="compact"] .spotify-controls button:last-child { background: transparent; }
+#spotifyCard[data-size="compact"] #spotifyIdle {
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    /* Les 120 px choisis sont conservés tant que le texte dispose de 96 px. */
+    padding: 8px 12px 8px calc(var(--spotify-compact-art) + clamp(16px, 100cqw - var(--spotify-compact-art) - 108px, 120px));
+    box-shadow: none;
+    gap: 4px;
+}
+#spotifyCard[data-size="compact"] #spotifyIdle::before { display: none; }
+#spotifyCard[data-size="compact"] #spotifyRecTap { min-width: 0; width: 100%; }
+#spotifyCard[data-size="compact"] #spotifyRecTitle { -webkit-line-clamp: 2; font-size: 14px; }
+#spotifyCard[data-size="compact"] #spotifyRecMeta { color: #c1d9cb; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+#spotifyCard[data-size="compact"] #spotifyLoggedOut { padding: 10px; }
+@container (max-width: 330px) {
+    #spotifyCard[data-size="compact"] #spotifyPlayer { padding-left: calc(var(--spotify-compact-art) + 16px); }
+    #spotifyCard[data-size="compact"] .spotify-controls button { width: 34px; height: 40px; }
+}
+
 /* Placement libre : quadrillage fin et repères pendant le déplacement. */
 #home .top-row.free-widget-layout { display: block; position: relative; padding: 0; }
 #home .top-row.free-widget-layout > .reorder-widget {
