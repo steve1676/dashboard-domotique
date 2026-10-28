@@ -4539,7 +4539,8 @@ async function chromecastFetchYoutubeRecs() {
                     title: chromecastDecodeHtml(item.snippet.title),
                     subtitle: chromecastDecodeHtml(item.snippet.channelTitle),
                     description: chromecastDecodeHtml(item.snippet.description),
-                    image: item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
+                    image: item.snippet.thumbnails?.high?.url || item.snippet.thumbnails?.medium?.url || item.snippet.thumbnails?.default?.url,
+                    imageLarge: item.snippet.thumbnails?.maxres?.url || item.snippet.thumbnails?.standard?.url || item.snippet.thumbnails?.high?.url,
                     publishedAt: item.snippet.publishedAt,
                 }));
         }));
@@ -4581,6 +4582,7 @@ async function chromecastFetchTmdbRecs() {
             description: chromecastDecodeHtml(m.overview),
             rating: m.vote_average,
             image: m.poster_path ? `https://image.tmdb.org/t/p/w300${m.poster_path}` : null,
+            imageLarge: m.backdrop_path ? `https://image.tmdb.org/t/p/original${m.backdrop_path}` : (m.poster_path ? `https://image.tmdb.org/t/p/original${m.poster_path}` : null),
         }));
 
         const tvRecs = (shows.results || []).slice(0, 3).map(s => ({
@@ -4591,6 +4593,7 @@ async function chromecastFetchTmdbRecs() {
             description: chromecastDecodeHtml(s.overview),
             rating: s.vote_average,
             image: s.poster_path ? `https://image.tmdb.org/t/p/w300${s.poster_path}` : null,
+            imageLarge: s.backdrop_path ? `https://image.tmdb.org/t/p/original${s.backdrop_path}` : (s.poster_path ? `https://image.tmdb.org/t/p/original${s.poster_path}` : null),
         }));
 
         return [...movieRecs, ...tvRecs];
@@ -4678,6 +4681,30 @@ function chromecastRecPrev() {
     chromecastRenderCurrentRec();
 }
 
+// Charge la grande image à part : pas de vignette cassée ni de remplacement
+// tardif si une autre recommandation a été ouverte pendant le chargement.
+function chromecastUpgradeRecPoster(rec, poster) {
+    const currentImage = poster.style.backgroundImage;
+    const youtubeImage = rec.type === "youtube" && (rec.image || "").match(/^https:\/\/(?:i|img)\.ytimg\.com\/vi(?:_webp)?\/([^/]+)\//);
+    const candidates = youtubeImage
+        ? [`https://i.ytimg.com/vi/${youtubeImage[1]}/maxresdefault.jpg`, rec.imageLarge]
+        : [rec.imageLarge];
+    const urls = [...new Set(candidates.filter(url => url && url !== rec.image))];
+    function tryImage(index) {
+        if (index >= urls.length || poster.style.backgroundImage !== currentImage) return;
+        const image = new Image();
+        image.onload = () => {
+            if (poster.style.backgroundImage !== currentImage) return;
+            // YouTube peut renvoyer une image de remplacement de 120 px même en HTTP 200.
+            if (youtubeImage && image.naturalWidth < 480) { tryImage(index + 1); return; }
+            poster.style.backgroundImage = `url('${urls[index]}')`;
+        };
+        image.onerror = () => tryImage(index + 1);
+        image.src = urls[index];
+    }
+    tryImage(0);
+}
+
 function chromecastShowRecInfo(index) {
     const rec = chromecastRecsData[index];
     if (!rec) return;
@@ -4685,6 +4712,7 @@ function chromecastShowRecInfo(index) {
     const poster = document.getElementById("chromecastInfoPoster");
     poster.style.backgroundImage = rec.image ? `url('${rec.image}')` : "none";
     poster.textContent = rec.image ? "" : (rec.type === "youtube" ? "▶️" : "🎬");
+    chromecastUpgradeRecPoster(rec, poster);
 
     document.getElementById("chromecastInfoTitle").textContent = rec.title;
 

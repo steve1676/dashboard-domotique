@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Domotique</title>
-    <link rel="stylesheet" href="style.css?v=20261028-spotify-compact">
+    <link rel="stylesheet" href="style.css?v=20261028-spotify-fade-fix">
     <link rel="stylesheet" href="light-color.css?v=20261025-audit">
     <link rel="stylesheet" href="calendar.css?v=20261025-audit">
 </head>
@@ -123,6 +123,8 @@
 
                 <div id="chromecastIdle" class="chromecast-poster" style="display:flex;">
 
+                    <span class="chromecast-standard-eyebrow">Pour toi</span>
+
                     <!-- Rien à recommander pour l'instant : invite à agir plutôt qu'un statut -->
                     <div id="chromecastRecEmpty" class="chromecast-poster-empty" style="display:none;">
                         <span class="chromecast-poster-empty-icon">🎬</span>
@@ -147,6 +149,8 @@
                 </div>
 
                 <div id="chromecastPlayer" class="spotify-player chromecast-player-tap" style="display:none;" onclick="if (!event.target.closest('.spotify-controls')) chromecastOpenPlayerModal()">
+
+                    <span class="chromecast-standard-eyebrow">TV Salon</span>
 
                     <div class="spotify-track">
                         <div id="chromecastTitle" class="spotify-title">—</div>
@@ -603,7 +607,7 @@
 <div id="nightOverlay" class="night-overlay" onclick="wakeFromNightMode()"></div>
 
 <script src="atmosphere.js?v=20261019-11"></script>
-<script src="script.js?v=20261028-widget-icons"></script>
+<script src="script.js?v=20261028-chromecast-hd"></script>
 
 <script src="calendar.js?v=20261025-audit"></script>
 <script src="light-color.js?v=20261025-audit"></script>

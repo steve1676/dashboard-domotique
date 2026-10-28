@@ -1888,6 +1888,50 @@ body {
     line-height: 1.5;
 }
 
+/* Popup de recommandation Chromecast : visuel bord à bord puis bande violette. */
+#widgetModal .widget-modal:has(#modal-chromecast-info.visible) {
+    box-sizing: border-box;
+    padding: 0;
+    background: linear-gradient(110deg, #251532, #3b1c45);
+    overflow-x: hidden;
+}
+#modal-chromecast-info.visible { background: linear-gradient(110deg, #251532, #3b1c45); }
+#modal-chromecast-info #chromecastInfoPoster {
+    position: relative;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    border-radius: 0;
+    margin: 0;
+    background-size: cover;
+    background-position: center;
+    background-color: #251532;
+}
+#modal-chromecast-info #chromecastInfoPoster::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: 42px;
+    background: linear-gradient(180deg, transparent, #2f183a);
+    pointer-events: none;
+}
+#modal-chromecast-info :is(.rec-info-title, .rec-info-meta, .rec-info-desc) {
+    padding-left: 22px;
+    padding-right: 22px;
+    overflow-wrap: anywhere;
+}
+#modal-chromecast-info .rec-info-title { padding-top: 8px; color: #fff; }
+#modal-chromecast-info .rec-info-meta { margin-top: 6px; margin-bottom: 14px; color: #cfc0db; }
+#modal-chromecast-info .rec-info-desc { padding-bottom: 24px; color: #e0d5e8; line-height: 1.5; }
+#widgetModal:has(#modal-chromecast-info.visible) #mainModalClose {
+    top: 10px;
+    right: 10px;
+    width: 40px;
+    height: 40px;
+    color: #fff;
+    background: #160e2399;
+}
+
 .chromecast-player-tap {
     cursor: pointer;
 }
@@ -3767,18 +3811,12 @@ body {
     width: var(--spotify-compact-art);
     background-position: left center;
     filter: none;
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 18px), transparent);
+    mask-image: linear-gradient(90deg, #000 calc(100% - 18px), transparent);
 }
 #spotifyCard[data-size="compact"] #spotifyAlbumArt::after {
-    content: "";
-    position: absolute;
-    inset: 0 auto 0 100%;
-    width: 42px;
-    background-image: inherit;
-    background-size: var(--spotify-compact-art) 100%;
-    background-position: right center;
-    -webkit-mask-image: linear-gradient(90deg, #000, transparent);
-    mask-image: linear-gradient(90deg, #000, transparent);
-    pointer-events: none;
+    /* Le fondu porte sur l'image elle-même : aucun morceau de pochette répété. */
+    content: none;
 }
 #home #spotifyCard[data-size="compact"] .spotify-overlay {
     padding: 0;
@@ -3790,6 +3828,15 @@ body {
     gap: 8px;
 }
 #spotifyCard[data-size="compact"] .spotify-controls { flex: 0 0 auto; gap: 2px; }
+#spotifyCard[data-size="compact"] .spotify-controls button { flex: 0 0 40px; }
+#spotifyCard[data-size="compact"] .spotify-title {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+}
 #spotifyCard[data-size="compact"] .spotify-controls button:last-child { display: inline-block; }
 #spotifyCard[data-size="compact"] #spotifyPlayPause { background: #def3e5; color: #16482f; }
 #spotifyCard[data-size="compact"] .spotify-controls button:last-child { background: transparent; }
@@ -3810,8 +3857,79 @@ body {
 #spotifyCard[data-size="compact"] #spotifyLoggedOut { padding: 10px; }
 @container (max-width: 330px) {
     #spotifyCard[data-size="compact"] #spotifyPlayer { padding-left: calc(var(--spotify-compact-art) + 16px); }
-    #spotifyCard[data-size="compact"] .spotify-controls button { width: 34px; height: 40px; }
+    #spotifyCard[data-size="compact"] .spotify-controls button { flex-basis: 34px; width: 34px; height: 34px; }
 }
+
+/* Chromecast standard : vignette en haut et informations dans la bande violette. */
+.chromecast-standard-eyebrow { display: none; }
+#chromecastCard:not([data-size="compact"]) { background: linear-gradient(110deg, #251532, #3b1c45); }
+#chromecastCard:not([data-size="compact"]) :is(#chromecastBg, #chromecastBgBlur) {
+    inset: 0 0 auto;
+    height: 128px;
+    -webkit-mask-image: linear-gradient(#000 0 104px, transparent 128px);
+    mask-image: linear-gradient(#000 0 104px, transparent 128px);
+}
+#chromecastCard:not([data-size="compact"]) #chromecastBg {
+    /* Les états lecture/veille posent aussi un filtre directement sur le calque. */
+    filter: none !important;
+    /* Remplit la largeur malgré le mode contain posé par chromecastSetImage. */
+    background-size: cover !important;
+    background-position: center top;
+}
+#chromecastCard:not([data-size="compact"]) #chromecastBgBlur { transform: none; filter: blur(16px); }
+#chromecastCard:not([data-size="compact"]) .spotify-overlay { padding: 0; background: none; }
+#chromecastCard:not([data-size="compact"]) .chromecast-standard-eyebrow {
+    display: block;
+    position: absolute;
+    z-index: 2;
+    top: 12px;
+    left: 14px;
+    color: #fff;
+    font-size: 11px;
+    text-shadow: 0 1px 6px #000;
+}
+#chromecastCard:not([data-size="compact"]) #chromecastIdle {
+    width: 100%; height: 100%; margin: 0; padding: 0; box-shadow: none;
+}
+#chromecastCard:not([data-size="compact"]) :is(#chromecastIdle::before, #chromecastRecBadge) { display: none !important; }
+#chromecastCard:not([data-size="compact"]) #chromecastRecTap {
+    position: absolute; top: 128px; bottom: 12px; left: 18px; right: 18px;
+    margin: 0; min-width: 0; justify-content: center; align-items: center; text-align: center; gap: 4px;
+}
+#chromecastCard:not([data-size="compact"]) #chromecastRecTitle {
+    font-size: 14px; font-weight: 600; -webkit-line-clamp: 1; max-width: 100%;
+}
+#chromecastCard:not([data-size="compact"]) #chromecastRecMeta {
+    font-size: 11px; color: #cfc0db; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+#chromecastCard:not([data-size="compact"]) #chromecastRecNav { position: absolute; inset: 0; pointer-events: none; }
+#chromecastCard:not([data-size="compact"]) #chromecastRecNav button {
+    position: absolute; top: 68px; width: 44px; height: 44px;
+    background: transparent; border: 0; border-radius: 0; color: #fff;
+    font-size: 30px; pointer-events: auto; filter: drop-shadow(0 2px 5px #000b);
+}
+#chromecastCard:not([data-size="compact"]) #chromecastRecNav button:first-child { left: 4px; }
+#chromecastCard:not([data-size="compact"]) #chromecastRecNav button:last-child { right: 4px; }
+#chromecastCard:not([data-size="compact"]) #chromecastRecDots {
+    position: absolute; bottom: 7px; left: 50%; transform: translateX(-50%);
+}
+#chromecastCard:not([data-size="compact"]) .chromecast-rec-dot { width: 4px; height: 4px; }
+#chromecastCard:not([data-size="compact"]) .chromecast-rec-dot.active { width: 12px; border-radius: 4px; background: #ef8cd5; }
+#chromecastCard:not([data-size="compact"]) #chromecastPlayer { position: relative; width: 100%; height: 100%; }
+#chromecastCard:not([data-size="compact"]) .spotify-track {
+    position: absolute; top: 128px; bottom: 0; left: 18px; right: 18px; width: auto;
+    display: flex; flex-direction: column; justify-content: center; min-width: 0;
+}
+#chromecastCard:not([data-size="compact"]) .spotify-title { font-size: 14px; }
+#chromecastCard:not([data-size="compact"]) .spotify-artist {
+    color: #cfc0db; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+#chromecastCard:not([data-size="compact"]) .spotify-controls {
+    position: absolute; top: 81px; left: 0; right: 0; gap: 14px;
+}
+#chromecastCard:not([data-size="compact"]) .spotify-controls button { width: 40px; height: 40px; background: transparent; }
+#chromecastCard:not([data-size="compact"]) #chromecastPlayPause { background: #f9edf7; color: #331b39; }
+#chromecastCard:not([data-size="compact"]) #chromecastRecEmpty { padding: 25px 16px 10px; }
 
 /* Placement libre : quadrillage fin et repères pendant le déplacement. */
 #home .top-row.free-widget-layout { display: block; position: relative; padding: 0; }
