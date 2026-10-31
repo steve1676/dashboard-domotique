@@ -3893,7 +3893,8 @@ function spotifyRenderPlayerModal() {
     const item = data.item;
 
     const bgImage = document.getElementById("spotifyAlbumArt").style.backgroundImage;
-    const resolvedImage = bgImage && bgImage !== "none" ? bgImage : "none";
+    const albumArt = item.album?.images?.[0]?.url;
+    const resolvedImage = albumArt ? `url(${JSON.stringify(albumArt)})` : (bgImage && bgImage !== "none" ? bgImage : "none");
     document.getElementById("spotifyPlayerModalPoster").style.backgroundImage = resolvedImage;
     document.getElementById("spotifyPlayerModalPosterBlur").style.backgroundImage = resolvedImage;
 
