@@ -3217,6 +3217,7 @@ phoneSelectInterval = setInterval(refreshPhoneEntitySelect, 30000); // détecte 
 // ─── Navigation ─────────────────────────────────────────────────────────────
 
 function showPage(pageId, button) {
+    if (pageId !== "settings") settingsTapCount = 0;
     if (pageId !== "home") {
         homeTapCount = 0;
         cancelWidgetSelection();
@@ -4927,6 +4928,9 @@ let widgetPositions = {};
 const HOME_TAP_WINDOW = 1200;
 let homeTapCount = 0;
 let homeTapStarted = 0;
+let settingsTapCount = 0;
+let settingsTapStarted = 0;
+let dashboardReloading = false;
 
 let selectedWidget = null;
 let swapMode = false;
@@ -5321,6 +5325,54 @@ function handleHomeNavigation(button) {
         homeTapCount = 0;
         const dialog = document.getElementById("homeEditDialog");
         if (!dialog.open) dialog.showModal();
+    }
+}
+
+function handleSettingsNavigation(button) {
+    showPage("settings", button);
+    if (dashboardReloading) return;
+    const now = performance.now();
+    if (!settingsTapCount || now - settingsTapStarted > HOME_TAP_WINDOW) {
+        settingsTapCount = 0;
+        settingsTapStarted = now;
+    }
+    if (++settingsTapCount === 3) {
+        settingsTapCount = 0;
+        reloadDashboard(button);
+    }
+}
+
+async function reloadDashboard(button) {
+    if (dashboardReloading) return;
+    dashboardReloading = true;
+    button.setAttribute("aria-busy", "true");
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    try {
+        const url = new URL(window.location.href);
+        url.searchParams.set("dashboardReload", Date.now());
+        const options = { cache: "reload", signal: controller.signal };
+        const response = await fetch(url.href, options);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const page = new DOMParser().parseFromString(await response.text(), "text/html");
+        // Réchauffe le cache avec les ressources de la nouvelle page, même si
+        // leurs noms et paramètres de version n'ont pas changé dans Git.
+        const assets = new Set(Array.from(page.querySelectorAll('script[src], link[rel="stylesheet"][href]'))
+            .map(node => new URL(node.getAttribute("src") || node.getAttribute("href"), url.href).href)
+            .filter(href => new URL(href).origin === url.origin));
+        await Promise.all(Array.from(assets, async href => {
+            const asset = await fetch(href, options);
+            if (!asset.ok) throw new Error(`HTTP ${asset.status}`);
+            await asset.arrayBuffer();
+        }));
+        window.location.replace(url.href);
+    } catch (error) {
+        console.error("Rechargement du dashboard :", error);
+        alert("Impossible de recharger le dashboard. Vérifiez la connexion puis réessayez avec trois appuis sur Paramètres.");
+    } finally {
+        clearTimeout(timeout);
+        dashboardReloading = false;
+        button.removeAttribute("aria-busy");
     }
 }
 

@@ -3959,6 +3959,12 @@ body {
 
 /* Spotify standard : pochette carrée pleine hauteur et dégradé latéral. */
 .spotify-standard-label, .spotify-visualizer { display: none; }
+.spotify-standard-brand { display: none; }
+#spotifyCard:not([data-size="compact"]) .spotify-standard-brand {
+    position: absolute; z-index: 2; top: 12px; right: 12px;
+    display: flex; align-items: center; gap: 5px; color: #deeee4; font-size: 11px;
+}
+#spotifyCard:not([data-size="compact"]) .spotify-standard-brand svg { width: 20px; height: 20px; flex-shrink: 0; }
 #spotifyCard:not([data-size="compact"]) {
     --spotify-standard-green: #195d40;
     --spotify-standard-info-left: clamp(110px, calc(100% - 105px), 145px);
