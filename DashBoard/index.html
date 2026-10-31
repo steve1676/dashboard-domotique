@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Domotique</title>
-    <link rel="stylesheet" href="style.css?v=20261028-spotify-info-only">
+    <link rel="stylesheet" href="style.css?v=20261031-spotify-standard">
     <link rel="stylesheet" href="light-color.css?v=20261025-audit">
     <link rel="stylesheet" href="calendar.css?v=20261025-audit">
 </head>
@@ -72,6 +72,8 @@
                 <!-- Rien en lecture : suggestions basées sur les artistes/genres les plus écoutés -->
                 <div id="spotifyIdle" class="chromecast-poster" style="display:none;">
 
+                    <span class="spotify-standard-label">Pour toi</span>
+
                     <div id="spotifyRecEmpty" class="chromecast-poster-empty" style="display:none;">
                         <span class="chromecast-poster-empty-icon">🎵</span>
                         <span style="color:#94a3b8;font-size:0.8rem;max-width:200px;">Écoute quelques titres pour voir des suggestions ici</span>
@@ -96,6 +98,8 @@
 
                 <div id="spotifyPlayer" class="spotify-player chromecast-player-tap" style="display:none;" onclick="if (!event.target.closest('.spotify-controls')) spotifyOpenPlayerModal()">
 
+                    <span class="spotify-standard-label">Spotify</span>
+
                     <div class="spotify-track">
                         <div id="spotifyTitle" class="spotify-title">—</div>
                         <div id="spotifyArtist" class="spotify-artist">—</div>
@@ -106,6 +110,8 @@
                         <button id="spotifyPlayPause" onclick="spotifyTogglePlay()" aria-label="Lecture / Pause" data-playing="true"><svg viewBox="0 0 24 24" fill="currentColor" class="icon-btn"><path d="M6 4h4v16h-4z" /><path d="M14 4h4v16h-4z" /></svg></button>
                         <button onclick="spotifyNext()" aria-label="Piste suivante"><svg viewBox="0 0 24 24" fill="currentColor" class="icon-btn"><path d="M4 5v14l11 -7z" /><path d="M16 5h2v14h-2z" /></svg></button>
                     </div>
+
+                    <div class="spotify-visualizer" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
 
                 </div>
 
