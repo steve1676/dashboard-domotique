@@ -35,9 +35,51 @@
         record,
         start(source, message) {
             const operation = `${Date.now().toString(36)}-${++nextOperation}`;
+            const start = performance.now();
             record("action", source, message, operation);
-            return (level, result) => record(level, source, result, operation);
+            return (level, result) => record(level, source, `${result} · ${Math.round(performance.now() - start)} ms`, operation);
         }
+    };
+
+    const apiServices = new Map([
+        ["api.open-meteo.com", "Météo"],
+        ["api.spotify.com", "Spotify"],
+        ["accounts.spotify.com", "Spotify"],
+        ["www.googleapis.com", "Google"],
+        ["api.themoviedb.org", "TMDB"],
+        ["plan.naolib.fr", "Naolib"],
+        ["open.tan.fr", "Naolib"]
+    ]);
+    const nativeFetch = window.fetch;
+    window.fetch = async function (input, options) {
+        let service = "Service réseau";
+        let method = "REQUÊTE";
+        try {
+            const url = new URL(input instanceof Request ? input.url : input, document.baseURI);
+            service = apiServices.get(url.hostname) ||
+                (/\/api\/(?:states|services)(?:\/|$)/.test(url.pathname) ? "Home Assistant" :
+                    url.origin === location.origin ? "Tableau de bord" : service);
+            const verb = String(options?.method ?? (input instanceof Request ? input.method : "GET")).toUpperCase();
+            if (/^(GET|HEAD|POST|PUT|PATCH|DELETE|OPTIONS)$/.test(verb)) method = verb;
+        } catch {
+            // Let fetch handle invalid input as usual.
+        }
+        const start = performance.now();
+        const log = (level, result) => record(level, "API",
+            `${service} · ${method} · ${result} · ${Math.round(performance.now() - start)} ms`);
+        let response;
+        try {
+            response = await nativeFetch.call(window, input, options);
+        } catch (error) {
+            if (error?.name === "AbortError") log("info", "Annulé");
+            else log("error", "Échec réseau");
+            throw error;
+        }
+        const idleSpotify = service === "Spotify" && response.status === 404
+            && response.url === "https://api.spotify.com/v1/me/player";
+        log(response.ok || idleSpotify || !response.status ? "info" : "error",
+            response.status ? `HTTP ${response.status}` : "Statut indisponible");
+        return response;
     };
 
     for (const level of ["warn", "error"]) {

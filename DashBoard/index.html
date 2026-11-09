@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Domotique</title>
     <link rel="stylesheet" href="style.css?v=20261109-console">
-    <script src="activity-console.js?v=20261109"></script>
+    <script src="activity-console.js?v=20261109-network"></script>
     <link rel="stylesheet" href="light-color.css?v=20261025-audit">
     <link rel="stylesheet" href="calendar.css?v=20261025-audit">
 </head>
@@ -247,6 +247,7 @@
         <label>Source <select name="source">
             <option value="">Toutes</option><option>Application</option><option>Navigateur</option>
             <option>Navigation</option><option>Home Assistant</option>
+            <option>API</option><option>Widgets</option>
         </select></label>
         <label>Période <select name="period">
             <option value="">Tout l’historique</option><option value="1">Dernière heure</option>
@@ -638,9 +639,9 @@
 <div id="nightOverlay" class="night-overlay" onclick="wakeFromNightMode()"></div>
 
 <script src="atmosphere.js?v=20261019-11"></script>
-<script src="script.js?v=20261109-console"></script>
+<script src="script.js?v=20261109-network"></script>
 
-<script src="calendar.js?v=20261025-audit"></script>
+<script src="calendar.js?v=20261109-network"></script>
 <script src="light-color.js?v=20261025-audit"></script>
 </body>
 </html>

@@ -123,6 +123,7 @@ async function calendarLoad() {
         calendarRender(); return;
     }
     calendarState.message = 'Chargement de l’agenda…'; calendarRender();
+    const finishActivity = window.dashboardActivity?.start("Widgets", "Agenda · Chargement");
     try {
         const config = new URL(googleCalendarUrl(source));
         const today = calZonedDay(new Date());
@@ -153,14 +154,22 @@ async function calendarLoad() {
                 page=data.nextPageToken||'';
             } while(page);
         }
-        if(request!==calendarState.request)return;
+        if(request!==calendarState.request) {
+            finishActivity?.("info", "Agenda · Chargement remplacé");
+            return;
+        }
         calendarState.events=result.sort((a,b)=>a.start-b.start); calendarState.message='';
     } catch(error) {
-        if(request!==calendarState.request)return;
+        if(request!==calendarState.request) {
+            finishActivity?.("info", "Agenda · Chargement remplacé");
+            return;
+        }
+        finishActivity?.("error", "Agenda · Chargement échoué");
         calendarState.message=(error.name==='AbortError' ? 'Le chargement de l’agenda a dépassé le délai.' : error.message) + (calendarState.events.length ? ' Derniers rendez-vous conservés, non actualisés.' : '');
     }
     document.getElementById('calendar-status').textContent=calendarState.message || 'Agenda synchronisé.';
     calendarRender();
+    if (!calendarState.message) finishActivity?.("info", "Agenda · Rendez-vous affichés");
 }
 function calendarOpen() { calendarRender(); if(!calendarDialog.open)calendarDialog.showModal(); }
 function calendarSwitch() { calendarState.view=calendarState.view==='three'?'month':'three'; storageSet('calendar_view',calendarState.view); calendarRender(); calendarLoad(); }

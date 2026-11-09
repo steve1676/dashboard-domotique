@@ -129,6 +129,7 @@ async function getWeather(lat, lon) {
     loader.classList.add("visible");
     content.classList.add("loading");
 
+    const finishActivity = window.dashboardActivity?.start("Widgets", "Météo · Chargement");
     try {
         const response = await fetch(
             `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,is_day&hourly=temperature_2m,weather_code,apparent_temperature,precipitation_probability,wind_speed_10m,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,sunset,precipitation_probability_max,wind_speed_10m_max&timezone=auto&forecast_days=4`
@@ -137,8 +138,10 @@ async function getWeather(lat, lon) {
         const data = await response.json();
 
         updateAtmosphere(data);
+        finishActivity?.("info", "Météo · Prévisions affichées");
 
     } catch (err) {
+        finishActivity?.("error", "Météo · Chargement échoué");
         console.error("Météo :", err);
         document.getElementById("atmo-widget-label").textContent = atmosphereData ? "Dernières prévisions conservées" : "Météo indisponible";
 
@@ -1872,6 +1875,7 @@ async function updateTransports() {
         return;
     }
 
+    const finishActivity = window.dashboardActivity?.start("Widgets", "Transports · Chargement");
     try {
         // Un appel API par arrêt utile — le tien pour chaque route favorite,
         // + quelques arrêts en amont sur le même trajet pour localiser
@@ -1893,8 +1897,10 @@ async function updateTransports() {
         renderFavoritesHomeList(routes, stopDataById, toMin, nowMin, waitLabel);
         renderNearbyGrid("transport-nearby-grid", { interactive: false, showStars: false });
         renderNearbyGrid("transport-favoris-grid", { interactive: true, showStars: true });
+        finishActivity?.("info", "Transports · Horaires affichés");
 
     } catch (err) {
+        finishActivity?.("error", "Transports · Chargement échoué");
         console.error("Erreur transports :", err);
         const errorHtml = `<div class="transport-error">${ICON_ALERT} Impossible de charger les horaires.</div>`;
         const tileEl = document.getElementById("transport-list");
@@ -5415,6 +5421,7 @@ function registerHomeWidget(widget) {
     }
     widget.addEventListener("click", handleSelection, true);
     widget.addEventListener("keydown", handleSelection, true);
+    window.dashboardActivity?.record("info", "Widgets", `Widget initialisé · ${widget.dataset.widget}`);
 }
 
 function highlightHomeWidget(target) {
