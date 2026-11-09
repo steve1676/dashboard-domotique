@@ -2227,6 +2227,7 @@ async function haFetchStates() {
 }
 
 async function haToggle(entityId) {
+    const finishActivity = window.dashboardActivity?.start("Home Assistant", "Commande marche/arrêt envoyée");
     // Optimiste : on inverse tout de suite dans l'UI
     haStates[entityId] = haIsOn(entityId) ? "off" : "on";
     renderRooms();
@@ -2241,8 +2242,9 @@ async function haToggle(entityId) {
             body: JSON.stringify({ entity_id: entityId })
         });
         if (!response.ok) throw new Error("HTTP " + response.status);
-
+        finishActivity?.("info", "Commande marche/arrêt acceptée");
     } catch (err) {
+        finishActivity?.("error", "Échec de la commande marche/arrêt");
         console.error("Home Assistant toggle :", err);
         haShowStatus(`${ICON_ALERT} Action impossible, nouvelle tentative...`);
     }
@@ -2622,15 +2624,19 @@ function deviceDetailToggle() {
 
 async function deviceLightService(data) {
     if (!deviceDetailEntityId) return;
+    const finishActivity = window.dashboardActivity?.start("Home Assistant", "Réglage de lumière envoyé");
     try {
-        await fetch(`${HA_CONFIG.url}/api/services/light/turn_on`, {
+        const response = await fetch(`${HA_CONFIG.url}/api/services/light/turn_on`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ entity_id: deviceDetailEntityId, ...data })
         });
+        if (!response.ok) throw new Error("HTTP " + response.status);
+        finishActivity?.("info", "Réglage de lumière accepté");
         haStates[deviceDetailEntityId] = "on";
         setTimeout(haFetchStates, 450);
     } catch (err) {
+        finishActivity?.("error", "Échec du réglage de lumière");
         console.error("Commande lumière :", err);
         haShowStatus(`${ICON_ALERT} Commande lumière impossible.`);
     }
@@ -3225,11 +3231,17 @@ function showPage(pageId, button) {
     document.querySelectorAll(".page").forEach(page => {
         page.style.display = "none";
     });
-    document.getElementById(pageId).style.display = "";
+    const activePage = document.getElementById(pageId);
+    activePage.style.display = "";
     document.querySelectorAll(".nav-btn").forEach(btn => {
         btn.classList.remove("active-nav");
     });
     button.classList.add("active-nav");
+    if (pageId === "activity-console") {
+        activePage.dispatchEvent(new Event("activityopen"));
+    } else {
+        window.dashboardActivity?.record("action", "Navigation", `Ouverture de la page ${button.getAttribute("aria-label") || pageId}`);
+    }
 }
 
 

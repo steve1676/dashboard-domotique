@@ -1,3 +1,65 @@
+.activity-header,
+.activity-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.activity-header h1 {
+    flex: 1 0 auto;
+    margin: 0;
+}
+
+.activity-status {
+    font-size: .9rem;
+}
+
+.activity-filters label {
+    display: grid;
+    gap: 5px;
+    flex: 1 1 145px;
+    min-width: 0;
+    font-size: .9rem;
+}
+
+.activity-filters input,
+.activity-filters select,
+.activity-header button,
+.activity-event button {
+    font: inherit;
+    color: inherit;
+    background: transparent;
+    border: 1px solid currentColor;
+    border-radius: 8px;
+    padding: 7px 10px;
+    min-width: 0;
+}
+
+.activity-filters option {
+    color: CanvasText;
+    background: Canvas;
+}
+
+.activity-events {
+    display: grid;
+    gap: 8px;
+}
+
+.activity-event {
+    border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+    border-inline-start: 4px solid #6589c4;
+    border-radius: 8px;
+    padding: 10px 12px;
+    overflow-wrap: anywhere;
+}
+
+.activity-event[data-level="error"] { border-inline-start-color: #dc5858; }
+.activity-event[data-level="warn"] { border-inline-start-color: #cc892b; }
+.activity-event summary { cursor: pointer; }
+.activity-event > div { margin-top: 8px; }
+
 * {
     box-sizing: border-box;
     margin: 0;
