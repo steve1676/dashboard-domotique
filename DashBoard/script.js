@@ -19,6 +19,8 @@ const DASHBOARD_STORAGE_VERSIONS = {
     display_schedule: 1,
     chromecast_watch_history: 2,
     chromecast_genre_prefs: 1,
+    chromecast_previous_recs: 1,
+    chromecast_daily_recs: 1,
     spotify_display_style: 1,
 };
 
@@ -4022,6 +4024,8 @@ spotifyHandleRedirect().then(() => {
 // ─── Chromecast (via Home Assistant) ─────────────────────────────────────────
 
 const CHROMECAST_ENTITY_ID = "media_player.latele";
+const CHROMECAST_TV_ENTITY_ID = "media_player.latele_2";
+const CHROMECAST_PLAYBACK_STATES = ["playing", "paused", "buffering"];
 
 // Clé API YouTube Data v3 — à créer sur https://console.cloud.google.com
 // (active "YouTube Data API v3" puis crée une clé API dans "Identifiants")
@@ -4245,7 +4249,8 @@ function chromecastShowIdle() {
     document.getElementById("chromecastIdle").style.display = "flex";
     document.getElementById("chromecastPlayer").style.display = "none";
     document.getElementById("chromecastBg").style.filter = "brightness(0.8)"; // affiche plus lumineuse qu'en lecture
-    if (!chromecastRecsLoaded) {
+    if (!chromecastRecsLoaded || chromecastRecsDate !== chromecastGetRecDate()) {
+        chromecastRecsDate = chromecastGetRecDate();
         chromecastRecsLoaded = true; // évite de relancer les appels API à chaque poll (toutes les ~5-10s)
         chromecastLoadRecommendations();
     }
@@ -4259,27 +4264,25 @@ function chromecastShowPlayer() {
     chromecastRecTimer = null;
 }
 
+function chromecastGetPlayerEntityId() {
+    const cast = haStatesFull[CHROMECAST_ENTITY_ID];
+    const tv = haStatesFull[CHROMECAST_TV_ENTITY_ID];
+    if (CHROMECAST_PLAYBACK_STATES.includes(cast?.state)) return CHROMECAST_ENTITY_ID;
+    if (CHROMECAST_PLAYBACK_STATES.includes(tv?.state)) return CHROMECAST_TV_ENTITY_ID;
+
+    if (!cast || ["off", "unavailable", "unknown"].includes(cast.state)) return null;
+    const attrs = cast.attributes || {};
+    const appName = (attrs.app_name || "").toLowerCase();
+    if (appName === "spotify") return null;
+    if (attrs.media_title || appName || attrs.app_id) return CHROMECAST_ENTITY_ID;
+    return null;
+}
+
 function updateChromecast() {
-    const data = haStatesFull[CHROMECAST_ENTITY_ID];
-    if (!data) { chromecastWasPlaying = false; chromecastShowIdle(); return; }
+    const entityId = chromecastGetPlayerEntityId();
 
     try {
-        const attrs = data.attributes || {};
-
-        // Rien en cours : appareil éteint/indisponible, OU en "idle" HA sans
-        // aucune appli ouverte (écran d'accueil Chromecast / backdrop).
-        // Si une appli est ouverte (app_name présent) — même sans vidéo lancée,
-        // ex. sur le menu d'accueil YouTube — on affiche son fallback plutôt
-        // que de rester sur les recos : "idle" côté HA veut souvent juste dire
-        // "rien ne joue", pas "rien n'est ouvert".
-        // Exception : Spotify (Spotify Connect) laisse app_name="Spotify" même
-        // quand rien n'est réellement diffusé — on ne le traite jamais comme
-        // "actif" sur la seule foi de app_name, sinon le widget reste bloqué
-        // en permanence sur le fallback Spotify au lieu des recos.
-        const trulyOff = ["off", "unavailable"].includes(data.state);
-        const noAppOpen = !attrs.app_name && !attrs.media_title;
-        const appIsSpotify = (attrs.app_name || "").toLowerCase() === "spotify";
-        if (trulyOff || (["idle", "standby"].includes(data.state) && (noAppOpen || appIsSpotify))) {
+        if (!entityId) {
             // Ce nettoyage ne doit se faire qu'une fois, à la transition
             // lecture → veille — sinon il efface à chaque poll l'image de la
             // reco déjà affichée (clignotement toutes les quelques secondes)
@@ -4299,9 +4302,11 @@ function updateChromecast() {
             return;
         }
 
+        const data = haStatesFull[entityId];
+        const attrs = data.attributes || {};
         chromecastWasPlaying = true;
         chromecastShowPlayer();
-        chromecastRecsLoaded = false; // on est en lecture : les recos seront à recalculer à la prochaine veille
+        chromecastRecsLoaded = false; // réaffiche le lot du jour au retour en veille
 
         // Historique de visionnage YouTube (sert de base aux recommandations
         // affichées quand rien n'est diffusé — on retient aussi la chaîne pour
@@ -4310,7 +4315,7 @@ function updateChromecast() {
             chromecastRecordWatched(chromecastDecodeHtml(attrs.media_title));
         }
 
-        document.getElementById("chromecastTitle").textContent = chromecastDecodeHtml(attrs.media_title) || chromecastDecodeHtml(attrs.app_name) || "—";
+        document.getElementById("chromecastTitle").textContent = chromecastDecodeHtml(attrs.media_title || attrs.app_name || attrs.source) || "TV Salon";
 
         // Sous-titre : artiste (musique) ou série. Si le titre affiché est déjà
         // le nom de l'appli (pas de media_title), on n'y remet pas app_name en double.
@@ -4394,6 +4399,8 @@ const CHROMECAST_GENRE_PREFS_KEY = "chromecast_genre_prefs";
 const CHROMECAST_WATCH_HISTORY_MAX = 15;
 
 let chromecastRecsLoaded = false;
+let chromecastRecsDate = null;
+let chromecastRecRequest = 0;
 let chromecastRecsData = []; // reco actuellement chargées, indexées pour la popup d'infos
 let chromecastRecIndex = 0;
 let chromecastRecTimer = null;
@@ -4518,20 +4525,53 @@ function chromecastToggleGenre(key) {
     const next = selected.includes(key) ? selected.filter(k => k !== key) : [...selected, key];
     chromecastSetGenrePrefs(next);
     chromecastRenderGenreChips();
-    chromecastRecsLoaded = false; // les recos changent avec les préférences : on les recalculera
+    // Les nouveaux genres serviront au prochain renouvellement quotidien.
 }
 
 // ── Construction des recommandations ──
+function chromecastGetRecDate() {
+    return new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Europe/Paris", year: "numeric", month: "2-digit", day: "2-digit"
+    }).format(new Date());
+}
+
 async function chromecastLoadRecommendations() {
+    const request = ++chromecastRecRequest;
+    const date = chromecastGetRecDate();
     try {
+        const cached = storageGet("chromecast_daily_recs", null);
+        if (cached?.date === date && Array.isArray(cached.recs)) {
+            chromecastRecsData = cached.recs;
+            chromecastRenderRecs();
+            return;
+        }
+
         const [youtubeRecs, tmdbRecs] = await Promise.all([
             chromecastFetchYoutubeRecs(),
             chromecastFetchTmdbRecs(),
         ]);
 
-        chromecastRecsData = [...youtubeRecs, ...tmdbRecs].slice(0, 3);
+        if (request !== chromecastRecRequest || date !== chromecastGetRecDate()) return;
+
+        const candidates = new Map();
+        for (let i = 0; i < Math.max(youtubeRecs.length, tmdbRecs.length); i++) {
+            for (const rec of [youtubeRecs[i], tmdbRecs[i]]) {
+                if (rec) candidates.set(`${rec.type}:${rec.id}`, rec);
+            }
+        }
+        const previous = new Set(storageGet("chromecast_previous_recs", []));
+        const fresh = [];
+        const repeated = [];
+        for (const entry of candidates) {
+            (previous.has(entry[0]) ? repeated : fresh).push(entry);
+        }
+        const selected = [...fresh, ...repeated].slice(0, 3);
+        chromecastRecsData = selected.map(([, rec]) => rec);
+        storageSet("chromecast_daily_recs", { date, recs: chromecastRecsData });
         chromecastRenderRecs();
+        if (selected.length) storageSet("chromecast_previous_recs", selected.map(([id]) => id));
     } catch (err) {
+        chromecastRecsLoaded = false;
         console.error("Chromecast recommandations :", err);
     }
 }
@@ -4556,6 +4596,7 @@ async function chromecastFetchYoutubeRecs() {
                 .filter(item => !watchedVideoIds.has(item.id.videoId)) // pas déjà vue
                 .map(item => ({
                     type: "youtube",
+                    id: item.id.videoId,
                     title: chromecastDecodeHtml(item.snippet.title),
                     subtitle: chromecastDecodeHtml(item.snippet.channelTitle),
                     description: chromecastDecodeHtml(item.snippet.description),
@@ -4594,8 +4635,9 @@ async function chromecastFetchTmdbRecs() {
             fetch(`https://api.themoviedb.org/3/discover/tv?with_genres=${genre.tvId}&with_watch_providers=${CHROMECAST_STREAMING_PROVIDERS}&watch_region=${CHROMECAST_WATCH_REGION}&with_watch_monetization_types=flatrate&sort_by=popularity.desc&language=fr-FR&api_key=${TMDB_API_KEY}`).then(r => r.json()),
         ]);
 
-        const movieRecs = (movies.results || []).slice(0, 3).map(m => ({
+        const movieRecs = (movies.results || []).slice(0, 6).map(m => ({
             type: "movie",
+            id: m.id,
             genreLabel: genre.label,
             title: chromecastDecodeHtml(m.title),
             subtitle: (m.release_date || "").slice(0, 4),
@@ -4605,8 +4647,9 @@ async function chromecastFetchTmdbRecs() {
             imageLarge: m.backdrop_path ? `https://image.tmdb.org/t/p/original${m.backdrop_path}` : (m.poster_path ? `https://image.tmdb.org/t/p/original${m.poster_path}` : null),
         }));
 
-        const tvRecs = (shows.results || []).slice(0, 3).map(s => ({
+        const tvRecs = (shows.results || []).slice(0, 6).map(s => ({
             type: "tv",
+            id: s.id,
             genreLabel: genre.label,
             title: chromecastDecodeHtml(s.name),
             subtitle: (s.first_air_date || "").slice(0, 4),
@@ -4616,7 +4659,12 @@ async function chromecastFetchTmdbRecs() {
             imageLarge: s.backdrop_path ? `https://image.tmdb.org/t/p/original${s.backdrop_path}` : (s.poster_path ? `https://image.tmdb.org/t/p/original${s.poster_path}` : null),
         }));
 
-        return [...movieRecs, ...tvRecs];
+        const merged = [];
+        for (let i = 0; i < Math.max(movieRecs.length, tvRecs.length); i++) {
+            if (movieRecs[i]) merged.push(movieRecs[i]);
+            if (tvRecs[i]) merged.push(tvRecs[i]);
+        }
+        return merged;
     } catch (err) {
         console.error("Chromecast recos TMDB :", err);
         return [];
@@ -4774,7 +4822,7 @@ function chromecastRenderPlayerModal() {
     document.getElementById("chromecastPlayerModalPosterBlur").style.backgroundImage = resolvedImage;
 
     document.getElementById("chromecastPlayerModalTitle").textContent =
-        chromecastDecodeHtml(attrs.media_title) || chromecastDecodeHtml(attrs.app_name) || "—";
+        chromecastDecodeHtml(attrs.media_title || attrs.app_name || attrs.source) || "TV Salon";
 
     const metaParts = [attrs.media_artist, attrs.media_series_title].filter(Boolean).map(chromecastDecodeHtml);
     document.getElementById("chromecastPlayerModalMeta").textContent = metaParts.join(" · ");
@@ -4837,13 +4885,15 @@ function chromecastOpenPlayerModal() {
 }
 
 async function chromecastControl(service) {
+    const entityId = chromecastGetPlayerEntityId();
+    if (!entityId) return;
     try {
         await fetch(`${HA_CONFIG.url}/api/services/media_player/${service}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ entity_id: CHROMECAST_ENTITY_ID })
+            body: JSON.stringify({ entity_id: entityId })
         });
     } catch (err) {
         console.error("Chromecast contrôle :", err);
