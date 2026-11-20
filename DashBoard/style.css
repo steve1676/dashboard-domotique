@@ -59,6 +59,17 @@
 .activity-event[data-level="warn"] { border-inline-start-color: #cc892b; }
 .activity-event summary { cursor: pointer; }
 .activity-event > div { margin-top: 8px; }
+.activity-diagnostic {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font: .85rem/1.6 monospace;
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: 6px;
+    background: color-mix(in srgb, currentColor 6%, transparent);
+    max-height: 420px;
+    overflow: auto;
+}
 
 * {
     box-sizing: border-box;

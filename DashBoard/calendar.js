@@ -164,7 +164,7 @@ async function calendarLoad() {
             finishActivity?.("info", "Agenda · Chargement remplacé");
             return;
         }
-        finishActivity?.("error", "Agenda · Chargement échoué");
+        finishActivity?.("error", "Agenda · Chargement échoué", error);
         calendarState.message=(error.name==='AbortError' ? 'Le chargement de l’agenda a dépassé le délai.' : error.message) + (calendarState.events.length ? ' Derniers rendez-vous conservés, non actualisés.' : '');
     }
     document.getElementById('calendar-status').textContent=calendarState.message || 'Agenda synchronisé.';

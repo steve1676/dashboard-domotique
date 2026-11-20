@@ -18,9 +18,41 @@
         stored = false;
     }
 
-    function record(level, source, message, operation = "") {
-        events.unshift({ time: Date.now(), level, source, message, operation });
-        events.length = Math.min(events.length, limit);
+    function redact(value) {
+        return String(value).slice(0, 12000)
+            .replace(/https?:\/\/[^\s"'<>]+/gi, raw => {
+                try {
+                    const url = new URL(raw);
+                    url.username = "";
+                    url.password = "";
+                    url.search = "";
+                    url.hash = "";
+                    url.pathname = url.pathname.replace(/(\/calendars\/)[^/]+/g, "$1[masqué]");
+                    return url.href;
+                } catch { return "[adresse masquée]"; }
+            })
+            .replace(/\bBearer\s+[^\s"',}]+/gi, "Bearer [masqué]")
+            .replace(/(["']?(?:[\w-]*(?:token|secret|password|authorization|api[_-]?key|code_verifier)[\w-]*)["']?\s*[:=]\s*)(?:"[^"]*"|'[^']*'|[^\s,}]+)/gi, "$1[masqué]");
+    }
+
+    function describe(value) {
+        try {
+            if (value && typeof value === "object" && typeof value.message === "string") {
+                return redact(value.stack || `${value.name || "Erreur"}: ${value.message}`);
+            }
+            return redact(typeof value === "string" ? value : JSON.stringify(value));
+        } catch { return "Détail impossible à lire."; }
+    }
+
+    function summarize(values) {
+        return values.map(value => {
+            const text = value && typeof value === "object" && typeof value.message === "string"
+                ? `${value.name || "Erreur"}: ${value.message}` : describe(value);
+            return redact(text || "").split(/\r?\n/)[0].trim().replace(/\s*:\s*$/, "");
+        }).filter(Boolean).join(" · ").slice(0, 400);
+    }
+
+    function persist() {
         try {
             localStorage.setItem(storageKey, JSON.stringify(events));
             stored = true;
@@ -30,6 +62,14 @@
         if (!pausedEvents) render();
     }
 
+    function record(level, source, message, operation = "", details = "") {
+        const event = { time: Date.now(), level, source, message, operation, details: redact(details) };
+        events.unshift(event);
+        events.length = Math.min(events.length, limit);
+        persist();
+        return event;
+    }
+
     let nextOperation = 0;
     window.dashboardActivity = {
         record,
@@ -37,7 +77,8 @@
             const operation = `${Date.now().toString(36)}-${++nextOperation}`;
             const start = performance.now();
             record("action", source, message, operation);
-            return (level, result) => record(level, source, `${result} · ${Math.round(performance.now() - start)} ms`, operation);
+            return (level, result, error) => record(level, source,
+                `${result}${error ? " · " + summarize([error]) : ""} · ${Math.round(performance.now() - start)} ms`, operation, error ? describe(error) : "");
         }
     };
 
@@ -54,8 +95,10 @@
     window.fetch = async function (input, options) {
         let service = "Service réseau";
         let method = "REQUÊTE";
+        let endpoint = "Adresse indisponible";
         try {
             const url = new URL(input instanceof Request ? input.url : input, document.baseURI);
+            endpoint = redact(url.href);
             service = apiServices.get(url.hostname) ||
                 (/\/api\/(?:states|services)(?:\/|$)/.test(url.pathname) ? "Home Assistant" :
                     url.origin === location.origin ? "Tableau de bord" : service);
@@ -65,20 +108,63 @@
             // Let fetch handle invalid input as usual.
         }
         const start = performance.now();
-        const log = (level, result) => record(level, "API",
-            `${service} · ${method} · ${result} · ${Math.round(performance.now() - start)} ms`);
+        const log = (level, result, details = "") => record(level, "API",
+            `${service} · ${method} · ${result} · ${Math.round(performance.now() - start)} ms`, "",
+            `Service : ${service}\nMéthode : ${method}\nAdresse : ${endpoint}\nRésultat : ${result}\nDurée jusqu’à la réponse : ${Math.round(performance.now() - start)} ms\n${details}`);
         let response;
         try {
             response = await nativeFetch.call(window, input, options);
         } catch (error) {
-            if (error?.name === "AbortError") log("info", "Annulé");
-            else log("error", "Échec réseau");
+            if (error?.name === "AbortError") log("info", "Annulé", describe(error));
+            else log("error", `Échec réseau · ${summarize([error])}`,
+                `${describe(error)}\nAucune réponse HTTP reçue. Le navigateur ne permet pas de distinguer ici une coupure réseau, un refus CORS ou un problème de certificat.`);
             throw error;
         }
         const idleSpotify = service === "Spotify" && response.status === 404
             && response.url === "https://api.spotify.com/v1/me/player";
-        log(response.ok || idleSpotify || !response.status ? "info" : "error",
-            response.status ? `HTTP ${response.status}` : "Statut indisponible");
+        const explanations = {
+            400: "Le serveur refuse les paramètres de la requête.",
+            401: "L’authentification est absente, invalide ou expirée.",
+            403: "Le serveur refuse l’accès à cette ressource.",
+            404: "La ressource demandée est introuvable.",
+            408: "Le serveur a interrompu la requête après expiration du délai.",
+            429: "La limite d’appels autorisés a été atteinte.",
+            500: "Le serveur a rencontré une erreur interne.",
+            502: "La passerelle a reçu une réponse invalide du serveur.",
+            503: "Le service est temporairement indisponible.",
+            504: "La passerelle a attendu trop longtemps la réponse du serveur."
+        };
+        const entry = log(response.ok || idleSpotify || !response.status ? "info" : "error",
+            response.status ? `HTTP ${response.status}${!response.ok && !idleSpotify && explanations[response.status] ? " · " + explanations[response.status] : ""}` : "Statut indisponible",
+            `${redact(response.statusText || "")}\n${idleSpotify ? "Aucun lecteur Spotify actif." : explanations[response.status] || ""}`);
+        if (!response.ok && !idleSpotify && response.body) {
+            // Read only a small diagnostic excerpt from a clone, without delaying the caller.
+            const capture = async () => {
+                const reader = response.clone().body.getReader();
+                const timer = setTimeout(() => { reader.cancel().catch(() => {}); }, 3000);
+                try {
+                    const decoder = new TextDecoder();
+                    let excerpt = "";
+                    let bytes = 0;
+                    while (bytes < 4096) {
+                        const chunk = await reader.read();
+                        if (chunk.done) break;
+                        const portion = chunk.value.subarray(0, 4096 - bytes);
+                        bytes += portion.length;
+                        excerpt += decoder.decode(portion, { stream: true });
+                    }
+                    excerpt += decoder.decode();
+                    if (excerpt && events.includes(entry)) {
+                        entry.details += "\n\nRéponse du serveur (extrait limité) :\n" + redact(excerpt);
+                        persist();
+                    }
+                } finally {
+                    clearTimeout(timer);
+                    reader.cancel().catch(() => {});
+                }
+            };
+            capture().catch(() => {});
+        }
         return response;
     };
 
@@ -86,21 +172,19 @@
         const original = console[level];
         console[level] = function (label, ...details) {
             original.call(this, label, ...details);
-            // Keep diagnostic labels. Raw error objects, URLs and payloads stay out of storage.
-            const summary = typeof label === "string" && /^[\p{L}\p{N} .,[\]()'’_-]{1,110}\s*:\s*$/u.test(label)
-                ? label.trim().replace(/\s*:\s*$/, "")
-                : level === "error" ? "Erreur signalée par l’application" : "Avertissement de l’application";
-            record(level, "Application", summary);
+            const summary = summarize([label, ...details]) ||
+                (level === "error" ? "Erreur sans message fourni par l’application" : "Avertissement sans message fourni");
+            record(level, "Application", summary, "", [label, ...details].map(describe).join("\n\n"));
         };
     }
 
     window.addEventListener("error", event => {
-        record("error", "Navigateur", Number.isInteger(event.lineno) && event.lineno > 0
-            ? `Erreur JavaScript à la ligne ${event.lineno}`
-            : "Erreur de chargement ou d’exécution");
+        record("error", "Navigateur", summarize([event.error || event.message]) ||
+            `Échec du chargement de ${redact(event.target?.src || event.target?.href || "ressource inconnue")}`, "",
+            `${event.error ? describe(event.error) : redact(event.message || "Chargement de ressource échoué")}\nFichier : ${redact(event.filename || event.target?.src || event.target?.href || "inconnu")}\nLigne : ${event.lineno || "inconnue"} · Colonne : ${event.colno || "inconnue"}`);
     }, true);
-    window.addEventListener("unhandledrejection", () => {
-        record("error", "Navigateur", "Échec asynchrone non pris en charge");
+    window.addEventListener("unhandledrejection", event => {
+        record("error", "Navigateur", summarize([event.reason]) || "Échec asynchrone sans message fourni", "", describe(event.reason));
     });
 
     document.addEventListener("DOMContentLoaded", () => {
@@ -123,7 +207,7 @@
                 (!level.value || level.value === event.level) &&
                 (!source.value || source.value === event.source) &&
                 event.time >= cutoff &&
-                normalize(`${event.message} ${event.source} ${event.operation || ""}`).includes(search)
+                normalize(`${event.message} ${event.source} ${event.operation || ""} ${typeof event.details === "string" ? event.details : ""}`).includes(search)
             );
 
             status.textContent = `${pausedEvents ? "En pause" : "En direct"} · ${matches.length} événement(s)${stored ? "" : " · historique en mémoire uniquement"}`;
@@ -134,10 +218,19 @@
                 row.open = selected.has(event);
                 row.dataset.level = event.level;
                 const title = document.createElement("summary");
-                title.textContent = `${date.format(event.time)} · ${levels[event.level]} · ${event.message}`;
+                const legacySummary = ["Erreur signalée par l’application", "Avertissement de l’application",
+                    "Échec asynchrone non pris en charge"].includes(event.message);
+                const message = legacySummary && typeof event.details === "string" && event.details
+                    ? summarize([event.details]) : event.message;
+                title.textContent = `${date.format(event.time)} · ${levels[event.level]} · ${message}`;
                 const detail = document.createElement("div");
                 detail.textContent = `Source : ${event.source}`;
                 row.append(title, detail);
+                const diagnostic = document.createElement("pre");
+                diagnostic.className = "activity-diagnostic";
+                diagnostic.textContent = typeof event.details === "string" && event.details
+                    ? event.details : "Cet événement ne contient pas de diagnostic supplémentaire. Les anciens événements ont été enregistrés avant l’ajout des détails.";
+                row.append(diagnostic);
                 if (event.operation) {
                     const related = document.createElement("button");
                     related.type = "button";

@@ -141,7 +141,7 @@ async function getWeather(lat, lon) {
         finishActivity?.("info", "Météo · Prévisions affichées");
 
     } catch (err) {
-        finishActivity?.("error", "Météo · Chargement échoué");
+        finishActivity?.("error", "Météo · Chargement échoué", err);
         console.error("Météo :", err);
         document.getElementById("atmo-widget-label").textContent = atmosphereData ? "Dernières prévisions conservées" : "Météo indisponible";
 
@@ -1900,7 +1900,7 @@ async function updateTransports() {
         finishActivity?.("info", "Transports · Horaires affichés");
 
     } catch (err) {
-        finishActivity?.("error", "Transports · Chargement échoué");
+        finishActivity?.("error", "Transports · Chargement échoué", err);
         console.error("Erreur transports :", err);
         const errorHtml = `<div class="transport-error">${ICON_ALERT} Impossible de charger les horaires.</div>`;
         const tileEl = document.getElementById("transport-list");
@@ -2250,7 +2250,7 @@ async function haToggle(entityId) {
         if (!response.ok) throw new Error("HTTP " + response.status);
         finishActivity?.("info", "Commande marche/arrêt acceptée");
     } catch (err) {
-        finishActivity?.("error", "Échec de la commande marche/arrêt");
+        finishActivity?.("error", "Échec de la commande marche/arrêt", err);
         console.error("Home Assistant toggle :", err);
         haShowStatus(`${ICON_ALERT} Action impossible, nouvelle tentative...`);
     }
@@ -2642,7 +2642,7 @@ async function deviceLightService(data) {
         haStates[deviceDetailEntityId] = "on";
         setTimeout(haFetchStates, 450);
     } catch (err) {
-        finishActivity?.("error", "Échec du réglage de lumière");
+        finishActivity?.("error", "Échec du réglage de lumière", err);
         console.error("Commande lumière :", err);
         haShowStatus(`${ICON_ALERT} Commande lumière impossible.`);
     }
