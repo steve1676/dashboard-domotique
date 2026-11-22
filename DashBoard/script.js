@@ -2263,11 +2263,17 @@ async function haToggle(entityId) {
 
 // ─── Éditeur visuel du plan ─────────────────────────────────────────────────
 const PLAN_STORAGE_KEY = "housePlanV1";
+const PLAN_VIEW_KEY = "housePlanView";
 let planEditMode = false;
-let planActiveTab = "rooms";
-let planSelectedRoomId = null;
+let planImageUrl = "";
 let planSelectedObjectId = null;
 let planDrag = null;
+const savedPlanView = storageGet(PLAN_VIEW_KEY, null);
+const planView = {
+    zoom: Number.isFinite(savedPlanView?.zoom) ? Math.max(.5, Math.min(3, savedPlanView.zoom)) : 1,
+    x: Number.isFinite(savedPlanView?.x) ? savedPlanView.x : 0,
+    y: Number.isFinite(savedPlanView?.y) ? savedPlanView.y : 0
+};
 
 const planSvg = body => `<svg viewBox="0 0 64 64" aria-hidden="true">${body}</svg>`;
 const PLAN_ICONS = {
@@ -2283,37 +2289,150 @@ const PLAN_ICONS = {
     thermostat: planSvg('<circle cx="32" cy="32" r="24"/><path d="M32 15v17l10 6"/><circle cx="32" cy="32" r="3"/>')
 };
 
-const PLAN_FURNITURE = [
-    ["door", "Porte", planSvg('<path d="M12 54V10h8v44"/><path d="M20 12c23 1 32 16 32 40"/><path d="M20 52h32"/>')],
-    ["window", "Fenêtre", planSvg('<path d="M8 24h48v16H8z"/><path d="M12 28h40M12 36h40M32 24v16"/>')],
-    ["sofa", "Canapé", planSvg('<rect x="8" y="18" width="48" height="30" rx="8"/><path d="M14 18v18h36V18M14 36l-4 10M50 36l4 10M32 18v18"/>')],
-    ["table", "Table", planSvg('<rect x="10" y="16" width="44" height="32" rx="4"/><circle cx="16" cy="10" r="5"/><circle cx="32" cy="10" r="5"/><circle cx="48" cy="10" r="5"/><circle cx="16" cy="54" r="5"/><circle cx="32" cy="54" r="5"/><circle cx="48" cy="54" r="5"/>')],
-    ["bed", "Lit", planSvg('<rect x="10" y="7" width="44" height="50" rx="3"/><path d="M10 24h44"/><rect x="15" y="11" width="14" height="9" rx="3"/><rect x="35" y="11" width="14" height="9" rx="3"/>')],
-    ["shower", "Douche", planSvg('<rect x="8" y="8" width="48" height="48" rx="4"/><circle cx="32" cy="32" r="7"/><path d="M12 12l40 40M52 12L12 52"/>')]
-];
-
-function planDefaultState() {
-    const roomDefaults = [
-        { x: 18, y: 18, w: 470, h: 330 },
-        { x: 505, y: 18, w: 260, h: 210 }
-    ];
-    return {
-        rooms: ROOMS.map((room, index) => ({
-            id: `room-${index + 1}`,
-            name: room.name,
-            ...(roomDefaults[index] || { x: 40 + index * 35, y: 55 + index * 30, w: 220, h: 150 })
+const savedPlan = storageGet(PLAN_STORAGE_KEY, null);
+const planState = {
+    objects: (Array.isArray(savedPlan?.objects) ? savedPlan.objects : [])
+        .filter(object => object.kind === "device")
+        .map(object => ({
+            ...object,
+            x: savedPlan.relative ? object.x : planClamp((object.x + 23) / 900),
+            y: savedPlan.relative ? object.y : planClamp((object.y + 23) / 520)
         })),
-        objects: []
-    };
+    relative: true
+};
+
+function planClamp(value) {
+    return Math.max(0, Math.min(1, value));
 }
 
-let planState = storageGet(PLAN_STORAGE_KEY, null) || planDefaultState();
-if (!Array.isArray(planState.rooms) || !Array.isArray(planState.objects)) planState = planDefaultState();
+function planImageStorage(file) {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open("dashboardHousePlan", 1);
+        request.onupgradeneeded = () => request.result.createObjectStore("images");
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+            const db = request.result;
+            const transaction = db.transaction("images", file ? "readwrite" : "readonly");
+            db.close();
+            const images = transaction.objectStore("images");
+            const operation = file ? images.put(file, "current") : images.get("current");
+            transaction.oncomplete = () => resolve(operation.result);
+            transaction.onabort = () => reject(transaction.error);
+        };
+    });
+}
+
+function planSetStatus(message) {
+    document.getElementById("plan-status").textContent = message;
+}
+
+function planShowImage(url) {
+    if (planImageUrl) URL.revokeObjectURL(planImageUrl);
+    planImageUrl = url;
+    planUpdateEditControls();
+    planRenderCanvas();
+}
+
+function planApplyView() {
+    const limit = Math.max(.15, Math.abs(planView.zoom - 1) / 2);
+    planView.x = Math.max(-limit, Math.min(limit, planView.x));
+    planView.y = Math.max(-limit, Math.min(limit, planView.y));
+    const canvas = document.getElementById("house-plan");
+    canvas.style.transform = planImageUrl
+        ? `translate(${planView.x * 100}%, ${planView.y * 100}%) scale(${planView.zoom})`
+        : "";
+    const percent = Math.round(planView.zoom * 100);
+    document.getElementById("plan-zoom").value = percent;
+    document.getElementById("plan-zoom-value").value = `${percent} %`;
+}
+
+function planSaveView() {
+    try {
+        storageSet(PLAN_VIEW_KEY, planView);
+    } catch {
+        planSetStatus("Impossible de mémoriser le zoom et le cadrage.");
+    }
+}
+
+const planZoomInput = document.getElementById("plan-zoom");
+planZoomInput.oninput = () => {
+    planView.zoom = Number(planZoomInput.value) / 100;
+    planApplyView();
+};
+planZoomInput.onchange = planSaveView;
+document.getElementById("plan-view-reset").onclick = () => {
+    Object.assign(planView, { zoom: 1, x: 0, y: 0 });
+    planApplyView();
+    planSaveView();
+};
+
+const planPanDirections = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+const planViewport = document.getElementById("plan-viewport");
+planViewport.onkeydown = event => {
+    const direction = planPanDirections[event.key];
+    if (!planEditMode || event.target !== planViewport || !planImageUrl || !Array.isArray(direction)) return;
+    event.preventDefault();
+    planView.x += direction[0] * .05;
+    planView.y += direction[1] * .05;
+    planApplyView();
+    planSaveView();
+};
+
+async function planLoadImage() {
+    const importButton = document.getElementById("plan-import-btn");
+    importButton.disabled = true;
+    try {
+        const file = await planImageStorage();
+        if (file) planShowImage(URL.createObjectURL(file));
+    } catch {
+        planSetStatus("Le plan enregistré n’a pas pu être chargé.");
+    } finally {
+        importButton.disabled = false;
+    }
+}
+
+document.getElementById("plan-image-input").addEventListener("change", async event => {
+    const input = event.currentTarget;
+    const file = input.files[0];
+    input.value = "";
+    if (!file) return;
+    const importButton = document.getElementById("plan-import-btn");
+    importButton.disabled = true;
+    let url;
+    try {
+        const signature = new Uint8Array(await file.slice(0, 8).arrayBuffer());
+        const png = [137, 80, 78, 71, 13, 10, 26, 10].every((byte, index) => signature[index] === byte);
+        const jpeg = signature[0] === 255 && signature[1] === 216 && signature[2] === 255;
+        if (!png && !jpeg) {
+            planSetStatus("Choisissez une image PNG ou JPG.");
+            return;
+        }
+        const image = new Image();
+        url = URL.createObjectURL(file);
+        image.src = url;
+        try {
+            await image.decode();
+        } catch {
+            planSetStatus("Cette image est illisible. Choisissez un autre fichier.");
+            return;
+        }
+        await planImageStorage(file);
+        planShowImage(url);
+        url = null;
+        planSetStatus("");
+        planEnterEditMode();
+    } catch {
+        planSetStatus("Impossible d’enregistrer le plan dans ce navigateur.");
+    } finally {
+        if (url) URL.revokeObjectURL(url);
+        importButton.disabled = false;
+    }
+});
 
 function planEscape(value) {
     const el = document.createElement("span");
     el.textContent = String(value ?? "");
-    return el.innerHTML;
+    return el.innerHTML.replace(/"/g, "&quot;");
 }
 
 function planDeviceIconKey(entityId) {
@@ -2323,142 +2442,167 @@ function planDeviceIconKey(entityId) {
     return "bulb";
 }
 
+function planUpdateEditControls() {
+    const importButton = document.getElementById("plan-import-btn");
+    importButton.textContent = planImageUrl ? "Remplacer le plan" : "Importer un plan";
+    importButton.hidden = Boolean(planImageUrl) && !planEditMode;
+    document.getElementById("plan-edit-btn").hidden = !planImageUrl || planEditMode;
+    document.getElementById("plan-edit-actions").hidden = !planEditMode;
+    document.getElementById("plan-view-controls").hidden = !planEditMode;
+    document.getElementById("rooms-container").classList.toggle("editing", planEditMode);
+    document.getElementById("plan-editor-panel").hidden = !planEditMode;
+    planViewport.tabIndex = planEditMode ? 0 : -1;
+    planViewport.setAttribute("aria-label", planEditMode ? "Vue du plan. Utilisez les flèches pour déplacer le plan." : "Vue du plan");
+}
+
 function planEnterEditMode() {
+    if (!planImageUrl) return;
     planEditMode = true;
-    document.getElementById("plan-edit-btn").hidden = true;
-    document.getElementById("plan-edit-actions").hidden = false;
-    document.getElementById("rooms-container").classList.add("editing");
-    document.getElementById("plan-editor-panel").hidden = false;
-    document.getElementById("plan-devices-section").hidden = true;
+    planUpdateEditControls();
     planRenderAll();
 }
 
 function planSaveAndExit() {
-    storageSet(PLAN_STORAGE_KEY, planState);
+    try {
+        storageSet(PLAN_STORAGE_KEY, planState);
+    } catch {
+        planSetStatus("Impossible d’enregistrer la position des appareils.");
+        return;
+    }
+    planSetStatus("");
     planEditMode = false;
-    planSelectedRoomId = null;
     planSelectedObjectId = null;
-    document.getElementById("plan-edit-btn").hidden = false;
-    document.getElementById("plan-edit-actions").hidden = true;
-    document.getElementById("rooms-container").classList.remove("editing");
-    document.getElementById("plan-editor-panel").hidden = true;
-    document.getElementById("plan-devices-section").hidden = false;
+    planUpdateEditControls();
     planRenderAll();
 }
 
-function planReset() {
-    planState = planDefaultState();
-    planSelectedRoomId = planState.rooms[0]?.id || null;
-    planSelectedObjectId = null;
-    planRenderAll();
-}
-
-function planAddRoom() {
-    const id = `room-${Date.now()}`;
-    planState.rooms.push({ id, name: "Nouvelle pièce", x: 45, y: 55, w: 220, h: 150 });
-    planSelectedRoomId = id;
-    planSelectedObjectId = null;
-    planActiveTab = "rooms";
-    planRenderAll();
+function planUpdateMarkerStates() {
+    document.querySelectorAll("#house-plan [data-plan-entity]").forEach(marker => {
+        const { planEntity, planLabel } = marker.dataset;
+        const state = haStates[planEntity];
+        const status = state === "on" ? "Allumé" : state === "off" ? "Éteint" : "État indisponible";
+        marker.dataset.state = state === "on" || state === "off" ? state : "unknown";
+        marker.title = `${planLabel} · ${status}`;
+        marker.setAttribute("aria-label", marker.title);
+    });
 }
 
 function planRenderCanvas() {
     const canvas = document.getElementById("house-plan");
-    if (!canvas) return;
-    canvas.innerHTML = planState.rooms.map(room => {
-        const count = Object.values(HA_DEVICES).filter(device => device.room === room.name).length;
-        return `<section class="plan-room ${room.id === planSelectedRoomId ? "selected" : ""}" data-plan-room="${room.id}" style="left:${room.x}px;top:${room.y}px;width:${room.w}px;height:${room.h}px"><div class="plan-room-header"><span>${planEscape(room.name)}</span><span class="plan-room-count">${count}</span></div></section>`;
-    }).join("") + planState.objects.map(object => {
-        const icon = object.kind === "device" ? PLAN_ICONS[object.iconKey] : PLAN_FURNITURE.find(item => item[0] === object.type)?.[2];
-        const wide = ["sofa", "bed", "window"].includes(object.type) ? "wide" : "";
-        return `<div class="plan-object ${wide} ${object.kind === "device" ? "device-object" : ""} ${object.id === planSelectedObjectId ? "selected" : ""}" data-plan-object="${object.id}" style="left:${object.x}px;top:${object.y}px;transform:rotate(${object.rotation || 0}deg)" aria-label="${planEscape(object.label)}">${icon || PLAN_ICONS.outlet}</div>`;
-    }).join("");
-    planBindCanvas();
-}
+    planDrag = null;
+    if (!planImageUrl) {
+        canvas.innerHTML = '<p class="plan-empty plan-editor-muted">Importez votre plan au format PNG ou JPG.</p>';
+        return;
+    }
 
-function planBindCanvas() {
-    const canvas = document.getElementById("house-plan");
-    canvas.querySelectorAll("[data-plan-room]").forEach(element => {
-        const id = element.dataset.planRoom;
-        element.addEventListener("click", () => {
-            if (!planEditMode) return;
-            planSelectedRoomId = id; planSelectedObjectId = null; planActiveTab = "rooms"; planRenderAll();
-        });
-        element.querySelector(".plan-room-header").addEventListener("pointerdown", event => {
-            if (!planEditMode) return;
-            const room = planState.rooms.find(item => item.id === id);
-            planDrag = { kind: "room", id, sx: event.clientX, sy: event.clientY, x: room.x, y: room.y };
-            event.currentTarget.setPointerCapture(event.pointerId);
-        });
-        element.querySelector(".plan-room-header").addEventListener("pointermove", event => planMoveDrag(event, element));
-        element.querySelector(".plan-room-header").addEventListener("pointerup", () => { planDrag = null; });
-    });
-    canvas.querySelectorAll("[data-plan-object]").forEach(element => {
-        const id = element.dataset.planObject;
-        element.addEventListener("pointerdown", event => {
-            if (!planEditMode) return;
-            event.stopPropagation();
-            const object = planState.objects.find(item => item.id === id);
-            planSelectedObjectId = id; planSelectedRoomId = null; planActiveTab = object.kind === "device" ? "devices" : "elements";
-            planDrag = { kind: "object", id, sx: event.clientX, sy: event.clientY, x: object.x, y: object.y };
-            element.setPointerCapture(event.pointerId);
+    canvas.innerHTML = `<img class="plan-image" src="${planImageUrl}" alt="Plan de la maison" draggable="false">` +
+        planState.objects.map(object => {
+            const label = planEscape(HA_DEVICES[object.entityId]?.label || object.label);
+            const icon = PLAN_ICONS[object.iconKey] || PLAN_ICONS.outlet;
+            return `<button type="button" class="plan-object device-object" data-plan-entity="${planEscape(object.entityId)}" data-plan-label="${label}" style="left:${object.x * 100}%;top:${object.y * 100}%"><span style="transform:rotate(${object.rotation || 0}deg)">${icon}</span></button>`;
+        }).join("");
+    planUpdateMarkerStates();
+
+    const markers = canvas.querySelectorAll(".plan-object");
+    markers.forEach((marker, index) => {
+        const object = planState.objects[index];
+        marker.classList.toggle("selected", object.id === planSelectedObjectId);
+        const select = () => {
+            planSelectedObjectId = object.id;
+            markers.forEach(item => item.classList.toggle("selected", item === marker));
             planRenderEditor();
-        });
-        element.addEventListener("pointermove", event => planMoveDrag(event, element));
-        element.addEventListener("pointerup", () => { planDrag = null; });
-    });
-}
+        };
+        const move = (x, y) => {
+            object.x = planClamp(x);
+            object.y = planClamp(y);
+            marker.style.left = `${object.x * 100}%`;
+            marker.style.top = `${object.y * 100}%`;
+        };
 
-function planMoveDrag(event, element) {
-    if (!planDrag) return;
-    const canvas = document.getElementById("house-plan");
-    const target = planDrag.kind === "room"
-        ? planState.rooms.find(item => item.id === planDrag.id)
-        : planState.objects.find(item => item.id === planDrag.id);
-    target.x = Math.max(0, Math.min(canvas.clientWidth - element.offsetWidth, planDrag.x + event.clientX - planDrag.sx));
-    target.y = Math.max(0, Math.min(canvas.clientHeight - element.offsetHeight, planDrag.y + event.clientY - planDrag.sy));
-    element.style.left = `${target.x}px`;
-    element.style.top = `${target.y}px`;
+        marker.onclick = () => {
+            if (planEditMode) select();
+            else openDeviceDetail(object.entityId);
+        };
+        marker.onpointerdown = event => {
+            if (!planEditMode || event.button !== 0 || planDrag) return;
+            select();
+            planDrag = { pointerId: event.pointerId, x: object.x, y: object.y, sx: event.clientX, sy: event.clientY };
+            marker.setPointerCapture(event.pointerId);
+        };
+        marker.onpointermove = event => {
+            if (planDrag?.pointerId !== event.pointerId || !marker.hasPointerCapture(event.pointerId)) return;
+            const { width, height } = canvas.getBoundingClientRect();
+            move(planDrag.x + (event.clientX - planDrag.sx) / width, planDrag.y + (event.clientY - planDrag.sy) / height);
+        };
+        marker.onlostpointercapture = event => {
+            if (planDrag?.pointerId === event.pointerId) planDrag = null;
+        };
+        marker.onkeydown = event => {
+            const direction = planPanDirections[event.key];
+            if (!planEditMode || !Array.isArray(direction)) return;
+            event.preventDefault();
+            if (planSelectedObjectId !== object.id) select();
+            move(object.x + direction[0] * .01, object.y + direction[1] * .01);
+        };
+    });
+    const image = canvas.querySelector(".plan-image");
+    let pan = null;
+    image.onpointerdown = event => {
+        if (!planEditMode || event.button !== 0 || pan) return;
+        pan = {
+            pointerId: event.pointerId,
+            startX: event.clientX, startY: event.clientY,
+            x: planView.x, y: planView.y, moved: false
+        };
+        image.setPointerCapture(event.pointerId);
+    };
+    image.onpointermove = event => {
+        if (pan?.pointerId !== event.pointerId) return;
+        const dx = event.clientX - pan.startX;
+        const dy = event.clientY - pan.startY;
+        if (!pan.moved && Math.hypot(dx, dy) < 5) return;
+        pan.moved = true;
+        planView.x = pan.x + dx / planViewport.clientWidth;
+        planView.y = pan.y + dy / planViewport.clientHeight;
+        planApplyView();
+    };
+    image.onpointerup = event => {
+        if (pan?.pointerId !== event.pointerId) return;
+        const moved = pan.moved;
+        pan = null;
+        if (moved) {
+            planSaveView();
+            return;
+        }
+        if (!planEditMode) return;
+        const index = planState.objects.findIndex(object => object.id === planSelectedObjectId);
+        if (index === -1) return;
+        const { left, top, width, height } = canvas.getBoundingClientRect();
+        const object = planState.objects[index];
+        object.x = planClamp((event.clientX - left) / width);
+        object.y = planClamp((event.clientY - top) / height);
+        markers[index].style.left = `${object.x * 100}%`;
+        markers[index].style.top = `${object.y * 100}%`;
+    };
+    image.onlostpointercapture = event => {
+        if (pan?.pointerId !== event.pointerId) return;
+        if (pan.moved) planSaveView();
+        pan = null;
+    };
+    planApplyView();
 }
 
 function planRenderEditor() {
     if (!planEditMode) return;
-    document.querySelectorAll("[data-plan-tab]").forEach(button => button.classList.toggle("active", button.dataset.planTab === planActiveTab));
     const content = document.getElementById("plan-editor-content");
-    if (planActiveTab === "elements") return planRenderElementEditor(content);
-    if (planActiveTab === "devices") return planRenderDeviceEditor(content);
-    const room = planState.rooms.find(item => item.id === planSelectedRoomId);
-    if (!room) { content.innerHTML = '<h3>Pièces</h3><p class="plan-editor-muted">Sélectionnez une pièce dans le plan.</p>'; return; }
-    content.innerHTML = `<h3>${planEscape(room.name)}</h3><label class="plan-field">Nom<input id="plan-room-name" value="${planEscape(room.name)}"></label><div class="plan-editor-actions"><button class="full" id="plan-room-rename">Enregistrer le nom</button><button id="plan-room-w-minus">− Largeur</button><button id="plan-room-w-plus">+ Largeur</button><button id="plan-room-h-minus">− Hauteur</button><button id="plan-room-h-plus">+ Hauteur</button><button class="danger" id="plan-room-delete">Supprimer la pièce</button></div>`;
-    content.querySelector("#plan-room-rename").onclick = () => { room.name = content.querySelector("#plan-room-name").value || "Sans nom"; planRenderAll(); };
-    content.querySelector("#plan-room-w-minus").onclick = () => { room.w = Math.max(110, room.w - 20); planRenderAll(); };
-    content.querySelector("#plan-room-w-plus").onclick = () => { room.w = Math.min(760, room.w + 20); planRenderAll(); };
-    content.querySelector("#plan-room-h-minus").onclick = () => { room.h = Math.max(82, room.h - 20); planRenderAll(); };
-    content.querySelector("#plan-room-h-plus").onclick = () => { room.h = Math.min(500, room.h + 20); planRenderAll(); };
-    content.querySelector("#plan-room-delete").onclick = () => { planState.rooms = planState.rooms.filter(item => item.id !== room.id); planSelectedRoomId = planState.rooms[0]?.id || null; planRenderAll(); };
-}
-
-function planRenderElementEditor(content) {
-    const object = planState.objects.find(item => item.id === planSelectedObjectId && item.kind === "element");
-    content.innerHTML = `<h3>Éléments</h3><div class="plan-palette">${PLAN_FURNITURE.map(item => `<button data-add-element="${item[0]}"><span class="plan-palette-icon">${item[2]}</span><span>${item[1]}</span></button>`).join("")}</div>${object ? `<div class="plan-editor-actions"><button id="plan-object-left">↶ Tourner</button><button id="plan-object-right">↷ Tourner</button><button class="danger" id="plan-object-delete">Supprimer</button></div>` : '<p class="plan-editor-muted">Ajoutez ou sélectionnez un élément.</p>'}`;
-    content.querySelectorAll("[data-add-element]").forEach(button => button.onclick = () => {
-        const item = PLAN_FURNITURE.find(value => value[0] === button.dataset.addElement);
-        const id = `object-${Date.now()}`;
-        planState.objects.push({ id, kind: "element", type: item[0], label: item[1], x: 80, y: 90, rotation: 0 });
-        planSelectedObjectId = id; planRenderAll();
-    });
-    planBindObjectActions(content, object);
-}
-
-function planRenderDeviceEditor(content) {
-    const devices = ROOMS.flatMap(room => room.devices.map(device => ({ ...device, room: room.name })));
+    const devices = Object.entries(HA_DEVICES).map(([entity_id, device]) => ({ ...device, entity_id }));
     const object = planState.objects.find(item => item.id === planSelectedObjectId && item.kind === "device");
-    content.innerHTML = `<h3>Appareils</h3><div class="plan-palette">${devices.map(device => `<button data-add-device="${device.entity_id}"><span class="plan-palette-icon">${PLAN_ICONS[planDeviceIconKey(device.entity_id)]}</span><span>${planEscape(device.label)}</span></button>`).join("")}</div>${object ? `<p class="plan-editor-muted">Choisir une icône</p><div class="plan-icon-picker">${Object.entries(PLAN_ICONS).map(([key, icon]) => `<button class="plan-icon-option ${object.iconKey === key ? "active" : ""}" data-plan-icon="${key}" aria-label="${key}">${icon}</button>`).join("")}</div><div class="plan-editor-actions"><button id="plan-object-left">↶ Tourner</button><button id="plan-object-right">↷ Tourner</button><button class="danger" id="plan-object-delete">Retirer du plan</button></div>` : '<p class="plan-editor-muted">Ajoutez ou sélectionnez un appareil.</p>'}`;
+    content.innerHTML = `<h3>Appareils</h3><p class="plan-editor-muted">Sélectionnez un appareil, puis cliquez sur le plan ou faites glisser son icône.</p><div class="plan-palette">${devices.map(device => `<button data-add-device="${planEscape(device.entity_id)}"><span class="plan-palette-icon">${PLAN_ICONS[planDeviceIconKey(device.entity_id)]}</span><span>${planEscape(device.label)}</span></button>`).join("")}</div>${object ? `<p class="plan-editor-muted">Choisir une icône</p><div class="plan-icon-picker">${Object.entries(PLAN_ICONS).map(([key, icon]) => `<button class="plan-icon-option ${object.iconKey === key ? "active" : ""}" data-plan-icon="${key}" aria-label="${key}">${icon}</button>`).join("")}</div><div class="plan-editor-actions"><button id="plan-object-left">↶ Tourner</button><button id="plan-object-right">↷ Tourner</button><button class="danger" id="plan-object-delete">Retirer du plan</button></div>` : '<p class="plan-editor-muted">Ajoutez ou sélectionnez un appareil.</p>'}`;
     content.querySelectorAll("[data-add-device]").forEach(button => button.onclick = () => {
         const device = devices.find(item => item.entity_id === button.dataset.addDevice);
         let placed = planState.objects.find(item => item.kind === "device" && item.entityId === device.entity_id);
         if (!placed) {
-            placed = { id: `device-${Date.now()}`, kind: "device", entityId: device.entity_id, label: device.label, iconKey: planDeviceIconKey(device.entity_id), x: 105, y: 110, rotation: 0 };
+            placed = { id: device.entity_id, kind: "device", entityId: device.entity_id, label: device.label, iconKey: planDeviceIconKey(device.entity_id), x: .5, y: .5, rotation: 0 };
             planState.objects.push(placed);
         }
         planSelectedObjectId = placed.id; planRenderAll();
@@ -2524,6 +2668,10 @@ function closeDeviceDetail() {
     document.body.style.overflow = "";
 }
 
+function deviceRockerMarkup(on, label, action) {
+    return `<div class="device-rocker-wrap"><button type="button" class="device-rocker-switch ${on ? "active" : ""}" role="switch" aria-checked="${on}" aria-label="Marche/arrêt ${planEscape(label)}" onclick="${action}"><span class="device-rocker-top"></span><span class="device-rocker-bottom"></span></button><span class="device-rocker-mark" aria-hidden="true"></span></div>`;
+}
+
 function renderDeviceDetail() {
     if (!deviceDetailEntityId) return;
     const info = HA_DEVICES[deviceDetailEntityId];
@@ -2551,12 +2699,12 @@ function renderDeviceDetail() {
     const colorControl = deviceSupportsColor(attrs) || (attrs.supported_color_modes || []).includes("color_temp")
         ? '<div id="device-inline-color"></div>'
         : "";
-    const lightControls = domain === "light" ? `
+    const powerControls = `
         <div class="device-light-controls">
-            <div class="device-rocker-wrap"><button class="device-rocker-switch ${on ? "active" : ""}" onclick="deviceDetailToggle()" aria-label="${on ? "Éteindre" : "Allumer"} ${planEscape(info.label)}"><span class="device-rocker-top"></span><span class="device-rocker-bottom"></span></button><span class="device-rocker-mark"></span></div>
-            ${(brightnessControl || colorControl) ? `<div class="device-light-settings">${colorControl || brightnessControl}</div>` : ""}
+            ${deviceRockerMarkup(on, info.label, "deviceDetailToggle()")}
+            ${domain === "light" && (brightnessControl || colorControl) ? `<div class="device-light-settings">${colorControl || brightnessControl}</div>` : ""}
         </div>
-    ` : `<div class="device-light-controls"><button class="device-main-switch ${on ? "active" : ""}" onclick="deviceDetailToggle()">${on ? "Activé" : "Désactivé"}</button></div>`;
+    `;
 
     const usefulInfo = [
         ["État", stateData.state === "on" ? "Activé" : stateData.state === "off" ? "Désactivé" : stateData.state],
@@ -2581,7 +2729,7 @@ function renderDeviceDetail() {
             </div>
         </header>
         ${mediaBlock}
-        ${lightControls}
+        ${powerControls}
         <div class="device-info-grid">${usefulInfo.map(([label, value]) => `<div class="device-info-item"><div class="device-info-label">${planEscape(label)}</div><div class="device-info-value">${planEscape(value)}</div></div>`).join("")}</div>
     `;
     if (colorControl && domain === "light") mountLightColor();
@@ -2642,6 +2790,7 @@ async function deviceLightService(data) {
         if (!response.ok) throw new Error("HTTP " + response.status);
         finishActivity?.("info", "Réglage de lumière accepté");
         haStates[deviceDetailEntityId] = "on";
+        planUpdateMarkerStates();
         setTimeout(haFetchStates, 450);
     } catch (err) {
         finishActivity?.("error", "Échec du réglage de lumière", err);
@@ -2664,7 +2813,13 @@ function planRenderDeviceCards() {
         const on = haIsOn(device.entity_id);
         const placed = planState.objects.find(item => item.kind === "device" && item.entityId === device.entity_id);
         const iconKey = placed?.iconKey || planDeviceIconKey(device.entity_id);
-        return `<article class="plan-device-card ${on ? "is-on" : ""}" role="button" tabindex="0" onclick="openDeviceDetail('${device.entity_id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDeviceDetail('${device.entity_id}')}" aria-label="Ouvrir ${planEscape(device.label)}"><div class="plan-device-main"><span class="plan-device-icon">${PLAN_ICONS[iconKey]}</span><div><div class="plan-device-name">${planEscape(device.label)}</div><div class="plan-device-room">${planEscape(device.room)}</div></div></div><button class="toggle ${on ? "active" : ""}" onclick="event.stopPropagation();haToggle('${device.entity_id}')">${on ? "ON" : "OFF"}</button></article>`;
+        return `<article class="plan-device-card ${on ? "is-on" : ""}" data-entity="${planEscape(device.entity_id)}">
+            <button type="button" class="plan-device-main" onclick="openDeviceDetail(this.parentElement.dataset.entity)" aria-label="Ouvrir ${planEscape(device.label)}">
+                <span class="plan-device-icon">${PLAN_ICONS[iconKey]}</span>
+                <span><span class="plan-device-name">${planEscape(device.label)}</span><span class="plan-device-room">${planEscape(device.room)}</span></span>
+            </button>
+            ${deviceRockerMarkup(on, device.label, "haToggle(this.closest('.plan-device-card').dataset.entity)")}
+        </article>`;
     }).join("");
 }
 
@@ -2679,28 +2834,16 @@ document.addEventListener("keydown", event => {
     if (event.key === "Escape" && deviceDetailEntityId) closeDeviceDetail();
 });
 
-document.querySelectorAll("[data-plan-tab]").forEach(button => {
-    button.addEventListener("click", () => { planActiveTab = button.dataset.planTab; planSelectedObjectId = null; planRenderEditor(); });
-});
+planRenderCanvas();
+planLoadImage();
 
 function renderRooms() {
     renderBatteryOutletSelect();
     renderBatteryOutletStatus();
     evaluateBatteryOutletAutomation();
-    // Le polling Home Assistant appelle cette fonction toutes les 5 secondes.
-    // En mode édition, ne pas recréer le panneau : remplacer l'input ferait
-    // perdre le focus et fermerait le clavier virtuel pendant le renommage.
-    if (planEditMode) {
-        planRenderDeviceCards();
-        return;
-    }
-    planRenderAll();
-}
-
-function allOff() {
-    Object.keys(HA_DEVICES).forEach(entityId => {
-        if (haStates[entityId] === "on") haToggle(entityId);
-    });
+    planUpdateMarkerStates();
+    planRenderDeviceCards();
+    if (deviceDetailEntityId) renderDeviceDetail();
 }
 
 // ─── Détection de nouveaux appareils Home Assistant ─────────────────────────
@@ -2800,6 +2943,7 @@ function addDetectedDevice(entityId) {
     renderDetectDevicesList();
     detectDevicesRowDone();
 
+    planRenderEditor();
     haFetchStates(); // récupère l'état actuel et met à jour la grille des appareils
 }
 

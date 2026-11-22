@@ -587,121 +587,88 @@ body {
     grid-template-columns: minmax(0, 1.55fr) minmax(250px, .45fr);
 }
 
+.plan-view-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+    margin-bottom: 14px;
+}
+
+.plan-view-controls[hidden] { display: none; }
+.plan-view-controls input { width: min(160px, 100%); }
+.plan-view-controls output { margin-left: 4px; }
+
 .house-plan-scroll {
     min-width: 0;
+    align-self: start;
     overflow: hidden;
-    border-radius: 24px;
-}
-
-.plan-view-layout.editing .house-plan-scroll {
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding-bottom: 10px;
-    scrollbar-color: #66758b #172235;
-    scrollbar-width: auto;
-}
-
-.plan-view-layout.editing .house-plan-scroll::-webkit-scrollbar {
-    height: 13px;
-}
-
-.plan-view-layout.editing .house-plan-scroll::-webkit-scrollbar-track {
-    border-radius: 999px;
-    background: #172235;
-}
-
-.plan-view-layout.editing .house-plan-scroll::-webkit-scrollbar-thumb {
-    border: 3px solid #172235;
-    border-radius: 999px;
-    background: #66758b;
-}
-
-.plan-view-layout.editing .house-plan {
-    min-width: 900px;
+    border-radius: 20px;
+    background: #151e2d;
 }
 
 .house-plan {
     position: relative;
-    height: 520px;
-    overflow: hidden;
-    border-radius: 24px;
-    background-color: #151e2d;
-    background-image:
-        linear-gradient(rgba(148, 163, 184, .08) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(148, 163, 184, .08) 1px, transparent 1px);
-    background-size: 20px 20px;
-    touch-action: none;
 }
 
-.plan-room {
-    position: absolute;
-    min-width: 110px;
-    min-height: 82px;
-    padding: 13px;
-    overflow: hidden;
-    border: 1px solid #40506a;
-    border-radius: 15px;
-    background: #222e41;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, .18);
+.plan-image {
+    display: block;
+    width: 100%;
+    height: auto;
     user-select: none;
 }
 
-.plan-room.selected {
-    border-color: #67dda8;
-    box-shadow: 0 0 0 3px rgba(103, 221, 168, .14);
-}
-
-.plan-room-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    font-weight: 700;
-}
-
-.editing .plan-room-header,
-.editing .plan-object {
+.editing .plan-image {
     cursor: grab;
+    touch-action: none;
 }
 
-.plan-room-count {
-    padding: 4px 7px;
-    border-radius: 999px;
-    background: #2d3a4f;
-    color: #a8b4c6;
-    font-size: .72rem;
+.editing .plan-image:active { cursor: grabbing; }
+
+.plan-empty {
+    margin: 0;
+    padding: 36px 16px;
+    text-align: center;
 }
+
+#plan-status:empty { display: none; }
+#plan-status { margin-bottom: 12px; }
 
 .plan-object {
     position: absolute;
-    z-index: 5;
+    z-index: 1;
     display: grid;
     place-items: center;
-    width: 52px;
-    height: 52px;
-    border: 1px solid transparent;
-    border-radius: 11px;
-    color: #dbe4ef;
-    user-select: none;
+    width: clamp(16px, 2.5vw, 23px);
+    aspect-ratio: 1;
+    padding: 0;
+    border: 1px solid #64748b;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    background: #263244;
+    color: #cbd5e1;
+    cursor: pointer;
     touch-action: none;
 }
 
-.plan-object.wide { width: 76px; }
-
-.plan-object.device-object {
-    width: 46px;
-    height: 46px;
-    border-radius: 50%;
+.plan-object[data-state="on"] {
     border-color: #45cf94;
     background: #143f34;
     color: #baf7dc;
-    box-shadow: 0 0 0 5px rgba(69, 207, 148, .1);
+    box-shadow: 0 0 0 1.5px rgba(69, 207, 148, .35);
 }
 
-.editing .plan-object:hover,
-.plan-object.selected {
-    border-color: #67dda8;
-    background-color: rgba(103, 221, 168, .13);
+.plan-object[data-state="unknown"] { border-style: dashed; }
+
+.plan-object span { display: flex; }
+.editing .plan-object { cursor: grab; }
+.editing .plan-object:active { cursor: grabbing; }
+
+.plan-object:hover,
+.plan-object.selected,
+.plan-object:focus-visible {
+    z-index: 2;
+    outline: 2px solid #baf7dc;
 }
 
 .plan-object svg,
@@ -717,7 +684,7 @@ body {
     stroke-linejoin: round;
 }
 
-.device-object svg { width: 25px; height: 25px; }
+.device-object svg { width: 12.5px; height: 12.5px; }
 
 .plan-editor-panel {
     align-self: start;
@@ -727,55 +694,16 @@ body {
     background: #192334;
 }
 
-.plan-editor-tabs {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 5px;
-    margin-bottom: 15px;
-}
-
-.plan-editor-tabs button {
-    min-width: 0;
-    padding: 9px 5px;
-    overflow: hidden;
-    font-size: .74rem;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.plan-editor-tabs button.active {
-    background: #f8fafc;
-    color: #111827;
-}
-
 .plan-editor-panel h3 { margin-bottom: 12px; }
+#plan-editor-content > p { margin-bottom: 12px; }
 
-.plan-field {
-    display: block;
-    margin: 12px 0;
-    color: #aeb9c9;
-    font-size: .82rem;
-}
-
-.plan-field input {
-    width: 100%;
-    margin-top: 6px;
-    padding: 10px;
-    border: 1px solid #3b4a61;
-    border-radius: 10px;
-    background: #111827;
-    color: #fff;
-}
-
-.plan-editor-actions,
-.plan-room-size-actions {
+.plan-editor-actions {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 7px;
     margin-top: 11px;
 }
 
-.plan-editor-actions .full,
 .plan-editor-actions .danger {
     grid-column: 1 / -1;
 }
@@ -848,12 +776,11 @@ body {
     border: 1px solid #2b384d;
     border-radius: 16px;
     background: #192334;
-    cursor: pointer;
     transition: transform .18s ease, border-color .18s ease, background .18s ease;
 }
 
 .plan-device-card:hover,
-.plan-device-card:focus-visible {
+.plan-device-card:focus-within {
     border-color: #4b5f79;
     background: #1d293b;
     transform: translateY(-2px);
@@ -861,11 +788,21 @@ body {
 }
 
 .plan-device-main {
+    flex: 1;
     min-width: 0;
     display: flex;
     align-items: center;
     gap: 11px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
 }
+
+.plan-device-main .plan-device-name,
+.plan-device-main .plan-device-room { display: block; }
 
 .plan-device-icon {
     flex: 0 0 auto;
@@ -1168,6 +1105,33 @@ body {
     color: #09251b;
 }
 
+.plan-device-card .device-rocker-wrap { padding: 0; }
+
+.plan-device-card .device-rocker-switch {
+    width: 42px;
+    height: 54px;
+    padding: 3px;
+    border-radius: 9px;
+}
+
+.plan-device-card .device-rocker-top {
+    height: 22px;
+    border-radius: 5px 5px 3px 3px;
+}
+
+.plan-device-card .device-rocker-bottom {
+    height: 20px;
+    margin-top: 2px;
+    border-radius: 3px 3px 5px 5px;
+}
+
+.plan-device-card .device-rocker-mark {
+    top: 11px;
+    width: 8px;
+    height: 8px;
+    border-width: 2px;
+}
+
 .device-light-settings {
     display: grid;
     grid-template-columns: 1.25fr .75fr;
@@ -1176,24 +1140,6 @@ body {
 
 .device-light-settings > :only-child {
     grid-column: 1 / -1;
-}
-
-.device-main-switch {
-    width: 100%;
-    min-height: 86px;
-    border: 0;
-    border-radius: 20px;
-    background: #2b384c;
-    color: #dbe5f2;
-    font-size: 1.35rem;
-    font-weight: 800;
-    cursor: pointer;
-}
-
-.device-main-switch.active {
-    background: linear-gradient(135deg, #1f9b6c, #42d59a);
-    color: #071f16;
-    box-shadow: 0 12px 34px rgba(66, 213, 154, .2);
 }
 
 .device-control-card {
@@ -1344,7 +1290,6 @@ body {
     .devices-page-heading { flex-direction: column; }
     .plan-edit-actions { justify-content: flex-start; }
     .plan-view-layout.editing { grid-template-columns: 1fr; }
-    .house-plan { height: 460px; }
     .plan-devices-grid { grid-template-columns: 1fr; }
 }
 
@@ -1369,21 +1314,6 @@ body {
 
 .toggle.active {
     background: #22c55e;
-}
-
-.all-off {
-    width: 100%;
-    margin-top: 20px;
-    padding: 15px;
-    border: none;
-    border-radius: 15px;
-    font-size: 1.1rem;
-    cursor: pointer;
-}
-
-.all-off:hover {
-    background: #f5b7b1;
-    transform: scale(1.02);
 }
 
 /* ── Réorganisation des widgets depuis le bouton Accueil ── */

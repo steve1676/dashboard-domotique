@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Domotique</title>
-    <link rel="stylesheet" href="style.css?v=20261120-diagnostics">
+    <link rel="stylesheet" href="style.css?v=20261122-device-rockers">
     <script src="activity-console.js?v=20261120-error-messages"></script>
     <link rel="stylesheet" href="light-color.css?v=20261025-audit">
     <link rel="stylesheet" href="calendar.css?v=20261025-audit">
@@ -192,27 +192,29 @@
         </div>
         <div class="devices-page-buttons">
             <button id="detect-devices-btn" class="plan-primary-btn" type="button" onclick="openDetectDevicesModal()">Détecter les nouveaux appareils</button>
-            <button id="plan-edit-btn" class="plan-primary-btn" type="button" onclick="planEnterEditMode()">Modifier le plan</button>
+            <button id="plan-import-btn" class="plan-primary-btn" type="button" onclick="document.getElementById('plan-image-input').click()">Importer un plan</button>
+            <input id="plan-image-input" type="file" accept=".png,.jpg,.jpeg,image/png,image/jpeg" hidden>
+            <button id="plan-edit-btn" class="plan-primary-btn" type="button" onclick="planEnterEditMode()" hidden>Modifier le plan</button>
         </div>
         <div id="plan-edit-actions" class="plan-edit-actions" hidden>
-            <button type="button" onclick="planAddRoom()">+ Ajouter une pièce</button>
-            <button type="button" onclick="planReset()">Réinitialiser</button>
             <button type="button" class="plan-save-btn" onclick="planSaveAndExit()">Enregistrer et terminer</button>
         </div>
     </div>
 
     <div id="ha-status" class="transport-error" style="display:none;"></div>
+    <p id="plan-status" class="plan-editor-muted" role="status"></p>
 
+    <div id="plan-view-controls" class="plan-view-controls" hidden>
+        <label for="plan-zoom">Zoom <output id="plan-zoom-value" for="plan-zoom">100 %</output></label>
+        <input id="plan-zoom" type="range" min="50" max="300" step="5" value="100">
+        <button id="plan-view-reset" class="plan-primary-btn" type="button">Recentrer à 100 %</button>
+        <p class="plan-editor-muted">Faites glisser l’image pour déplacer le plan.</p>
+    </div>
     <div id="rooms-container" class="plan-view-layout">
-        <div class="house-plan-scroll">
+        <div id="plan-viewport" class="house-plan-scroll" tabindex="-1" aria-label="Vue du plan">
             <div id="house-plan" class="house-plan" aria-label="Plan de la maison"></div>
         </div>
         <aside id="plan-editor-panel" class="plan-editor-panel" hidden>
-            <div class="plan-editor-tabs" role="tablist">
-                <button type="button" data-plan-tab="rooms" class="active">Pièces</button>
-                <button type="button" data-plan-tab="elements">Éléments</button>
-                <button type="button" data-plan-tab="devices">Appareils</button>
-            </div>
             <div id="plan-editor-content"></div>
         </aside>
     </div>
@@ -224,10 +226,6 @@
         </div>
         <div id="plan-devices-grid" class="plan-devices-grid"></div>
     </section>
-
-     <button class="all-off" onclick="allOff()">
-            Éteindre toutes les lumières
-        </button>
 
 </div>
 
@@ -639,7 +637,7 @@
 <div id="nightOverlay" class="night-overlay" onclick="wakeFromNightMode()"></div>
 
 <script src="atmosphere.js?v=20261019-11"></script>
-<script src="script.js?v=20261120-chromecast-daily"></script>
+<script src="script.js?v=20261122-device-rockers"></script>
 
 <script src="calendar.js?v=20261120-diagnostics"></script>
 <script src="light-color.js?v=20261025-audit"></script>
