@@ -603,6 +603,7 @@ body {
 .plan-view-controls output { margin-left: 4px; }
 
 .house-plan-scroll {
+    position: relative;
     min-width: 0;
     align-self: start;
     overflow: hidden;
@@ -767,7 +768,7 @@ body {
 
 .plan-devices-grid {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 11px;
 }
 
@@ -775,8 +776,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    padding: 13px 15px;
+    gap: 6px;
+    padding: 13px 8px;
     border: 1px solid #2b384d;
     border-radius: 16px;
     background: #192334;
@@ -796,7 +797,7 @@ body {
     min-width: 0;
     display: flex;
     align-items: center;
-    gap: 11px;
+    gap: 6px;
     padding: 0;
     border: 0;
     background: transparent;
@@ -805,8 +806,14 @@ body {
     cursor: pointer;
 }
 
+.plan-device-main > span:last-child { min-width: 0; }
 .plan-device-main .plan-device-name,
-.plan-device-main .plan-device-room { display: block; }
+.plan-device-main .plan-device-room {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 
 .plan-device-icon {
     flex: 0 0 auto;
@@ -826,10 +833,7 @@ body {
 }
 
 .plan-device-name {
-    overflow: hidden;
     font-weight: 700;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 /* ── Fiche détaillée d'un appareil ── */
@@ -1294,7 +1298,7 @@ body {
     .devices-page-heading { flex-direction: column; }
     .plan-edit-actions { justify-content: flex-start; }
     .plan-view-layout.editing { grid-template-columns: 1fr; }
-    .plan-devices-grid { grid-template-columns: 1fr; }
+    .plan-devices-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 .device {
@@ -1370,7 +1374,7 @@ body {
     max-width: calc(100% - 24px);
 }
 
-#homeEditDialog {
+:is(#homeEditDialog, #home-plan-dialog) {
     position: fixed;
     inset: 0;
     margin: auto;
@@ -1383,7 +1387,7 @@ body {
     font: inherit;
     box-shadow: 0 16px 60px #0007;
 }
-#homeEditDialog::backdrop { background: #020617b3; }
+:is(#homeEditDialog, #home-plan-dialog)::backdrop { background: #020617b3; }
 #homeEditTitle { margin: 0 0 24px; font-size: 1.1rem; line-height: 1.5; }
 .home-edit-actions { display: flex; justify-content: flex-end; gap: 12px; }
 .home-edit-actions button {
@@ -1397,6 +1401,18 @@ body {
     cursor: pointer;
 }
 .home-edit-actions .home-edit-confirm { background: #15803d; border-color: #15803d; }
+#home-plan-dialog {
+    max-height: calc(100dvh - 32px);
+    overflow: auto;
+    padding: clamp(14px, 4vw, 26px);
+}
+#home-plan-form { display: grid; gap: 12px; }
+#home-plan-title { font-size: 1.2rem; }
+#home-plan-form label { display: grid; grid-template-columns: 1fr auto; gap: 4px; }
+#home-plan-form input { grid-column: 1 / -1; width: 100%; min-height: 24px; }
+#home-plan-form .home-edit-actions { flex-wrap: wrap; gap: 8px; }
+#home-plan-form .home-edit-actions button { padding-inline: 12px; }
+#home-plan-error { color: #fecaca; }
 
 .reorder-banner button {
     background: #22c55e;
@@ -4129,6 +4145,70 @@ body {
 #home .top-row.free-widget-layout { display: block; position: relative; padding: 0; }
 #home .top-row.free-widget-layout > .reorder-widget {
     position: absolute; width: var(--widget-width); margin: 0; grid-area: auto;
+}
+#home .top-row > #widget-plan {
+    --widget-height: 390px;
+    grid-column: span 2;
+    grid-row: span 4;
+    position: relative;
+    container-type: size;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 20px;
+    background: #151e2d;
+    color: #e2e8f0;
+}
+#home .top-row.free-widget-layout > #widget-plan {
+    position: absolute;
+    width: min(100%, calc(2 * var(--widget-width) + 20px));
+    grid-area: auto;
+}
+.home-plan-frame {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: translate(
+        calc((100cqw - 100%) * var(--home-plan-x, .5)),
+        calc((100cqh - 100%) * var(--home-plan-y, .5))
+    );
+    width: calc(max(100cqw, 100cqh * var(--plan-ratio)) * var(--home-plan-zoom, 1));
+    aspect-ratio: var(--plan-ratio);
+    pointer-events: none;
+}
+.plan-edit-pencil {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    z-index: 3;
+    width: 44px;
+    height: 44px;
+    border: 1px solid #94a3b8;
+    border-radius: 50%;
+    background: #111827e8;
+    color: #f1f5f9;
+    cursor: pointer;
+}
+.plan-edit-pencil svg { display: block; width: 20px; height: 20px; margin: auto; }
+#home-plan-edit { width: 38px; height: 38px; }
+#home-plan-edit svg { width: 17px; height: 17px; }
+.plan-edit-pencil:focus-visible { outline: 2px solid #93c5fd; outline-offset: 2px; }
+#home-plan-preview {
+    position: relative;
+    container-type: size;
+    width: min(100%, calc(35dvh * var(--preview-ratio, 1)));
+    aspect-ratio: var(--preview-ratio, 1);
+    margin-inline: auto;
+    overflow: hidden;
+    border-radius: 12px;
+    background: #151e2d;
+}
+.home-plan-frame .plan-object { pointer-events: auto; }
+.home-plan-frame img {
+    display: block;
+    width: 100%;
+    height: 100%;
 }
 #home .top-row.free-widget-layout.swap-mode {
     background-image: linear-gradient(to right,#94a3b826 1px,transparent 1px),linear-gradient(to bottom,#94a3b826 1px,transparent 1px);

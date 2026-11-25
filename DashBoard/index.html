@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Domotique</title>
-    <link rel="stylesheet" href="style.css?v=20261125-devices-on-yellow">
+    <link rel="stylesheet" href="style.css?v=20261125-home-plan-pencil-size">
     <script src="activity-console.js?v=20261120-error-messages"></script>
     <link rel="stylesheet" href="light-color.css?v=20261025-audit">
     <link rel="stylesheet" href="calendar.css?v=20261025-audit">
@@ -115,9 +115,9 @@
 
                     <div class="spotify-visualizer" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
 
-                </div>
+    </div>
 
-            </div>
+</div>
 
         </div>
 
@@ -177,9 +177,13 @@
 
         </div>
 
+        <section id="widget-plan" class="reorder-widget" data-widget="plan" aria-label="Plan de la maison">
+            <span class="home-plan-empty">Aucun plan importé</span>
+            <button id="home-plan-edit" class="plan-edit-pencil" type="button" aria-label="Modifier le cadrage du plan" aria-haspopup="dialog" hidden>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 4 4 4M4 20l5-1L20 8a2.8 2.8 0 0 0-4-4L5 15z"/></svg>
+            </button>
+        </section>
     </div>
-
-
 
 </div>
 
@@ -194,7 +198,6 @@
             <button id="detect-devices-btn" class="plan-primary-btn" type="button" onclick="openDetectDevicesModal()">Détecter les nouveaux appareils</button>
             <button id="plan-import-btn" class="plan-primary-btn" type="button" onclick="document.getElementById('plan-image-input').click()">Importer un plan</button>
             <input id="plan-image-input" type="file" accept="image/png,image/jpeg" hidden>
-            <button id="plan-edit-btn" class="plan-primary-btn" type="button" onclick="planEnterEditMode()" hidden>Modifier le plan</button>
         </div>
         <div id="plan-edit-actions" class="plan-edit-actions" hidden>
             <button type="button" class="plan-save-btn" onclick="planSaveAndExit()">Enregistrer et terminer</button>
@@ -213,6 +216,9 @@
     <div id="rooms-container" class="plan-view-layout">
         <div id="plan-viewport" class="house-plan-scroll" tabindex="-1" aria-label="Vue du plan">
             <div id="house-plan" class="house-plan" aria-label="Plan de la maison"></div>
+            <button id="plan-edit-btn" class="plan-edit-pencil" type="button" aria-label="Modifier le plan" onclick="planEnterEditMode()" hidden>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 4 4 4M4 20l5-1L20 8a2.8 2.8 0 0 0-4-4L5 15z"/></svg>
+            </button>
         </div>
         <aside id="plan-editor-panel" class="plan-editor-panel" hidden>
             <div id="plan-editor-content"></div>
@@ -640,11 +646,33 @@
     </div>
 </dialog>
 
+<dialog id="home-plan-dialog" aria-labelledby="home-plan-title">
+    <form id="home-plan-form">
+        <h2 id="home-plan-title">Cadrage du plan</h2>
+        <div id="home-plan-preview" aria-hidden="true" inert></div>
+        <label>Zoom <output id="home-plan-zoom-value" for="home-plan-zoom">100 %</output>
+            <input id="home-plan-zoom" name="zoom" type="range" min="100" max="300" value="100">
+        </label>
+        <label>Position horizontale
+            <input name="x" type="range" min="-100" max="100" value="0">
+        </label>
+        <label>Position verticale
+            <input name="y" type="range" min="-100" max="100" value="0">
+        </label>
+        <p id="home-plan-error" role="status" hidden></p>
+        <div class="home-edit-actions">
+            <button type="reset">Recentrer</button>
+            <button type="button" onclick="this.closest('dialog').close()">Annuler</button>
+            <button type="submit" class="home-edit-confirm">Enregistrer</button>
+        </div>
+    </form>
+</dialog>
+
 <!-- ── Overlay Mode Nuit (écran noir, tap pour réveiller) ── -->
 <div id="nightOverlay" class="night-overlay" onclick="wakeFromNightMode()"></div>
 
 <script src="atmosphere.js?v=20261019-11"></script>
-<script src="script.js?v=20261124-dashboard-colors"></script>
+<script src="script.js?v=20261125-plan-framing"></script>
 
 <script src="calendar.js?v=20261120-diagnostics"></script>
 <script src="light-color.js?v=20261025-audit"></script>

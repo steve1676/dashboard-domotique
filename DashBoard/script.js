@@ -2550,14 +2550,112 @@ function planSaveAndExit() {
 }
 
 function planUpdateMarkerStates() {
-    document.querySelectorAll("#house-plan [data-plan-entity]").forEach(marker => {
+    document.querySelectorAll("#house-plan [data-plan-entity], #widget-plan [data-plan-entity]").forEach(marker => {
         const { planEntity, planLabel } = marker.dataset;
         const state = haStates[planEntity];
         const status = state === "on" ? "Allumé" : state === "off" ? "Éteint" : "État indisponible";
         marker.dataset.state = state === "on" || state === "off" ? state : "unknown";
         marker.title = `${planLabel} · ${status}`;
-        marker.setAttribute("aria-label", marker.title);
+        if ((state === "on" || state === "off") && !(planEditMode && marker.closest("#house-plan"))) {
+            marker.setAttribute("aria-label", planLabel);
+            marker.setAttribute("aria-pressed", String(state === "on"));
+        } else {
+            marker.setAttribute("aria-label", marker.title);
+            marker.removeAttribute("aria-pressed");
+        }
     });
+}
+
+function planMarkerMarkup(object) {
+    const label = planEscape(HA_DEVICES[object.entityId]?.label || object.label);
+    const icon = PLAN_ICONS[object.iconKey] || PLAN_ICONS.outlet;
+    return `<button type="button" class="plan-object device-object" data-plan-entity="${planEscape(object.entityId)}" data-plan-label="${label}" style="left:${object.x * 100}%;top:${object.y * 100}%"><span style="transform:rotate(${object.rotation || 0}deg)">${icon}</span></button>`;
+}
+
+function planRenderHomeWidget() {
+    const widget = document.getElementById("widget-plan");
+    if (!planImageUrl) return;
+    let frame = widget.querySelector(".home-plan-frame");
+    if (!frame || frame.querySelector("img").getAttribute("src") !== planImageUrl) {
+        frame?.remove();
+        frame = document.createElement("span");
+        frame.className = "home-plan-frame";
+        frame.hidden = true;
+        frame.innerHTML = '<img alt="" draggable="false"><span class="home-plan-markers"></span>';
+        const image = frame.querySelector("img");
+        image.onload = () => {
+            if (!frame.isConnected) return;
+            frame.style.setProperty("--plan-ratio", image.naturalWidth / image.naturalHeight);
+            frame.hidden = false;
+            widget.querySelector(".home-plan-empty").hidden = true;
+            document.getElementById("home-plan-edit").hidden = false;
+        };
+        widget.querySelector(".home-plan-empty").hidden = false;
+        document.getElementById("home-plan-edit").hidden = true;
+        widget.appendChild(frame);
+        image.src = planImageUrl;
+    }
+    frame.querySelector(".home-plan-markers").innerHTML = planState.objects.map(planMarkerMarkup).join("");
+}
+
+function initHomePlanFraming() {
+    const key = "housePlanWidgetView";
+    const widget = document.getElementById("widget-plan");
+    const edit = document.getElementById("home-plan-edit");
+    const dialog = document.getElementById("home-plan-dialog");
+    const form = document.getElementById("home-plan-form");
+    const preview = document.getElementById("home-plan-preview");
+    const zoomValue = document.getElementById("home-plan-zoom-value");
+    const error = document.getElementById("home-plan-error");
+    const readControls = () => Object.fromEntries(new FormData(form));
+    function applyView(target, view) {
+        target.style.setProperty("--home-plan-zoom", Number(view.zoom) / 100);
+        target.style.setProperty("--home-plan-x", (Number(view.x) + 100) / 200);
+        target.style.setProperty("--home-plan-y", (Number(view.y) + 100) / 200);
+    }
+    function setControls(view) {
+        for (const [name, fallback] of [["zoom", 100], ["x", 0], ["y", 0]]) {
+            form.elements.namedItem(name).value = view?.[name] ?? fallback;
+        }
+    }
+    function updatePreview() {
+        const view = readControls();
+        zoomValue.value = `${view.zoom} %`;
+        applyView(preview, view);
+    }
+    setControls(storageGet(key, null));
+    applyView(widget, readControls());
+
+    edit.addEventListener("click", () => {
+        const frame = widget.querySelector(".home-plan-frame");
+        if (!frame || frame.hidden || dialog.open) return;
+        setControls(storageGet(key, null));
+        preview.style.setProperty("--preview-ratio", widget.clientWidth / widget.clientHeight);
+        preview.replaceChildren(frame.cloneNode(true));
+        error.hidden = true;
+        updatePreview();
+        dialog.showModal();
+    });
+    form.addEventListener("input", updatePreview);
+    form.addEventListener("reset", event => {
+        event.preventDefault();
+        setControls(null);
+        updatePreview();
+    });
+    form.addEventListener("submit", event => {
+        event.preventDefault();
+        const view = readControls();
+        try {
+            storageSet(key, view);
+        } catch {
+            error.textContent = "Impossible d’enregistrer le cadrage dans ce navigateur.";
+            error.hidden = false;
+            return;
+        }
+        applyView(widget, view);
+        dialog.close();
+    });
+    dialog.addEventListener("close", () => preview.replaceChildren());
 }
 
 function planRenderCanvas() {
@@ -2569,11 +2667,8 @@ function planRenderCanvas() {
     }
 
     canvas.innerHTML = `<img class="plan-image" src="${planImageUrl}" alt="Plan de la maison" draggable="false">` +
-        planState.objects.map(object => {
-            const label = planEscape(HA_DEVICES[object.entityId]?.label || object.label);
-            const icon = PLAN_ICONS[object.iconKey] || PLAN_ICONS.outlet;
-            return `<button type="button" class="plan-object device-object" data-plan-entity="${planEscape(object.entityId)}" data-plan-label="${label}" style="left:${object.x * 100}%;top:${object.y * 100}%"><span style="transform:rotate(${object.rotation || 0}deg)">${icon}</span></button>`;
-        }).join("");
+        planState.objects.map(planMarkerMarkup).join("");
+    planRenderHomeWidget();
     planUpdateMarkerStates();
 
     const markers = canvas.querySelectorAll(".plan-object");
@@ -2594,7 +2689,7 @@ function planRenderCanvas() {
 
         marker.onclick = () => {
             if (planEditMode) select();
-            else openDeviceDetail(object.entityId);
+            else haToggle(object.entityId);
         };
         marker.onpointerdown = event => {
             if (!planEditMode || event.button !== 0 || planDrag) return;
@@ -2907,6 +3002,11 @@ document.addEventListener("keydown", event => {
     if (event.key === "Escape" && deviceDetailEntityId) closeDeviceDetail();
 });
 
+document.getElementById("widget-plan").addEventListener("click", event => {
+    const marker = event.target.closest("button[data-plan-entity]");
+    if (marker) haToggle(marker.dataset.planEntity);
+});
+initHomePlanFraming();
 planRenderCanvas();
 planLoadImage();
 
@@ -3514,6 +3614,7 @@ const WIDGETS = [
     { widgetId: 'widget-miroir', name: 'Miroir' },
     { widgetId: 'spotifyCard', name: 'Spotify' },
     { widgetId: 'chromecastCard', name: 'Chromecast' },
+    { widgetId: 'widget-plan', name: 'Plan de la maison' },
 ];
 
 function initWidgetToggles() {
@@ -5230,6 +5331,7 @@ function applySavedWidgetOrder() {
         const el = container.querySelector(`[data-widget="${key}"]`);
         if (el) container.appendChild(el);
     });
+    if (!saved.includes("plan")) container.appendChild(document.getElementById("widget-plan"));
 }
 
 function saveWidgetOrder() {
@@ -5261,7 +5363,7 @@ function getSwapBanner() {
 function updateWidgetSizeControls() {
     const banner = getSwapBanner();
     banner.querySelectorAll("[data-size]").forEach(button => {
-        button.disabled = !selectedWidget || ["clock", "battery"].includes(selectedWidget.dataset.widget);
+        button.disabled = !selectedWidget || ["clock", "battery", "plan"].includes(selectedWidget.dataset.widget);
         button.setAttribute("aria-pressed", String(!!selectedWidget &&
             (selectedWidget.dataset.size || "standard") === button.dataset.size));
     });
@@ -5283,7 +5385,7 @@ function openWidgetHelpDialog() {
                 <li><strong>Déplacer :</strong> maintenez un widget avec le doigt ou la souris, puis glissez-le à l’endroit souhaité.</li>
                 <li><strong>Aligner :</strong> les widgets suivent une grille de 5 px et des repères aimantés facilitent leur alignement.</li>
                 <li><strong>Éviter les chevauchements :</strong> si la position est occupée, le widget revient à son point de départ lorsque vous le relâchez.</li>
-                <li><strong>Changer la taille :</strong> sélectionnez un widget, puis choisissez « Standard » ou « Compact · ½ ». Ces tailles ne sont pas modifiables pour l’horloge et les batteries.</li>
+                <li><strong>Changer la taille :</strong> sélectionnez un widget, puis choisissez « Standard » ou « Compact · ½ ». L’horloge, les batteries et le plan ont une taille fixe.</li>
                 <li><strong>Ajouter ou retirer :</strong> ouvrez « Ajouter un widget », puis utilisez « + Ajouter » ou « − Retirer » dans la liste.</li>
                 <li><strong>Terminer :</strong> appuyez sur « Terminer » pour quitter le mode déplacement. Vos modifications sont sauvegardées automatiquement.</li>
             </ul>`;
@@ -5306,6 +5408,8 @@ function createWidgetCatalogIcon(widgetId) {
     } else if (widgetId === "spotifyCard") {
         const logo = document.querySelector("#spotifyPlayerModalBadge svg");
         if (logo) icon.appendChild(logo.cloneNode(true));
+    } else if (widgetId === "widget-plan") {
+        icon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16M3 13h9m0-3h9"/></svg>';
     } else if (widgetId === "widget-battery") {
         icon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="#86efac" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="18" height="12" rx="3"/><path d="M23 10v4M11 8l-3 5h5l-3 4"/></svg>`;
     } else {
@@ -5383,7 +5487,7 @@ function openAddWidgetDialog() {
 }
 
 function setSelectedWidgetSize(size) {
-    if (!swapMode || !selectedWidget || ["clock", "battery"].includes(selectedWidget.dataset.widget) || !["standard", "compact"].includes(size)) return;
+    if (!swapMode || !selectedWidget || ["clock", "battery", "plan"].includes(selectedWidget.dataset.widget) || !["standard", "compact"].includes(size)) return;
     selectedWidget.dataset.size = size;
     const sizes = {};
     document.querySelectorAll(".reorder-widget").forEach(widget => {
@@ -5441,6 +5545,7 @@ function widgetGridColumns() {
 }
 
 function widgetHeight(widget) {
+    if (widget.dataset.widget === "plan") return 390;
     return widget.dataset.size === "compact" ? 82.5 : 185;
 }
 
@@ -5676,7 +5781,7 @@ function registerHomeWidget(widget) {
     const sizes = storageGet(WIDGET_SIZE_KEY, {});
     widget.dataset.size = sizes?.[widget.dataset.widget] === "compact" ||
         (widget.dataset.widget === "battery" && !sizes?.battery) ? "compact" : "standard";
-    if (widget.dataset.widget === "clock") widget.dataset.size = "standard";
+    if (["clock", "plan"].includes(widget.dataset.widget)) widget.dataset.size = "standard";
     if (widget.dataset.widget === "battery") widget.dataset.size = getPhones().length > 1 ? "standard" : "compact";
     initWidgetDrag(widget);
     function handleSelection(event) {
