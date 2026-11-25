@@ -22,6 +22,7 @@ const DASHBOARD_STORAGE_VERSIONS = {
     chromecast_previous_recs: 1,
     chromecast_daily_recs: 1,
     spotify_display_style: 1,
+    dashboard_color_theme: 1,
 };
 
 function storageGet(key, fallback) {
@@ -49,6 +50,78 @@ function storageSet(key, value) {
     const version = DASHBOARD_STORAGE_VERSIONS[key] ?? 1;
     localStorage.setItem(key, JSON.stringify({ __v: version, value }));
 }
+
+// ─── Couleurs du dashboard ──────────────────────────────────────────────────
+
+const DASHBOARD_COLOR_KEY = "dashboard_color_theme";
+const DASHBOARD_THEMES = [
+    ["default", "Par défaut"],
+    ["cafe", "Café & sable"],
+    ["nuit", "Bleu nuit & ambre"],
+    ["iris", "Iris"],
+    ["prune", "Prune & corail"],
+    ["petrole", "Pétrole & cuivre"],
+];
+
+function initDashboardColors() {
+    const options = document.getElementById("dashboard-color-options");
+    const status = document.getElementById("dashboard-colors-status");
+    const root = document.documentElement;
+    const buttons = new Map();
+
+    function applyTheme(theme) {
+        const selected = buttons.has(theme) ? theme : "default";
+        if (selected === "default") {
+            delete root.dataset.dashboardPalette;
+        } else {
+            root.dataset.dashboardPalette = selected;
+        }
+        for (const [id, button] of buttons) {
+            button.setAttribute("aria-pressed", String(id === selected));
+        }
+    }
+
+    for (const [id, name] of DASHBOARD_THEMES) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "dashboard-color-option";
+        button.dataset.dashboardPalette = id;
+
+        const swatches = document.createElement("span");
+        swatches.className = "dashboard-color-swatches";
+        swatches.setAttribute("aria-hidden", "true");
+        for (let index = 0; index < 6; index++) {
+            swatches.append(document.createElement("span"));
+        }
+
+        const label = document.createElement("span");
+        label.className = "dashboard-color-name";
+        label.textContent = name;
+        button.append(swatches, label);
+        button.addEventListener("click", () => {
+            applyTheme(id);
+            try {
+                storageSet(DASHBOARD_COLOR_KEY, id);
+                status.hidden = true;
+            } catch {
+                status.textContent = "Le thème est appliqué pour cette session. L’enregistrement a échoué.";
+                status.hidden = false;
+            }
+        });
+        buttons.set(id, button);
+        options.append(button);
+    }
+
+    applyTheme(storageGet(DASHBOARD_COLOR_KEY, "default"));
+    window.addEventListener("storage", event => {
+        if (event.key === DASHBOARD_COLOR_KEY || event.key === null) {
+            applyTheme(storageGet(DASHBOARD_COLOR_KEY, "default"));
+            status.hidden = true;
+        }
+    });
+}
+
+initDashboardColors();
 
 
 // ─── Horloge ────────────────────────────────────────────────────────────────

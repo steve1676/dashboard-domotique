@@ -87,6 +87,9 @@
     --transport-card-unit-size: 0.72rem;
     --transport-card-line-size: 0.7rem;
     --transport-card-rt-size: 13px;
+    --device-on-bg: #654b0d;
+    --device-on-text: #fff1a5;
+    --device-on-accent: #facc15;
 }
 
 /* Atmosphère : carte météo interactive, isolée des autres widgets. */
@@ -160,7 +163,7 @@
 }
 
 body {
-    background: #111827;
+    background: var(--palette-bg);
     color: white;
     font-family: Arial, sans-serif;
     height: 100vh;
@@ -652,10 +655,11 @@ body {
 }
 
 .plan-object[data-state="on"] {
-    border-color: #45cf94;
-    background: #143f34;
-    color: #baf7dc;
-    box-shadow: 0 0 0 1.5px rgba(69, 207, 148, .35);
+    --plan-object-outline: var(--device-on-text);
+    border-color: var(--device-on-accent);
+    background: var(--device-on-bg);
+    color: var(--device-on-text);
+    box-shadow: 0 0 0 1.5px #facc1559;
 }
 
 .plan-object[data-state="unknown"] { border-style: dashed; }
@@ -668,7 +672,7 @@ body {
 .plan-object.selected,
 .plan-object:focus-visible {
     z-index: 2;
-    outline: 2px solid #baf7dc;
+    outline: 2px solid var(--plan-object-outline, #baf7dc);
 }
 
 .plan-object svg,
@@ -817,8 +821,8 @@ body {
 }
 
 .plan-device-card.is-on .plan-device-icon {
-    background: #143f34;
-    color: #baf7dc;
+    background: var(--device-on-bg);
+    color: var(--device-on-text);
 }
 
 .plan-device-name {
@@ -918,8 +922,8 @@ body {
 }
 
 .device-detail-title-icon.is-on {
-    background: #154334;
-    color: #baf7dc;
+    background: var(--device-on-bg);
+    color: var(--device-on-text);
 }
 
 .device-detail-title-icon svg {
@@ -1080,8 +1084,8 @@ body {
 }
 
 .device-rocker-switch.active .device-rocker-top {
-    background: #4bd69f;
-    box-shadow: 0 7px 20px rgba(75, 214, 159, .32);
+    background: var(--device-on-accent);
+    box-shadow: 0 7px 20px #facc1552;
 }
 
 .device-rocker-switch.active .device-rocker-bottom {
@@ -1102,7 +1106,7 @@ body {
 }
 
 .device-rocker-switch.active + .device-rocker-mark {
-    color: #09251b;
+    color: #302300;
 }
 
 .plan-device-card .device-rocker-wrap { padding: 0; }
@@ -2208,11 +2212,10 @@ body {
     left: 0;
     right: 0;
     height: 80px;
-    background: #0f172a;
+    background: var(--palette-bg);
     display: flex;
     justify-content: space-around;
     align-items: center;
-    border-top: 0px solid #374151;
 }
 
 .nav-btn {
@@ -3013,7 +3016,7 @@ body {
 }
 
 .switch input:checked + .slider {
-    background: #22c55e;
+    background: var(--switch-on, #22c55e);
 }
 
 .switch input:checked + .slider::before {
@@ -4207,4 +4210,217 @@ body {
 #home #widget-clock #date {
     flex: none; line-height: 1.15; margin-top: 6px;
     overflow-wrap: normal; text-wrap: balance;
+}
+
+/* Palettes de l’interface et nuanciers des paramètres. */
+:root,
+[data-dashboard-palette="default"] {
+    --palette-bg: #111827;
+    --palette-surface: #1f2937;
+    --palette-edge: #374151;
+    --palette-accent: #60a5fa;
+    --palette-text: #fff;
+    --palette-detail: #93c5fd;
+}
+
+[data-dashboard-palette="cafe"] {
+    --palette-bg: #1a120e;
+    --palette-surface: #3a2418;
+    --palette-edge: #6b4a2e;
+    --palette-accent: #a88462;
+    --palette-text: #d5c4ae;
+    --palette-detail: #4a4a46;
+}
+
+[data-dashboard-palette="nuit"] {
+    --palette-bg: #0b132b;
+    --palette-surface: #1c2541;
+    --palette-edge: #3a506b;
+    --palette-accent: #5bc0de;
+    --palette-text: #f4d6b0;
+    --palette-detail: #d97706;
+}
+
+[data-dashboard-palette="iris"] {
+    --palette-bg: #0e0b1d;
+    --palette-surface: #2a1e4d;
+    --palette-edge: #5a3b8c;
+    --palette-accent: #8b7cc7;
+    --palette-text: #c9c2e3;
+    --palette-detail: #3a3a52;
+}
+
+[data-dashboard-palette="prune"] {
+    --palette-bg: #1a0f2e;
+    --palette-surface: #3b1b4f;
+    --palette-edge: #7a2e6f;
+    --palette-accent: #d6598f;
+    --palette-text: #f4d7d4;
+    --palette-detail: #ff6b6b;
+}
+
+[data-dashboard-palette="petrole"] {
+    --palette-bg: #0a0f14;
+    --palette-surface: #0f3d3e;
+    --palette-edge: #2e6f73;
+    --palette-accent: #7fb3b8;
+    --palette-text: #eadcc8;
+    --palette-detail: #c6601f;
+}
+
+:root {
+    --settings-indicator: var(--palette-accent);
+}
+
+:root[data-dashboard-palette] {
+    --switch-on: var(--settings-indicator);
+}
+
+:root:is([data-dashboard-palette="nuit"], [data-dashboard-palette="petrole"]) {
+    --settings-indicator: var(--palette-detail);
+}
+
+.dashboard-colors {
+    margin-bottom: 28px;
+    padding-bottom: 26px;
+    border-bottom: 1px solid var(--palette-edge);
+}
+
+.dashboard-colors p {
+    margin: 8px 0 14px;
+    font-size: .9rem;
+}
+
+#dashboard-color-options {
+    --option-bg: var(--palette-bg);
+    --option-edge: var(--palette-edge);
+    --option-accent: var(--settings-indicator);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 145px), 1fr));
+    gap: 10px;
+}
+
+.dashboard-color-option {
+    min-width: 0;
+    padding: 10px;
+    border: 1px solid var(--option-edge);
+    border-radius: 13px;
+    background: var(--option-bg);
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.dashboard-color-option[aria-pressed="true"] {
+    border-color: var(--option-accent);
+    box-shadow: inset 0 0 0 1px var(--option-accent);
+}
+
+.dashboard-color-option:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
+
+.dashboard-color-name {
+    display: flex;
+    align-items: baseline;
+    gap: 5px;
+    margin-top: 7px;
+    font-size: .86rem;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.dashboard-color-name::before {
+    content: "";
+    flex: 0 0 12px;
+    height: 10px;
+}
+
+.dashboard-color-option[aria-pressed="true"] .dashboard-color-name::before {
+    border-left: 2px solid var(--option-accent);
+    border-bottom: 2px solid var(--option-accent);
+    height: 6px;
+    transform: translateY(-3px) rotate(-45deg);
+}
+
+.dashboard-color-swatches {
+    height: 22px;
+    display: flex;
+    overflow: hidden;
+    border: 1px solid var(--option-edge);
+    border-radius: 6px;
+}
+
+.dashboard-color-swatches span { flex: 1; }
+.dashboard-color-swatches span:nth-child(1) { background: var(--palette-bg); }
+.dashboard-color-swatches span:nth-child(2) { background: var(--palette-surface); }
+.dashboard-color-swatches span:nth-child(3) { background: var(--palette-edge); }
+.dashboard-color-swatches span:nth-child(4) { background: var(--palette-accent); }
+.dashboard-color-swatches span:nth-child(5) { background: var(--palette-text); }
+.dashboard-color-swatches span:nth-child(6) { background: var(--palette-detail); }
+
+/* Les couleurs d’état et les couleurs officielles des lignes restent propres aux widgets. */
+:root[data-dashboard-palette] body {
+    color: var(--palette-text);
+}
+
+:root[data-dashboard-palette] .nav-btn { color: var(--palette-text); }
+:root[data-dashboard-palette] .active-nav {
+    background: var(--palette-accent);
+    color: var(--palette-bg);
+}
+
+:root[data-dashboard-palette] :is(.fav, .transport-card, .mirror-card, .spotify-card, .widget-modal, .widget-modal-section, .plan-device-card, .detect-device-row, .device-detail-modal, #calendar-dialog, #widget-calendar, #addWidgetDialog, #widgetHelpDialog) {
+    background: var(--palette-surface);
+    color: var(--palette-text);
+    border-color: var(--palette-edge);
+}
+
+:root[data-dashboard-palette] .spotify-bg,
+:root[data-dashboard-palette] .favorite-device-tile:not(.is-on) {
+    background-color: var(--palette-surface);
+    border-color: var(--palette-edge);
+}
+
+:root[data-dashboard-palette] :is(.settings-content, .settings-tabs button) {
+    background: var(--palette-surface);
+    color: var(--palette-text);
+    border-color: var(--palette-edge);
+}
+
+:root[data-dashboard-palette] .settings-tabs button[aria-selected="true"] {
+    background: color-mix(in srgb, var(--palette-surface) 75%, var(--palette-edge));
+    box-shadow: inset 4px 0 var(--settings-indicator);
+}
+
+:root[data-dashboard-palette] .settings-tabs button:focus-visible { outline-color: var(--settings-indicator); }
+
+:root[data-dashboard-palette] :is(.battery-outlet-input, .battery-outlet-select, .battery-outlet-number input) {
+    background: var(--palette-bg);
+    color: var(--palette-text);
+    border-color: var(--palette-edge);
+}
+
+:root[data-dashboard-palette] #widget-calendar .cal-widget-time {
+    color: color-mix(in srgb, var(--palette-accent), var(--palette-text));
+}
+
+:root[data-dashboard-palette] :is(#widget-meteo, #atmo-popup)[data-atmosphere] {
+    background: linear-gradient(135deg, var(--palette-surface), color-mix(in srgb, var(--palette-surface) 62%, var(--palette-edge)));
+    color: var(--palette-text);
+}
+
+:root[data-dashboard-palette] :is(#widget-meteo, #atmo-popup)[data-atmosphere="night"] {
+    background: linear-gradient(135deg, var(--palette-bg), var(--palette-surface));
+}
+
+:root[data-dashboard-palette] :is(#widget-meteo, #atmo-popup)[data-atmosphere="sun"] .atmo-orb {
+    background: linear-gradient(135deg, var(--palette-text), var(--palette-detail));
+    box-shadow: none;
+}
+
+:root[data-dashboard-palette] #widgetModal.atmosphere-modal:has(#atmo-popup) .widget-modal-close {
+    color: var(--palette-text);
 }

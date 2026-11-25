@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Domotique</title>
-    <link rel="stylesheet" href="style.css?v=20261122-device-rockers">
+    <link rel="stylesheet" href="style.css?v=20261125-devices-on-yellow">
     <script src="activity-console.js?v=20261120-error-messages"></script>
     <link rel="stylesheet" href="light-color.css?v=20261025-audit">
     <link rel="stylesheet" href="calendar.css?v=20261025-audit">
@@ -193,7 +193,7 @@
         <div class="devices-page-buttons">
             <button id="detect-devices-btn" class="plan-primary-btn" type="button" onclick="openDetectDevicesModal()">Détecter les nouveaux appareils</button>
             <button id="plan-import-btn" class="plan-primary-btn" type="button" onclick="document.getElementById('plan-image-input').click()">Importer un plan</button>
-            <input id="plan-image-input" type="file" accept=".png,.jpg,.jpeg,image/png,image/jpeg" hidden>
+            <input id="plan-image-input" type="file" accept="image/png,image/jpeg" hidden>
             <button id="plan-edit-btn" class="plan-primary-btn" type="button" onclick="planEnterEditMode()" hidden>Modifier le plan</button>
         </div>
         <div id="plan-edit-actions" class="plan-edit-actions" hidden>
@@ -274,7 +274,14 @@
             <button type="button" id="settings-tab-widgets" role="tab" aria-selected="false" aria-controls="settings-widgets" tabindex="-1" onclick="selectSettingsTab('widgets')">Widgets</button>
         </nav>
         <div class="settings-content">
-            <div id="settings-general" role="tabpanel" aria-labelledby="settings-tab-general"></div>
+            <div id="settings-general" role="tabpanel" aria-labelledby="settings-tab-general">
+                <section class="dashboard-colors" aria-labelledby="dashboard-colors-title">
+                    <h2 id="dashboard-colors-title">Couleurs du dashboard</h2>
+                    <p id="dashboard-colors-help">Le thème s’applique immédiatement et reste mémorisé sur cet appareil.</p>
+                    <div id="dashboard-color-options" role="group" aria-labelledby="dashboard-colors-title" aria-describedby="dashboard-colors-help"></div>
+                    <p id="dashboard-colors-status" role="status" hidden></p>
+                </section>
+            </div>
             <div id="settings-widgets" role="tabpanel" aria-labelledby="settings-tab-widgets" hidden>
     <div class="weather-card" style="margin-top: 30px;">
 
@@ -637,7 +644,7 @@
 <div id="nightOverlay" class="night-overlay" onclick="wakeFromNightMode()"></div>
 
 <script src="atmosphere.js?v=20261019-11"></script>
-<script src="script.js?v=20261122-device-rockers"></script>
+<script src="script.js?v=20261124-dashboard-colors"></script>
 
 <script src="calendar.js?v=20261120-diagnostics"></script>
 <script src="light-color.js?v=20261025-audit"></script>
