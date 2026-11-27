@@ -838,7 +838,6 @@ body {
 
 /* ── Fiche détaillée d'un appareil ── */
 .device-detail-overlay {
-    display: none;
     position: fixed;
     inset: 0;
     z-index: 1200;
@@ -848,8 +847,6 @@ body {
     background: rgba(3, 7, 18, .76);
     backdrop-filter: blur(8px);
 }
-
-.device-detail-overlay.visible { display: flex; }
 
 .device-detail-overlay.just-opened .device-detail-modal {
     pointer-events: none;
@@ -866,7 +863,6 @@ body {
     background: linear-gradient(145deg, rgba(29, 42, 61, .97), rgba(14, 22, 35, .98));
     box-shadow: 0 28px 80px rgba(0, 0, 0, .46), 0 0 70px rgba(70, 218, 163, .12);
     backdrop-filter: blur(18px);
-    animation: widget-modal-pop .2s ease;
 }
 
 .device-detail-modal::before {
@@ -1445,7 +1441,6 @@ body {
 
 /* ── Modale Widgets (météo / transport) ── */
 .widget-modal-overlay {
-    display: none;
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.6);
@@ -1454,10 +1449,6 @@ body {
     align-items: center;
     justify-content: center;
     padding: 20px;
-}
-
-.widget-modal-overlay.visible {
-    display: flex;
 }
 
 .widget-modal {
@@ -1469,12 +1460,58 @@ body {
     max-width: 480px;
     max-height: 80vh;
     overflow-y: auto;
-    animation: widget-modal-pop 0.2s ease;
 }
 
-@keyframes widget-modal-pop {
-    from { transform: scale(0.92); opacity: 0; }
-    to   { transform: scale(1);    opacity: 1; }
+.popup-overlay { display: none; }
+.popup-overlay.visible { display: flex; }
+
+@media (prefers-reduced-motion: no-preference) {
+    @supports (transition-behavior: allow-discrete) and (overlay: auto) {
+        :is(.popup-overlay, dialog) {
+            --popup-duration: 250ms;
+            --popup-ease: ease-in-out;
+            --popup-folded: inset(0 0 96% round 16px);
+            --popup-revealed: inset(-100px round 16px);
+            opacity: 0;
+        }
+
+        :is(.popup-overlay.visible, dialog[open]) {
+            --popup-duration: 330ms;
+            --popup-ease: cubic-bezier(.22, .8, .25, 1);
+            opacity: 1;
+        }
+
+        .popup-overlay {
+            transition: opacity var(--popup-duration) var(--popup-ease), display var(--popup-duration) allow-discrete;
+        }
+
+        .popup-overlay:not(.visible), dialog:not([open]), dialog:not([open])::backdrop {
+            pointer-events: none;
+        }
+
+        :is(.popup-overlay > .popup-surface, dialog) { clip-path: var(--popup-folded); }
+        :is(.popup-overlay.visible > .popup-surface, dialog[open]) { clip-path: var(--popup-revealed); }
+
+        .popup-overlay > .popup-surface { transition: clip-path var(--popup-duration) var(--popup-ease); }
+
+        dialog {
+            transition: clip-path var(--popup-duration) var(--popup-ease), opacity var(--popup-duration) var(--popup-ease),
+                display var(--popup-duration) allow-discrete, overlay var(--popup-duration) allow-discrete;
+        }
+
+        dialog::backdrop {
+            opacity: 0;
+            transition: opacity var(--popup-duration) var(--popup-ease),
+                display var(--popup-duration) allow-discrete, overlay var(--popup-duration) allow-discrete;
+        }
+
+        dialog[open]::backdrop { opacity: 1; }
+
+        @starting-style {
+            :is(.popup-overlay.visible, dialog[open]), dialog[open]::backdrop { opacity: 0; }
+            :is(.popup-overlay.visible > .popup-surface, dialog[open]) { clip-path: var(--popup-folded); }
+        }
+    }
 }
 
 .widget-modal-close {
@@ -2221,31 +2258,76 @@ body {
     min-width: 0;
 }
 
+/* ── Transition entre pages ── */
+.dashboard-pages.is-page-sliding {
+    position: relative;
+    min-height: 100vh;
+    overflow: hidden;
+    overflow: clip;
+}
+
+.dashboard-pages.is-page-sliding > .page:not(.page-leaving) {
+    position: relative;
+    z-index: 1;
+}
+
+.dashboard-pages > .page-leaving {
+    position: absolute;
+    inset: 0 0 auto;
+    width: 100%;
+    pointer-events: none;
+}
+
 /* ── NavBar ── */
 .navbar {
+    --nav-button-size: 60px;
+    --nav-motion: 360ms cubic-bezier(.22, .8, .25, 1);
     position: fixed;
+    z-index: 50;
     bottom: 0;
     left: 0;
     right: 0;
     height: 80px;
     background: var(--palette-bg);
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    place-items: center;
+}
+
+.nav-indicator {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 20%;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+    transform: translateX(calc(var(--nav-index, 0) * 100%));
+    transition: transform var(--nav-motion);
+}
+
+.nav-indicator::before {
+    content: "";
+    width: min(var(--nav-button-size), 100%);
+    height: var(--nav-button-size);
+    border-radius: 20px;
+    background: var(--palette-edge);
+    background: color-mix(in srgb, var(--palette-accent) 32%, var(--palette-bg));
 }
 
 .nav-btn {
+    position: relative;
     background: none;
     border: none;
-    color: white;
+    color: var(--palette-text);
     font-size: 2rem;
     cursor: pointer;
-    width: 60px;
-    height: 60px;
+    width: min(var(--nav-button-size), 100%);
+    height: var(--nav-button-size);
     border-radius: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: color var(--nav-motion);
 }
 
 .nav-icon {
@@ -2253,8 +2335,24 @@ body {
     height: 26px;
 }
 
-.active-nav {
-    background: #374151;
+.nav-btn.active-nav {
+    color: color-mix(in srgb, var(--palette-text) 75%, var(--palette-accent));
+}
+
+.nav-btn.nav-bounce .nav-icon {
+    animation: navbar-bounce var(--nav-motion);
+}
+
+@keyframes navbar-bounce {
+    0% { transform: translateY(1px) scale(.86); }
+    43% { transform: translateY(-8px) scale(1.14); }
+    74% { transform: translateY(1px) scale(.97); }
+    100% { transform: translateY(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nav-indicator, .nav-btn { transition: none; }
+    .nav-btn.nav-bounce .nav-icon { animation: none; }
 }
 
 /* ── Ligne météo + transports + miroir : 2 cases par ligne ── */
@@ -2884,7 +2982,6 @@ body {
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.5);
-    display: flex;
     align-items: center;
     justify-content: center;
     z-index: 1200;
@@ -3692,6 +3789,9 @@ body {
 .settings-tabs button:focus-visible { outline:2px solid #93c5fd; outline-offset:-4px; }
 .settings-content { position:relative; z-index:1; background:#192334; border:1px solid #374151; border-radius:36px; padding:28px; min-height:560px; min-width:0; }
 .settings-content [hidden] { display:none !important; }
+@media (prefers-reduced-motion: no-preference) {
+    .settings-tabs button { transition: color 180ms ease, background-color 180ms ease, box-shadow 180ms ease; }
+}
 #settings .settings-content .weather-card { margin:0 !important; padding:0; background:transparent; border:0; border-radius:0; box-shadow:none; cursor:default; }
 #settings .settings-content .weather-card + .weather-card { margin-top:30px !important; padding-top:26px; border-top:0; }
 .settings-content h2 { font-size:1.2rem; }
@@ -4444,12 +4544,6 @@ body {
 /* Les couleurs d’état et les couleurs officielles des lignes restent propres aux widgets. */
 :root[data-dashboard-palette] body {
     color: var(--palette-text);
-}
-
-:root[data-dashboard-palette] .nav-btn { color: var(--palette-text); }
-:root[data-dashboard-palette] .active-nav {
-    background: var(--palette-accent);
-    color: var(--palette-bg);
 }
 
 :root[data-dashboard-palette] :is(.fav, .transport-card, .mirror-card, .spotify-card, .widget-modal, .widget-modal-section, .plan-device-card, .detect-device-row, .device-detail-modal, #calendar-dialog, #widget-calendar, #addWidgetDialog, #widgetHelpDialog) {

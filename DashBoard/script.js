@@ -188,8 +188,9 @@ function openWidgetModal(section) {
 
 function closeWidgetModal() {
     const overlay = document.getElementById('widgetModal');
+    if (!overlay.classList.contains('visible')) return;
     const wasWeather = overlay.classList.contains('atmosphere-modal');
-    overlay.classList.remove('visible', 'atmosphere-modal');
+    overlay.classList.remove('visible');
     if (wasWeather) document.getElementById('widget-meteo').focus();
 }
 
@@ -1795,12 +1796,20 @@ async function onNearbyLineClick(item, isFav) {
 
 function showDirectionPicker(item, directions) {
     const overlay = document.createElement("div");
-    overlay.className = "direction-picker-overlay";
-    overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+    overlay.className = "direction-picker-overlay popup-overlay visible";
+    overlay.onclick = (e) => { if (e.target === overlay) closePicker(); };
 
     const box = document.createElement("div");
-    box.className = "direction-picker-box";
+    box.className = "direction-picker-box popup-surface";
     box.innerHTML = `<div class="direction-picker-title">Ligne ${item.lineNumber} — ${item.stopLabel}<br>Choisir la direction</div>`;
+
+    function closePicker() {
+        if (!overlay.classList.contains("visible")) return;
+        overlay.classList.remove("visible");
+        const animations = overlay.getAnimations?.() || [];
+        if (!animations.length) overlay.remove();
+        else Promise.allSettled(animations.map(animation => animation.finished)).then(() => overlay.remove());
+    }
 
     directions.forEach(d => {
         const btn = document.createElement("button");
@@ -1820,7 +1829,7 @@ function showDirectionPicker(item, directions) {
             saveTransportRoutes(routes);
             renderTransportRoutesList();
             updateTransports();
-            overlay.remove();
+            closePicker();
         };
         box.appendChild(btn);
     });
@@ -1828,7 +1837,7 @@ function showDirectionPicker(item, directions) {
     const cancel = document.createElement("button");
     cancel.className = "direction-picker-cancel";
     cancel.textContent = "Annuler";
-    cancel.onclick = () => overlay.remove();
+    cancel.onclick = closePicker;
     box.appendChild(cancel);
 
     overlay.appendChild(box);
@@ -3547,21 +3556,65 @@ phoneSelectInterval = setInterval(refreshPhoneEntitySelect, 30000); // détecte 
 
 // ─── Navigation ─────────────────────────────────────────────────────────────
 
+let currentDashboardPage = document.getElementById("home");
+let finishPageSlide;
+
+function slideDashboardPage(next, direction) {
+    finishPageSlide?.();
+    const previous = currentDashboardPage;
+    currentDashboardPage = next;
+    next.style.display = "";
+
+    if (typeof next.animate !== "function" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        previous.style.display = "none";
+        return;
+    }
+
+    const pages = next.parentElement;
+    pages.classList.add("is-page-sliding");
+    previous.classList.add("page-leaving");
+    previous.setAttribute("inert", "");
+    previous.setAttribute("aria-hidden", "true");
+
+    const timing = { duration: 360, easing: "cubic-bezier(.22, .8, .25, 1)", fill: "both" };
+    const rest = { transform: "translateX(0)", opacity: 1 };
+    const outgoing = previous.animate([rest, { transform: `translateX(${-42 * direction}px)`, opacity: 0 }], timing);
+    const incoming = next.animate([{ transform: `translateX(${64 * direction}px)`, opacity: 0 }, rest], timing);
+
+    finishPageSlide = () => {
+        previous.style.display = "none";
+        previous.classList.remove("page-leaving");
+        previous.removeAttribute("inert");
+        previous.removeAttribute("aria-hidden");
+        pages.classList.remove("is-page-sliding");
+        incoming.onfinish = null;
+        outgoing.cancel();
+        incoming.cancel();
+        finishPageSlide = undefined;
+    };
+    incoming.onfinish = finishPageSlide;
+}
+
 function showPage(pageId, button) {
     if (pageId !== "settings") settingsTapCount = 0;
     if (pageId !== "home") {
         homeTapCount = 0;
         cancelWidgetSelection();
     }
-    document.querySelectorAll(".page").forEach(page => {
-        page.style.display = "none";
-    });
     const activePage = document.getElementById(pageId);
-    activePage.style.display = "";
-    document.querySelectorAll(".nav-btn").forEach(btn => {
-        btn.classList.remove("active-nav");
-    });
-    button.classList.add("active-nav");
+    if (!button.classList.contains("active-nav")) {
+        const navbar = button.parentElement;
+        const previous = navbar.querySelector(".active-nav");
+        const buttons = Array.from(navbar.querySelectorAll(".nav-btn"));
+        const index = buttons.indexOf(button);
+        const direction = Math.sign(index - buttons.indexOf(previous));
+        previous.classList.remove("active-nav", "nav-bounce");
+        previous.removeAttribute("aria-current");
+        button.classList.add("active-nav", "nav-bounce");
+        button.setAttribute("aria-current", "page");
+        navbar.style.setProperty("--nav-index", index);
+        slideDashboardPage(activePage, direction);
+    }
     if (pageId === "activity-console") {
         activePage.dispatchEvent(new Event("activityopen"));
     } else {
@@ -5839,13 +5892,31 @@ startMirror = function () {
 };
 
 // Navigation des catégories de paramètres, y compris au clavier.
+let settingsTabSlide;
+
 function selectSettingsTab(category) {
-    document.querySelectorAll('.settings-tabs [role="tab"]').forEach(tab => {
-        const selected = tab.id === `settings-tab-${category}`;
+    const tabs = Array.from(document.querySelectorAll('.settings-tabs [role="tab"]'));
+    const previous = tabs.findIndex(tab => tab.getAttribute('aria-selected') === 'true');
+    const next = tabs.findIndex(tab => tab.id === `settings-tab-${category}`);
+    if (next < 0 || next === previous) return;
+
+    settingsTabSlide?.cancel();
+    settingsTabSlide = undefined;
+    tabs.forEach((tab, index) => {
+        const selected = index === next;
         tab.setAttribute('aria-selected', String(selected));
         tab.tabIndex = selected ? 0 : -1;
         document.getElementById(tab.getAttribute('aria-controls')).hidden = !selected;
     });
+
+    const panel = document.getElementById(tabs[next].getAttribute('aria-controls'));
+    if (previous < 0 || typeof panel.animate !== 'function' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const offset = next > previous ? 22 : -22;
+    settingsTabSlide = panel.animate([
+        { opacity: .12, transform: `translateY(${offset}px)` },
+        { opacity: 1, transform: 'none' }
+    ], { duration: 300, easing: 'cubic-bezier(.22, .8, .25, 1)' });
 }
 document.querySelector('.settings-tabs').addEventListener('keydown', event => {
     const tabs = Array.from(document.querySelectorAll('.settings-tabs [role="tab"]'));

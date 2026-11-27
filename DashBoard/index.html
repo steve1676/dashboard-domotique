@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Domotique</title>
-    <link rel="stylesheet" href="style.css?v=20261125-home-plan-pencil-size">
+    <link rel="stylesheet" href="style.css?v=20261127-settings-slide">
     <script src="activity-console.js?v=20261120-error-messages"></script>
     <link rel="stylesheet" href="light-color.css?v=20261025-audit">
     <link rel="stylesheet" href="calendar.css?v=20261025-audit">
@@ -13,6 +13,7 @@
 
 <body>
 
+<main class="dashboard-pages">
 <!-- ── Page Accueil ── -->
 <div id="home" class="page container">
 
@@ -388,18 +389,21 @@
     </div>
 </div>
 
+</main>
+
 <!-- ── NavBar ── -->
-<div class="navbar">
-    <button class="nav-btn active-nav" onclick="handleHomeNavigation(this)" aria-label="Accueil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon"><path d="M5 12l-2 0l9 -9l9 9l-2 0" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" /><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" /></svg></button>
+<nav class="navbar" aria-label="Navigation principale">
+    <span class="nav-indicator" aria-hidden="true"></span>
+    <button class="nav-btn active-nav" onclick="handleHomeNavigation(this)" aria-label="Accueil" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon"><path d="M5 12l-2 0l9 -9l9 9l-2 0" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" /><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" /></svg></button>
     <button class="nav-btn" onclick="showPage('allDevice', this)" aria-label="Tous les appareils"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon"><path d="M13 9a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-6a1 1 0 0 1 -1 -1v-10z" /><path d="M18 8v-3a1 1 0 0 0 -1 -1h-13a1 1 0 0 0 -1 1v12a1 1 0 0 0 1 1h9" /><path d="M16 9h2" /></svg></button>
     <button class="nav-btn" onclick="showPage('activity-console', this)" aria-label="Console"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon"><path d="m5 7 5 5-5 5m8 0h6" /></svg></button>
     <button class="nav-btn" onclick="showPage('camera', this)" aria-label="Caméras"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon"><path d="M5 7h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2" /><path d="M12 13m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /></svg></button>
     <button class="nav-btn" onclick="handleSettingsNavigation(this)" aria-label="Paramètres" title="Paramètres — trois appuis rapides pour recharger le dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="nav-icon"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg></button>
-</div>
+</nav>
 
 <!-- ── Modale Widgets (météo / transport) ── -->
-<div id="widgetModal" class="widget-modal-overlay" onclick="if(event.target===this) closeWidgetModal()">
-    <div class="widget-modal">
+<div id="widgetModal" class="widget-modal-overlay popup-overlay" onclick="if(event.target===this) closeWidgetModal()">
+    <div class="widget-modal popup-surface">
         <button id="mainModalClose" class="widget-modal-close" onclick="closeWidgetModal()" aria-label="Fermer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-btn"><path d="M9.16998 14.83L14.83 9.17004"/><path d="M14.83 14.83L9.16998 9.17004"/><path d="M9 22H15C20 22 22 20 22 15V9C22 4 20 2 15 2H9C4 2 2 4 2 9V15C2 20 4 22 9 22Z"/></svg></button>
 
         <!-- Prévisions Atmosphère -->
@@ -613,16 +617,16 @@
 </div>
 
 <!-- ── Fiche détaillée d'un appareil ── -->
-<div id="deviceDetailModal" class="device-detail-overlay" onclick="if(event.target===this) closeDeviceDetail()" aria-hidden="true">
-    <section class="device-detail-modal" role="dialog" aria-modal="true" aria-labelledby="device-detail-name">
+<div id="deviceDetailModal" class="device-detail-overlay popup-overlay" onclick="if(event.target===this) closeDeviceDetail()" aria-hidden="true">
+    <section class="device-detail-modal popup-surface" role="dialog" aria-modal="true" aria-labelledby="device-detail-name">
         <button class="device-detail-close" type="button" onclick="closeDeviceDetail()" aria-label="Fermer">✕</button>
         <div id="device-detail-content"></div>
     </section>
 </div>
 
 <!-- ── Modale : détection de nouveaux appareils ── -->
-<div id="detectDevicesModal" class="widget-modal-overlay" onclick="if(event.target===this) closeDetectDevicesModal()">
-    <div class="widget-modal">
+<div id="detectDevicesModal" class="widget-modal-overlay popup-overlay" onclick="if(event.target===this) closeDetectDevicesModal()">
+    <div class="widget-modal popup-surface">
         <button class="widget-modal-close" onclick="closeDetectDevicesModal()" aria-label="Fermer">✕</button>
         <h2>Détecter les nouveaux appareils</h2>
         <p class="plan-editor-muted" style="margin-top:-6px;">Compare le plan avec les appareils connus de Home Assistant.</p>
@@ -672,7 +676,7 @@
 <div id="nightOverlay" class="night-overlay" onclick="wakeFromNightMode()"></div>
 
 <script src="atmosphere.js?v=20261019-11"></script>
-<script src="script.js?v=20261125-plan-framing"></script>
+<script src="script.js?v=20261127-settings-slide"></script>
 
 <script src="calendar.js?v=20261120-diagnostics"></script>
 <script src="light-color.js?v=20261025-audit"></script>
